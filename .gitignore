@@ -1,0 +1,5 @@
+*.exe
+\.vscode
+\libs
+test.cpp
+todo
