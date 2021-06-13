@@ -1,4 +1,5 @@
 #include "Game.h"
+#include <iostream>
 
 Game::~Game() {
     // Deallocate Program
@@ -25,10 +26,10 @@ void Game::run() {
     ShaderProgram* shaderProgram = new BasicShader();
     int shaderID = scene->addShaderProgram(shaderProgram);
 
-    char spritePath[] = "./src/assets/sprites/wikicat.png";
+    char spritePath[] = "./src/assets/sprites/BagHead.png";
     int spriteID = scene->addSprite(spritePath);
 
-    scene->addInstance(spriteID, shaderID, glm::vec3(0, 0, 0), glm::vec3(10, 20, 10));
+    scene->addInstance(spriteID, shaderID, glm::vec3(200, 200, 0), glm::vec3(900, 900, 1));
 
     // While application is running
     while(!input->quitProgram() && !input->isKeyDown(SDLK_ESCAPE)) {
@@ -44,6 +45,8 @@ void Game::run() {
         // Update screen
         SDL_GL_SwapWindow(window);
     }
+
+    std::cout << "\nOpenGLError Code: "<< glGetError() << "\n";
 
     SDL_StopTextInput();
 }

@@ -20,5 +20,5 @@ namespace render_consts {
 namespace input_consts {
 
     static const float MOUSE_SPEED = 0.003f;
-    static const float KEY_SPEED = 6.0f;
+    static const float KEY_SPEED = 120.0f;
 }

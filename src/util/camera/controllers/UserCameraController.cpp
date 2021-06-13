@@ -19,11 +19,11 @@ void UserCameraController::update(glm::vec3& pos) {
 
     // Move forward
     if (input->isKeyDown(SDLK_w)) {
-        pos += forward * deltaTime * input_consts::KEY_SPEED;
+        pos -= forward * deltaTime * input_consts::KEY_SPEED;
     }
     // Move backward
     if (input->isKeyDown(SDLK_s)) {
-        pos -= forward * deltaTime * input_consts::KEY_SPEED;
+        pos += forward * deltaTime * input_consts::KEY_SPEED;
     }
     // Strafe left
     if (input->isKeyDown(SDLK_a)) {

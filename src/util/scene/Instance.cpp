@@ -19,9 +19,9 @@ void Instance::updateModel() {
     if (needsUpdate && !isStatic) {
 
         // Order matters
-        this->model = glm::mat4(1);
+        this->model = glm::mat4(1.0f);
 
-        glm::mat4 rotate = glm::mat4(1);
+        glm::mat4 rotate = glm::mat4(1.0f);
         
         rotate = glm::rotate(rotate, this->rotation.x, glm::vec3(1, 0, 0));
         rotate = glm::rotate(rotate, this->rotation.y, glm::vec3(0, 1, 0));
