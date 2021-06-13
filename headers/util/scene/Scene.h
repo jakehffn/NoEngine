@@ -32,6 +32,8 @@ public:
     void render();
 
 private:
+    void renderInstance(Instance instance);
+
     SDL_Window* window;
     Clock* clock;
     Input* input;

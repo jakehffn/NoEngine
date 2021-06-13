@@ -37,8 +37,7 @@ void Game::run() {
         clock->tick();
         printf("FPS: %f\r", this->clock->getAverageFPS());
 
-        // std::cout << clock->getFPS();
-        // clock->getFPS();
+    
         
         scene->render();
 
