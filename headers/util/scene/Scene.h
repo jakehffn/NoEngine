@@ -7,6 +7,7 @@
 #include "Camera.h"
 #include "Clock.h"
 #include "ShaderProgram.h"
+#include "BasicShader.h"
 #include "UserCameraController.h"
 
 class Scene {
@@ -16,7 +17,7 @@ public:
     // Returns ID for shader program (currently just vector pos)
     int addShaderProgram(ShaderProgram* shaderProgram);
     // Returns ID for obj (currenlty just vector pos)
-    int addSprite(char* spritePath);
+    int addSprite(const char* spritePath);
     // Returns ID for instance (currently just vector pos)
     int addInstance(int spriteID, glm::vec3 position, 
         glm::vec3 scale=glm::vec3(1, 1, 1), glm::vec3 rotation=glm::vec3(0, 0, 0));

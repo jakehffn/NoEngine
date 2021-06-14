@@ -3,7 +3,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-Sprite::Sprite(char* spritePath) {
+Sprite::Sprite(const char* spritePath) {
 
     // create VAO
     float shaderData[] = { 
@@ -56,4 +56,12 @@ GLuint Sprite::getVAO() {
 GLuint Sprite::getTexture() {
     // printf("texture retrieved: %i\n", texture);
     return this->texture;
+}
+
+int Sprite::getWidth() {
+    return this->width;
+}
+
+int Sprite::getHeight() {
+    return this->height;
 }

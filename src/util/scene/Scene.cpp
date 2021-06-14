@@ -8,6 +8,9 @@ Scene::Scene(SDL_Window* window, Clock* clock, Input* input, CameraController* c
         this->cameraControllers = std::vector<CameraController*>{ cameraController };
         this->camera = Camera(this->cameraControllers.at(0));
 
+        ShaderProgram* shaderProgram = new BasicShader();
+        int shaderID = this->addShaderProgram(shaderProgram);
+
         // glClearColor(0.0f, 0.4f, 0.4f, 0.0f);
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
@@ -22,7 +25,7 @@ int Scene::addShaderProgram(ShaderProgram* shaderProgram) {
     return this->shaderPrograms.size() - 1;
 }
 
-int Scene::addSprite(char* spritePath) {
+int Scene::addSprite(const char* spritePath) {
 
     Sprite newSprite = Sprite(spritePath);
     this->sprites.push_back(newSprite);
