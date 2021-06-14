@@ -15,6 +15,7 @@ namespace render_consts {
     static const int COLOR_MODE_MULTI = 1;
 
     static const int SCREEN_FPS = 60;
+    static const float SPR_SCALE_UP = 5.0f;
 }
 
 namespace input_consts {

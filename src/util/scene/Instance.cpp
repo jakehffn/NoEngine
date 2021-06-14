@@ -1,12 +1,15 @@
 #include "Instance.h"
 
 Instance::Instance(Sprite* sprite, int shaderProgramID, glm::vec3 position, 
-    glm::vec3 scale /*=glm::vec3(1)*/, glm::vec3 rotation /*=glm::vec3(0)*/) :
+    glm::vec3 rotation /*=glm::vec3(0)*/) :
         sprite{ sprite }, shaderProgramID{ shaderProgramID },
-        position{ position }, rotation{ rotation }, scale{ scale }, 
+        position{ position }, rotation{ rotation }, 
         needsUpdate{ true }, isStatic{ false } {
 
-    updateModel();
+        this->scale = glm::vec3(sprite->getWidth() * render_consts::SPR_SCALE_UP, 
+            sprite->getHeight() * render_consts::SPR_SCALE_UP, 1);
+
+        updateModel();
 }
 
 Instance::Instance(Sprite* sprite, GLuint openGLShaderProgramID, glm::mat4 model) :
