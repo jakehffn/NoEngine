@@ -29,21 +29,16 @@ int Scene::addSprite(char* spritePath) {
     return this->sprites.size() - 1;
 }
 
-int Scene::addInstance(int objID, int shaderProgramID, glm::vec3 position, glm::vec3 scale, glm::vec3 rotation) {
+int Scene::addInstance(int spriteID, glm::vec3 position, glm::vec3 scale, glm::vec3 rotation) {
     
-    Sprite* instanceObject = &(this->sprites.at(objID));
+    Sprite* instanceObject = &(this->sprites.at(spriteID));
 
-    instances.emplace_back(instanceObject, shaderProgramID, position, scale, rotation);
+    assert(0 < shaderPrograms.size());
+
+    instances.emplace_back(instanceObject, 0, // Default to first shader program
+        position, rotation);
 
     return instances.size() - 1;
-}
-
-int Scene::addInstance(int objID, int shaderProgramID, glm::vec3 position, glm::vec3 scale) {
-    return this->addInstance(objID, shaderProgramID, position, scale, glm::vec3(0, 0, 0));
-}
-
-int Scene::addInstance(int objID, int shaderProgramID, glm::vec3 position) {
-    return this->addInstance(objID, shaderProgramID, position, glm::vec3(1, 1, 1), glm::vec3(0, 0, 0));
 }
 
 Instance& Scene::getInstance(int instanceID) {
@@ -114,6 +109,7 @@ void Scene::renderInstance(Instance instance) {
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, instance.getSpriteTexture());
 
+    // Remove anti-aliasing
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
