@@ -92,6 +92,10 @@ int Instance::getShaderProgramID() {
     return this->shaderProgramID;
 }
 
+void Instance::setShaderProgram(int shaderProgramID) {
+    this->shaderProgramID = shaderProgramID;
+}
+
 GLuint Instance::getSpriteVAO() {
     return this->sprite->getVAO();
 }

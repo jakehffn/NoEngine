@@ -10,7 +10,7 @@
 class Instance {
 public:
     Instance(Sprite* sprite, int shaderProgramID, glm::vec3 position, 
-        glm::vec3 scale=glm::vec3(1), glm::vec3 rotation=glm::vec3(0));
+        glm::vec3 rotation=glm::vec3(0));
     Instance(Sprite* sprite, GLuint openGLShaderProgramID, glm::mat4 model);
 
     void updateModel();
@@ -27,6 +27,8 @@ public:
     glm::vec3 getScale();
 
     int getShaderProgramID();
+    void setShaderProgram(int shaderProgramID);
+
     GLuint getSpriteVAO();
     GLuint getSpriteTexture();
     
