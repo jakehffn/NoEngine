@@ -7,7 +7,6 @@
 
 #include "consts.h"
 
-// Used to hold specific model vertex data
 class Sprite {
 public:
     Sprite(const char* spritePath);
