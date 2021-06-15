@@ -3,7 +3,7 @@
 #include <vector>
 
 #include "Sprite.h"
-#include "Instance.h"
+#include "GameObject.h"
 #include "Camera.h"
 #include "Clock.h"
 #include "ShaderProgram.h"
@@ -19,9 +19,8 @@ public:
     // Returns ID for obj (currenlty just vector pos)
     int addSprite(const char* spritePath);
     // Returns ID for instance (currently just vector pos)
-    int addInstance(int spriteID, glm::vec3 position, 
-        glm::vec3 scale=glm::vec3(1, 1, 1), glm::vec3 rotation=glm::vec3(0, 0, 0));
-    Instance& getInstance(int instanceID);
+    int addGameObject(int spriteID, glm::vec3 position, glm::vec3 rotation=glm::vec3(0, 0, 0));
+    GameObject& getGameObject(int gameObjectID);
 
     // Returns the position of added camera controller
     int addCameraController(CameraController* cameraController);
@@ -31,7 +30,7 @@ public:
     void render();
 
 private:
-    void renderInstance(Instance instance);
+    void renderInstance(GameObject instance);
     void renderEnvironment();
 
     SDL_Window* window;
@@ -45,5 +44,5 @@ private:
 
     std::vector<ShaderProgram*> shaderPrograms;
     std::vector<Sprite> sprites;
-    std::vector<Instance> instances;
+    std::vector<GameObject> gameObjects;
 };

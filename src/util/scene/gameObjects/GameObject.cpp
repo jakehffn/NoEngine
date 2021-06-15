@@ -1,23 +1,23 @@
-#include "Instance.h"
+#include "GameObject.h"
 
-Instance::Instance(Sprite* sprite, int shaderProgramID, glm::vec3 position, 
-    glm::vec3 rotation /*=glm::vec3(0)*/) :
-        sprite{ sprite }, shaderProgramID{ shaderProgramID },
+GameObject::GameObject(int spriteID, const Sprite sprite, int shaderProgramID, 
+    glm::vec3 position, glm::vec3 rotation /*=glm::vec3(0)*/) :
+        spriteID{ spriteID }, shaderProgramID{ shaderProgramID },
         position{ position }, rotation{ rotation }, 
         needsUpdate{ true }, isStatic{ false } {
 
-        this->scale = glm::vec3(sprite->getWidth() * render_consts::SPR_SCALE_UP, 
-            sprite->getHeight() * render_consts::SPR_SCALE_UP, 1);
+        this->scale = glm::vec3(sprite.getWidth() * render_consts::SPR_SCALE_UP, 
+            sprite.getHeight() * render_consts::SPR_SCALE_UP, 1);
 
         updateModel();
 }
 
-Instance::Instance(Sprite* sprite, GLuint openGLShaderProgramID, glm::mat4 model) :
-    sprite{ sprite }, model{ model }, 
+GameObject::GameObject(int spriteID, GLuint openGLShaderProgramID, glm::mat4 model) :
+    spriteID{ spriteID }, model{ model }, 
     position{ glm::vec3() }, rotation{ glm::vec3() }, scale{ glm::vec3() }, 
     needsUpdate{ false }, isStatic{ true } {}
 
-void Instance::updateModel() {
+void GameObject::updateModel() {
 
     if (needsUpdate && !isStatic) {
 
@@ -40,11 +40,11 @@ void Instance::updateModel() {
     }
 }
 
-glm::mat4 Instance::getModel() {
+glm::mat4 GameObject::getModel() {
     return this->model;
 }
 
-void Instance::setPosition(glm::vec3 position) {
+void GameObject::setPosition(glm::vec3 position) {
 
     assert(("setPosition() called on static instance", !isStatic));
 
@@ -52,7 +52,7 @@ void Instance::setPosition(glm::vec3 position) {
     needsUpdate = true;
 }
 
-void Instance::addPosition(glm::vec3 position) {
+void GameObject::addPosition(glm::vec3 position) {
 
     assert(("addPosition() called on static instance", !isStatic));
 
@@ -60,11 +60,11 @@ void Instance::addPosition(glm::vec3 position) {
     needsUpdate = true;
 }
 
-glm::vec3 Instance::getPosition() {
+glm::vec3 GameObject::getPosition() const {
     return this->position;
 }
 
-void Instance::setRotation(glm::vec3 rotation) {
+void GameObject::setRotation(glm::vec3 rotation) {
 
     assert(("setRotation() called on static instance", !isStatic));
 
@@ -72,11 +72,11 @@ void Instance::setRotation(glm::vec3 rotation) {
     needsUpdate = true;
 }
 
-glm::vec3 Instance::getRotation() {
+glm::vec3 GameObject::getRotation() const {
     return this->rotation;
 }
 
-void Instance::setScale(glm::vec3 scale) {
+void GameObject::setScale(glm::vec3 scale) {
 
     assert(("setScale() called on static instance", !isStatic));
 
@@ -84,22 +84,18 @@ void Instance::setScale(glm::vec3 scale) {
     needsUpdate = true;
 }
 
-glm::vec3 Instance::getScale() {
+glm::vec3 GameObject::getScale() const {
     return this->scale;
 }
 
-int Instance::getShaderProgramID() {
+int GameObject::getShaderProgramID() {
     return this->shaderProgramID;
 }
 
-void Instance::setShaderProgram(int shaderProgramID) {
+void GameObject::setShaderProgram(int shaderProgramID) {
     this->shaderProgramID = shaderProgramID;
 }
 
-GLuint Instance::getSpriteVAO() {
-    return this->sprite->getVAO();
-}
-
-GLuint Instance::getSpriteTexture() {
-    return this->sprite->getTexture();
+GLuint GameObject::getSpriteID() const {
+    return this->spriteID;
 }

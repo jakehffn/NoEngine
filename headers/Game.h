@@ -12,8 +12,6 @@
 #include "Clock.h"
 #include "BasicShader.h"
 
-#include "player.h"
-
 #include "UserCameraController.h"
 
 class Game {

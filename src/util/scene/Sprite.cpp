@@ -49,19 +49,19 @@ Sprite::Sprite(const char* spritePath) {
     stbi_image_free(textureData);
 }
 
-GLuint Sprite::getVAO() {
+GLuint Sprite::getVAO() const {
     return this->VAO;
 }
 
-GLuint Sprite::getTexture() {
+GLuint Sprite::getTexture() const {
     // printf("texture retrieved: %i\n", texture);
     return this->texture;
 }
 
-int Sprite::getWidth() {
+int Sprite::getWidth() const {
     return this->width;
 }
 
-int Sprite::getHeight() {
+int Sprite::getHeight() const {
     return this->height;
 }

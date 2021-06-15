@@ -3,7 +3,7 @@
 Scene::Scene(SDL_Window* window, Clock* clock, Input* input, CameraController* cameraController) :
     window{ window }, clock{ clock }, input{ input }, cameraControllerPosition{ 0 },
     shaderPrograms{ std::vector<ShaderProgram*>() }, 
-    sprites{ std::vector<Sprite>() }, instances{ std::vector<Instance>() } {
+    sprites{ std::vector<Sprite>() }, gameObjects{ std::vector<GameObject>() } {
 
         this->cameraControllers = std::vector<CameraController*>{ cameraController };
         this->camera = Camera(this->cameraControllers.at(0));
@@ -32,23 +32,21 @@ int Scene::addSprite(const char* spritePath) {
     return this->sprites.size() - 1;
 }
 
-int Scene::addInstance(int spriteID, glm::vec3 position, glm::vec3 scale, glm::vec3 rotation) {
-    
-    Sprite* instanceObject = &(this->sprites.at(spriteID));
+int Scene::addGameObject(int spriteID, glm::vec3 position, glm::vec3 rotation) {
 
     assert(0 < shaderPrograms.size());
 
-    instances.emplace_back(instanceObject, 0, // Default to first shader program
+    gameObjects.emplace_back(spriteID, this->sprites.at(spriteID), 0, // Default to first shader program
         position, rotation);
 
-    return instances.size() - 1;
+    return gameObjects.size() - 1;
 }
 
-Instance& Scene::getInstance(int instanceID) {
+GameObject& Scene::getGameObject(int instanceID) {
 
-    assert(instanceID < instances.size());
+    assert(instanceID < gameObjects.size());
 
-    return this->instances[instanceID];
+    return this->gameObjects[instanceID];
 }
 
 int Scene::addCameraController(CameraController* cameraController) {
@@ -84,33 +82,35 @@ void Scene::render() {
     // Clear the screen
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    for (auto& instance : instances) {
-        renderInstance(instance);
+    for (auto& gameObject : gameObjects) {
+        renderInstance(gameObject);
     }
 }
 
-void Scene::renderInstance(Instance instance) {
+void Scene::renderInstance(GameObject gameObject) {
 
-    instance.updateModel();
+    gameObject.updateModel();
 
-    int instanceShaderID = instance.getShaderProgramID();
+    int gameObjectShaderID = gameObject.getShaderProgramID();
 
-    assert(instanceShaderID < shaderPrograms.size());
+    assert(gameObjectShaderID < shaderPrograms.size());
 
     // Use shader
-    ShaderProgram* instanceShader = this->shaderPrograms.at(instanceShaderID);
-    GLuint openGLShaderProgramID = instanceShader->getOpenGLShaderProgramID();
+    ShaderProgram* gameObjectShader = this->shaderPrograms.at(gameObjectShaderID);
+    GLuint openGLShaderProgramID = gameObjectShader->getOpenGLShaderProgramID();
     glUseProgram(openGLShaderProgramID);
 
-    glm::mat4 model = instance.getModel();
+    glm::mat4 model = gameObject.getModel();
     glm::mat4 view = this->camera.getViewMatrix();
     glm::mat4 projection = this->camera.getProjectionMatrix();
 
-    instanceShader->renderSetup(model, view, projection);
+    gameObjectShader->renderSetup(model, view, projection);
     
-    glBindVertexArray(instance.getSpriteVAO());
+    Sprite& sprite = this->sprites.at(gameObject.getSpriteID());
+
+    glBindVertexArray(sprite.getVAO());
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, instance.getSpriteTexture());
+    glBindTexture(GL_TEXTURE_2D, sprite.getTexture());
 
     // Remove anti-aliasing
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);

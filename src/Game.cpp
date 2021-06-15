@@ -23,7 +23,10 @@ void Game::init(SDL_Window* window) {
 
 void Game::run() {
 
-    Player player(this->scene, glm::vec3(100, 100, 0));
+    char spritePath[] = "./src/assets/sprites/BagHead.png";
+    int spriteID = scene->addSprite(spritePath);
+
+    scene->addGameObject(spriteID, glm::vec3(200, 200, 0));
 
     // While application is running
     while(!input->quitProgram() && !input->isKeyDown(SDLK_ESCAPE)) {

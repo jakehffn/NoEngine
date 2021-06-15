@@ -11,11 +11,11 @@ class Sprite {
 public:
     Sprite(const char* spritePath);
 
-    GLuint getVAO();
-    GLuint getTexture();
+    GLuint getVAO() const;
+    GLuint getTexture() const;
 
-    int getWidth();
-    int getHeight();
+    int getWidth() const;
+    int getHeight() const;
 
 private:
     int width;
