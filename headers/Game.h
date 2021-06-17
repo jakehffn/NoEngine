@@ -13,6 +13,7 @@
 #include "BasicShader.h"
 
 #include "UserCameraController.h"
+#include "TestMap.h"
 
 class Game {
 public:

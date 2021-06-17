@@ -3,7 +3,7 @@
 Scene::Scene(SDL_Window* window, Clock* clock, Input* input, CameraController* cameraController) :
     window{ window }, clock{ clock }, input{ input }, cameraControllerPosition{ 0 },
     shaderPrograms{ std::vector<ShaderProgram*>() }, 
-    sprites{ std::vector<Sprite>() }, gameObjects{ std::vector<GameObject>() } {
+    sprites{ std::vector<Sprite>() }, objectInstances{ std::vector<ObjectInstance>() } {
 
         this->cameraControllers = std::vector<CameraController*>{ cameraController };
         this->camera = Camera(this->cameraControllers.at(0));
@@ -32,21 +32,23 @@ int Scene::addSprite(const char* spritePath) {
     return this->sprites.size() - 1;
 }
 
-int Scene::addGameObject(int spriteID, glm::vec3 position, glm::vec3 rotation) {
+int Scene::addObjectInstance(GameObject gameObject) {
+
+    int spriteID = this->addSprite(gameObject.getSpritePath());
 
     assert(0 < shaderPrograms.size());
 
-    gameObjects.emplace_back(spriteID, this->sprites.at(spriteID), 0, // Default to first shader program
-        position, rotation);
+    objectInstances.emplace_back(spriteID, this->sprites.at(spriteID), 0, // Default to first shader program
+        gameObject.getPos(), glm::vec3(0,0,0));
 
-    return gameObjects.size() - 1;
+    return objectInstances.size() - 1;
 }
 
-GameObject& Scene::getGameObject(int instanceID) {
+ObjectInstance& Scene::getGameObject(int instanceID) {
 
-    assert(instanceID < gameObjects.size());
+    assert(instanceID < objectInstances.size());
 
-    return this->gameObjects[instanceID];
+    return this->objectInstances[instanceID];
 }
 
 int Scene::addCameraController(CameraController* cameraController) {
@@ -82,12 +84,12 @@ void Scene::render() {
     // Clear the screen
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    for (auto& gameObject : gameObjects) {
+    for (auto& gameObject : objectInstances) {
         renderInstance(gameObject);
     }
 }
 
-void Scene::renderInstance(GameObject gameObject) {
+void Scene::renderInstance(ObjectInstance gameObject) {
 
     gameObject.updateModel();
 
@@ -118,4 +120,11 @@ void Scene::renderInstance(GameObject gameObject) {
 
     glDrawArrays(GL_TRIANGLES, 0, 6); 
     glBindVertexArray(0);
+}
+
+void Scene::loadMapObjects(Map map) {
+    
+    for (auto& gameObject : map.getGameObjects()) {
+        this->addObjectInstance(gameObject);
+    }
 }

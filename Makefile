@@ -9,7 +9,7 @@ OBJS := $(call rwildcard,$(SRC_DIR),*.cpp)
 INCLUDE_PATHS = -I./$(HEADER_DIR) -I./$(HEADER_DIR)/libs -IC:\mingw_dev_lib\SDL2\include\SDL2 -IC:\mingw_dev_lib\glew-2.1.0\include
 
 INCLUDE_SUB_PATHS = util util/camera util/camera/controllers vprograms util/camera/controllers/pathCameraController/paths util/camera/controllers/pathCameraController
-INCLUDE_SUB_PATHS += util/scene shaderPrograms util/scene/gameObjects util/scene/gameObjects/objects
+INCLUDE_SUB_PATHS += util/scene shaderPrograms util/scene/gameObjects util/scene/gameObjects/objects util/scene/maps
 INCLUDE_PATHS += $(foreach dir, $(INCLUDE_SUB_PATHS), -I./$(HEADER_DIR)/$(dir))
 
 #LIBRARY_PATHS specifies the additional library paths we'll need

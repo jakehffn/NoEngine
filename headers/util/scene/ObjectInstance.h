@@ -6,12 +6,13 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-// Used to have an instance of a specific type of object
-class GameObject {
+// ObjectInstance contians infomation about what vertex data to manipulate and how
+// This also allows textured quads to be reused
+class ObjectInstance {
 public:
-    GameObject(int spriteID, const Sprite sprite, int shaderProgramID, 
+    ObjectInstance(int spriteID, const Sprite sprite, int shaderProgramID, 
         glm::vec3 position, glm::vec3 rotation=glm::vec3(0));
-    GameObject(int spriteID, GLuint openGLShaderProgramID, glm::mat4 model);
+    ObjectInstance(int spriteID, GLuint openGLShaderProgramID, glm::mat4 model);
 
     void updateModel();
     glm::mat4 getModel();
@@ -32,7 +33,7 @@ public:
     GLuint getSpriteID() const;
     
 
-private:
+protected:
     glm::mat4 model;
 
     glm::vec3 position;
