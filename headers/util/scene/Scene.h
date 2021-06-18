@@ -32,10 +32,10 @@ private:
 
     // Returns ID for obj (currenlty just vector pos)
     int addSprite(const char* spritePath);
-    // Returns ID for instance (currently just vector pos)
-    int addObjectInstance(GameObject* objectInstance);
+    // Returns ID for gameObject (currently just vector pos)
+    int addObjectInstance(GameObject* gameObject);
 
-    void renderInstance(GameObject* instance);
+    void renderInstance(GameObject* gameObject);
 
     SDL_Window* window;
     Clock* clock;
@@ -48,5 +48,5 @@ private:
 
     std::vector<ShaderProgram*> shaderPrograms;
     std::vector<Sprite> sprites;
-    std::vector<GameObject*> objectInstances;
+    std::vector<GameObject*> gameObjects;
 };

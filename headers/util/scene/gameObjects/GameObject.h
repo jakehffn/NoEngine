@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Sprite.h"
+#include <stdio.h>
 
 #include <GL/gl.h>
 #include <glm/glm.hpp>

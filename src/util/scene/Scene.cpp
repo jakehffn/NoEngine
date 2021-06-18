@@ -3,7 +3,7 @@
 Scene::Scene(SDL_Window* window, Clock* clock, Input* input, CameraController* cameraController) :
     window{ window }, clock{ clock }, input{ input }, cameraControllerPosition{ 0 },
     shaderPrograms{ std::vector<ShaderProgram*>() }, 
-    sprites{ std::vector<Sprite>() }, objectInstances{ std::vector<GameObject*>() } {
+    sprites{ std::vector<Sprite>() }, gameObjects{ std::vector<GameObject*>() } {
 
         this->cameraControllers = std::vector<CameraController*>{ cameraController };
         this->camera = Camera(this->cameraControllers.at(0));
@@ -43,16 +43,16 @@ int Scene::addObjectInstance(GameObject* gameObject) {
 
     assert(0 < shaderPrograms.size());
 
-    objectInstances.push_back(gameObject);
+    gameObjects.push_back(gameObject);
 
-    return objectInstances.size() - 1;
+    return gameObjects.size() - 1;
 }
 
 GameObject* Scene::getGameObject(int instanceID) {
 
-    assert(instanceID < objectInstances.size());
+    assert(instanceID < gameObjects.size());
 
-    return this->objectInstances[instanceID];
+    return this->gameObjects[instanceID];
 }
 
 int Scene::addCameraController(CameraController* cameraController) {
@@ -88,12 +88,14 @@ void Scene::render() {
     // Clear the screen
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    for (auto& gameObject : objectInstances) {
+    for (auto& gameObject : gameObjects) {
         renderInstance(gameObject);
     }
 }
 
 void Scene::renderInstance(GameObject* gameObject) {
+
+    // printf("Rendering gameObject: %i\n", gameObject->getScale().x);
 
     gameObject->updateModel();
 
@@ -128,7 +130,7 @@ void Scene::renderInstance(GameObject* gameObject) {
 
 void Scene::loadMapObjects(Map map) {
     
-    for (GameObject* gameObject : map.getGameObjects()) {
+    for (auto& gameObject : map.getGameObjects()) {
         this->addObjectInstance(gameObject);
     }
 }

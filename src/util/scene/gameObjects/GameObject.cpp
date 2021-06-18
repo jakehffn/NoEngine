@@ -99,8 +99,10 @@ const char* GameObject::getSpritePath() const {
 
 void GameObject::setScaleBySprite(const Sprite sprite) {
 
+    printf("%i\n", sprite.getHeight());
     this->scale = glm::vec3(sprite.getWidth() * render_consts::SPR_SCALE_UP, 
             sprite.getHeight() * render_consts::SPR_SCALE_UP, 1);
 
+    this->needsUpdate = true;
     this->updateModel();
 };
