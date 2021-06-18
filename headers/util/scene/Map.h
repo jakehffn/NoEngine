@@ -6,8 +6,8 @@
 
 class Map {
 public:
-    std::vector<GameObject> getGameObjects();
+    std::vector<GameObject*> getGameObjects();
 
 protected:
-    std::vector<GameObject> gameObjects = std::vector<GameObject>();
+    std::vector<GameObject*> gameObjects = std::vector<GameObject*>();
 };

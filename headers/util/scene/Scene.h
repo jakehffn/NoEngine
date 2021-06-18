@@ -34,7 +34,7 @@ private:
     // Returns ID for obj (currenlty just vector pos)
     int addSprite(const char* spritePath);
     // Returns ID for instance (currently just vector pos)
-    int addObjectInstance(GameObject gameObject);
+    int addObjectInstance(GameObject* gameObject);
 
     void renderInstance(ObjectInstance instance);
 

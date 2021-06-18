@@ -17,6 +17,9 @@ Scene::Scene(SDL_Window* window, Clock* clock, Input* input, CameraController* c
         glEnable(GL_CULL_FACE);
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LESS);
+
+        glEnable(GL_BLEND); 
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
 int Scene::addShaderProgram(ShaderProgram* shaderProgram) {
@@ -32,14 +35,14 @@ int Scene::addSprite(const char* spritePath) {
     return this->sprites.size() - 1;
 }
 
-int Scene::addObjectInstance(GameObject gameObject) {
+int Scene::addObjectInstance(GameObject* gameObject) {
 
-    int spriteID = this->addSprite(gameObject.getSpritePath());
+    int spriteID = this->addSprite(gameObject->getSpritePath());
 
     assert(0 < shaderPrograms.size());
 
     objectInstances.emplace_back(spriteID, this->sprites.at(spriteID), 0, // Default to first shader program
-        gameObject.getPos(), glm::vec3(0,0,0));
+        gameObject->getPos(), glm::vec3(0,0,0));
 
     return objectInstances.size() - 1;
 }
@@ -124,7 +127,7 @@ void Scene::renderInstance(ObjectInstance gameObject) {
 
 void Scene::loadMapObjects(Map map) {
     
-    for (auto& gameObject : map.getGameObjects()) {
+    for (GameObject* gameObject : map.getGameObjects()) {
         this->addObjectInstance(gameObject);
     }
 }
