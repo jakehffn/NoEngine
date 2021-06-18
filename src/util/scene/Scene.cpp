@@ -3,7 +3,7 @@
 Scene::Scene(SDL_Window* window, Clock* clock, Input* input, CameraController* cameraController) :
     window{ window }, clock{ clock }, input{ input }, cameraControllerPosition{ 0 },
     shaderPrograms{ std::vector<ShaderProgram*>() }, 
-    sprites{ std::vector<Sprite>() }, objectInstances{ std::vector<ObjectInstance>() } {
+    sprites{ std::vector<Sprite>() }, objectInstances{ std::vector<GameObject*>() } {
 
         this->cameraControllers = std::vector<CameraController*>{ cameraController };
         this->camera = Camera(this->cameraControllers.at(0));
@@ -38,16 +38,17 @@ int Scene::addSprite(const char* spritePath) {
 int Scene::addObjectInstance(GameObject* gameObject) {
 
     int spriteID = this->addSprite(gameObject->getSpritePath());
+    gameObject->setSpriteID(spriteID);
+    gameObject->setScaleBySprite(this->sprites.at(spriteID));
 
     assert(0 < shaderPrograms.size());
 
-    objectInstances.emplace_back(spriteID, this->sprites.at(spriteID), 0, // Default to first shader program
-        gameObject->getPos(), glm::vec3(0,0,0));
+    objectInstances.push_back(gameObject);
 
     return objectInstances.size() - 1;
 }
 
-ObjectInstance& Scene::getGameObject(int instanceID) {
+GameObject* Scene::getGameObject(int instanceID) {
 
     assert(instanceID < objectInstances.size());
 
@@ -92,11 +93,11 @@ void Scene::render() {
     }
 }
 
-void Scene::renderInstance(ObjectInstance gameObject) {
+void Scene::renderInstance(GameObject* gameObject) {
 
-    gameObject.updateModel();
+    gameObject->updateModel();
 
-    int gameObjectShaderID = gameObject.getShaderProgramID();
+    int gameObjectShaderID = gameObject->getShaderProgramID();
 
     assert(gameObjectShaderID < shaderPrograms.size());
 
@@ -105,13 +106,13 @@ void Scene::renderInstance(ObjectInstance gameObject) {
     GLuint openGLShaderProgramID = gameObjectShader->getOpenGLShaderProgramID();
     glUseProgram(openGLShaderProgramID);
 
-    glm::mat4 model = gameObject.getModel();
+    glm::mat4 model = gameObject->getModel();
     glm::mat4 view = this->camera.getViewMatrix();
     glm::mat4 projection = this->camera.getProjectionMatrix();
 
     gameObjectShader->renderSetup(model, view, projection);
     
-    Sprite& sprite = this->sprites.at(gameObject.getSpriteID());
+    Sprite& sprite = this->sprites.at(gameObject->getSpriteID());
 
     glBindVertexArray(sprite.getVAO());
     glActiveTexture(GL_TEXTURE0);

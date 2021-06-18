@@ -23,7 +23,7 @@ void Game::init(SDL_Window* window) {
 
 void Game::run() {
 
-    this->scene->loadMapObjects(TestMap());
+    this->scene->loadMapObjects(TestMap(this->input));
 
     // While application is running
     while(!input->quitProgram() && !input->isKeyDown(SDLK_ESCAPE)) {

@@ -6,13 +6,12 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-// ObjectInstance contians infomation about what vertex data to manipulate and how
+// GameObject contians infomation about what vertex data to manipulate and how
 // This also allows textured quads to be reused
-class ObjectInstance {
+class GameObject {
 public:
-    ObjectInstance(int spriteID, const Sprite sprite, int shaderProgramID, 
-        glm::vec3 position, glm::vec3 rotation=glm::vec3(0));
-    ObjectInstance(int spriteID, GLuint openGLShaderProgramID, glm::mat4 model);
+    GameObject(const char* spritePath, glm::vec3 position,
+        int shaderProgramID=0, glm::vec3 rotation=glm::vec3(0));
 
     void updateModel();
     glm::mat4 getModel();
@@ -31,7 +30,11 @@ public:
     void setShaderProgram(int shaderProgramID);
 
     GLuint getSpriteID() const;
+    void setSpriteID(int spriteID);
+    const char* getSpritePath() const;
+    void setScaleBySprite(const Sprite sprite);
     
+    virtual void logic() = 0;
 
 protected:
     glm::mat4 model;
@@ -41,6 +44,8 @@ protected:
     glm::vec3 scale;
 
     int spriteID;
+    const char* spritePath;
+
     int shaderProgramID;
 
     bool needsUpdate;

@@ -4,7 +4,6 @@
 
 #include "Sprite.h"
 #include "Map.h"
-#include "ObjectInstance.h"
 #include "GameObject.h"
 #include "Camera.h"
 #include "Clock.h"
@@ -20,7 +19,7 @@ public:
     int addShaderProgram(ShaderProgram* shaderProgram);
     
     void loadMapObjects(Map map);
-    ObjectInstance& getGameObject(int gameObjectID);
+    GameObject* getGameObject(int gameObjectID);
 
     // Returns the position of added camera controller
     int addCameraController(CameraController* cameraController);
@@ -34,9 +33,9 @@ private:
     // Returns ID for obj (currenlty just vector pos)
     int addSprite(const char* spritePath);
     // Returns ID for instance (currently just vector pos)
-    int addObjectInstance(GameObject* gameObject);
+    int addObjectInstance(GameObject* objectInstance);
 
-    void renderInstance(ObjectInstance instance);
+    void renderInstance(GameObject* instance);
 
     SDL_Window* window;
     Clock* clock;
@@ -49,5 +48,5 @@ private:
 
     std::vector<ShaderProgram*> shaderPrograms;
     std::vector<Sprite> sprites;
-    std::vector<ObjectInstance> objectInstances;
+    std::vector<GameObject*> objectInstances;
 };
