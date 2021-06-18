@@ -6,5 +6,5 @@
 
 class TestMap : public Map {
 public:
-    TestMap();
+    TestMap(Input* input);
 };
