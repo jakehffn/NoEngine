@@ -2,7 +2,7 @@
 
 PlayerObject::PlayerObject(glm::vec3 position, Input* input, Clock* clock, 
         GLuint shaderProgramID, glm::vec3 rotation) : 
-        GameObject("./src/assets/sprites/BagHead.png", position, 
+        SpriteObject("./src/assets/sprites/BagHead.png", position, 
             shaderProgramID, rotation), input{ input }, clock{ clock } {}
 
 void PlayerObject::logic() {

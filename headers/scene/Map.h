@@ -2,12 +2,15 @@
 
 #include <vector>
 
-#include "GameObject.h"
+#include "LogicObject.h"
+#include "SpriteObject.h"
 
 class Map {
 public:
-    std::vector<GameObject*> getGameObjects();
+    std::vector<SpriteObject*> getSpriteObjects();
+    std::vector<LogicObject*> getLogicObjects();
 
 protected:
-    std::vector<GameObject*> gameObjects = std::vector<GameObject*>();
+    std::vector<SpriteObject*> spriteObjects = std::vector<SpriteObject*>();
+    std::vector<LogicObject*> logicObjects = std::vector<LogicObject*>();
 };

@@ -1,5 +1,9 @@
 #include "Map.h"
 
-std::vector<GameObject*> Map::getGameObjects() {
-    return this->gameObjects;
+std::vector<SpriteObject*> Map::getSpriteObjects() {
+    return this->spriteObjects;
+}
+
+std::vector<LogicObject*> Map::getLogicObjects() {
+    return this->logicObjects;
 }

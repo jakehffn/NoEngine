@@ -1,10 +1,10 @@
 #pragma once
 
-#include "GameObject.h"
+#include "SpriteObject.h"
 #include "Input.h"
 #include "Clock.h"
 
-class PlayerObject : public GameObject {
+class PlayerObject : public SpriteObject {
 public:
     PlayerObject(glm::vec3 position, Input* input, Clock* clock,
         GLuint shaderProgramID=0, glm::vec3 rotation=glm::vec3(0));

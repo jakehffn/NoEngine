@@ -1,10 +1,10 @@
 #pragma once
 
-#include "GameObject.h"
+#include "SpriteObject.h"
 
 #include "Clock.h"
 
-class BackgroundObject : public GameObject {
+class BackgroundObject : public SpriteObject {
 public:
     BackgroundObject(Clock* clock, GLuint shaderProgramID=0);
     void logic();

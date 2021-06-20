@@ -3,7 +3,8 @@
 Scene::Scene(SDL_Window* window, Clock* clock, Input* input, CameraController* cameraController) :
     window{ window }, clock{ clock }, input{ input }, cameraControllerPosition{ 0 },
     shaderPrograms{ std::vector<ShaderProgram*>() }, 
-    sprites{ std::vector<Sprite>() }, gameObjects{ std::vector<GameObject*>() } {
+    sprites{ std::vector<Sprite>() }, logicObjects{ std::vector<LogicObject*>() }, 
+    spriteObjects{ std::vector<SpriteObject*>() } {
 
         this->cameraControllers = std::vector<CameraController*>{ cameraController };
         this->camera = Camera(this->cameraControllers.at(0));
@@ -35,24 +36,33 @@ int Scene::addSprite(const char* spritePath) {
     return this->sprites.size() - 1;
 }
 
-int Scene::addObjectInstance(GameObject* gameObject) {
+int Scene::addGameObject(LogicObject* logicObject) {
 
-    int spriteID = this->addSprite(gameObject->getSpritePath());
-    gameObject->setSpriteID(spriteID);
-    gameObject->setScaleBySprite(this->sprites.at(spriteID));
+    this->logicObjects.push_back(logicObject);
+
+    return logicObjects.size() - 1;
+}
+
+int Scene::addGameObject(SpriteObject* spriteObject) {
+
+    int spriteID = this->addSprite(spriteObject->getSpritePath());
+    spriteObject->setSpriteID(spriteID);
+    spriteObject->setScaleBySprite(this->sprites.at(spriteID));
 
     assert(0 < shaderPrograms.size());
 
-    gameObjects.push_back(gameObject);
+    this->spriteObjects.push_back(spriteObject);
 
-    return gameObjects.size() - 1;
+    this->addGameObject((LogicObject*)spriteObject);
+
+    return spriteObjects.size() - 1;
 }
 
-GameObject* Scene::getGameObject(int instanceID) {
+LogicObject* Scene::getGameObject(int instanceID) {
 
-    assert(instanceID < gameObjects.size());
+    assert(instanceID < logicObjects.size());
 
-    return this->gameObjects[instanceID];
+    return this->logicObjects[instanceID];
 }
 
 int Scene::addCameraController(CameraController* cameraController) {
@@ -86,6 +96,13 @@ void Scene::loop() {
     this->render();
 }
 
+void Scene::logic() {
+
+    for (auto& logicObject : this->logicObjects) {
+        logicObject->logic();
+    }
+}
+
 void Scene::render() {
 
     input->update();
@@ -94,25 +111,18 @@ void Scene::render() {
     // Clear the screen
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    for (auto& gameObject : gameObjects) {
-        renderInstance(gameObject);
+    for (auto& spriteObject : this->spriteObjects) {
+        renderInstance(spriteObject);
     }
 }
 
-void Scene::logic() {
-
-    for (auto& gameObject : gameObjects) {
-        gameObject->logic();
-    }
-}
-
-void Scene::renderInstance(GameObject* gameObject) {
+void Scene::renderInstance(SpriteObject* spriteObject) {
 
     // printf("Rendering gameObject: %i\n", gameObject->getScale().x);
 
-    gameObject->updateModel();
+    spriteObject->updateModel();
 
-    int gameObjectShaderID = gameObject->getShaderProgramID();
+    int gameObjectShaderID = spriteObject->getShaderProgramID();
 
     assert(gameObjectShaderID < shaderPrograms.size());
 
@@ -121,13 +131,13 @@ void Scene::renderInstance(GameObject* gameObject) {
     GLuint openGLShaderProgramID = gameObjectShader->getOpenGLShaderProgramID();
     glUseProgram(openGLShaderProgramID);
 
-    glm::mat4 model = gameObject->getModel();
+    glm::mat4 model = spriteObject->getModel();
     glm::mat4 view = this->camera.getViewMatrix();
     glm::mat4 projection = this->camera.getProjectionMatrix();
 
     gameObjectShader->renderSetup(model, view, projection);
     
-    Sprite& sprite = this->sprites.at(gameObject->getSpriteID());
+    Sprite& sprite = this->sprites.at(spriteObject->getSpriteID());
 
     glBindVertexArray(sprite.getVAO());
     glActiveTexture(GL_TEXTURE0);
@@ -143,7 +153,11 @@ void Scene::renderInstance(GameObject* gameObject) {
 
 void Scene::loadMapObjects(Map map) {
     
-    for (auto& gameObject : map.getGameObjects()) {
-        this->addObjectInstance(gameObject);
+    for (auto& spriteObject : map.getSpriteObjects()) {
+        this->addGameObject(spriteObject);
+    }
+
+    for (auto& logicObject : map.getLogicObjects()) {
+        this->addGameObject(logicObject);
     }
 }
