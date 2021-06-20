@@ -26,7 +26,7 @@ public:
     void setCameraController(int pos);
     void nextCameraController();
 
-    void render();
+    void loop();
 
 private:
 
@@ -36,6 +36,9 @@ private:
     int addObjectInstance(GameObject* gameObject);
 
     void renderInstance(GameObject* gameObject);
+
+    void render();
+    void logic();
 
     SDL_Window* window;
     Clock* clock;

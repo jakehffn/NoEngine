@@ -23,7 +23,7 @@ void Game::init(SDL_Window* window) {
 
 void Game::run() {
 
-    this->scene->loadMapObjects(TestMap(this->input));
+    this->scene->loadMapObjects(TestMap(this->input, this->clock));
 
     // While application is running
     while(!input->quitProgram() && !input->isKeyDown(SDLK_ESCAPE)) {
@@ -31,9 +31,7 @@ void Game::run() {
         clock->tick();
         printf("FPS: %f\r", this->clock->getAverageFPS());
 
-    
-        
-        scene->render();
+        scene->loop();
 
         // Update screen
         SDL_GL_SwapWindow(window);

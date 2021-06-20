@@ -4,10 +4,12 @@
 
 #include "Map.h"
 #include "Input.h"
+#include "Clock.h"
 
 #include "PlayerObject.h"
+#include "BackgroundObject.h"
 
 class TestMap : public Map {
 public:
-    TestMap(Input* input);
+    TestMap(Input* input, Clock* clock);
 };

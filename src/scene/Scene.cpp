@@ -80,6 +80,12 @@ void Scene::nextCameraController() {
 	setCameraController(cameraControllerPosition);
 }
 
+void Scene::loop() {
+
+    this->logic();
+    this->render();
+}
+
 void Scene::render() {
 
     input->update();
@@ -90,6 +96,13 @@ void Scene::render() {
 
     for (auto& gameObject : gameObjects) {
         renderInstance(gameObject);
+    }
+}
+
+void Scene::logic() {
+
+    for (auto& gameObject : gameObjects) {
+        gameObject->logic();
     }
 }
 
