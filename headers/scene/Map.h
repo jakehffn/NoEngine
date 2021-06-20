@@ -5,12 +5,18 @@
 #include "LogicObject.h"
 #include "SpriteObject.h"
 
+#include "CameraController.h"
+
 class Map {
 public:
-    std::vector<SpriteObject*> getSpriteObjects();
+    CameraController* getCameraController();
+
     std::vector<LogicObject*> getLogicObjects();
+    std::vector<SpriteObject*> getSpriteObjects();
 
 protected:
-    std::vector<SpriteObject*> spriteObjects = std::vector<SpriteObject*>();
+    CameraController* cameraController;
+
     std::vector<LogicObject*> logicObjects = std::vector<LogicObject*>();
+    std::vector<SpriteObject*> spriteObjects = std::vector<SpriteObject*>();
 };

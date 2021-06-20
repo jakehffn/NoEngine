@@ -160,4 +160,7 @@ void Scene::loadMapObjects(Map map) {
     for (auto& logicObject : map.getLogicObjects()) {
         this->addGameObject(logicObject);
     }
+
+    int newController = this->addCameraController(map.getCameraController());
+    this->setCameraController(newController);
 }

@@ -9,6 +9,8 @@
 #include "PlayerObject.h"
 #include "BackgroundObject.h"
 
+#include "PlayerCameraController.h"
+
 class TestMap : public Map {
 public:
     TestMap(Input* input, Clock* clock);
