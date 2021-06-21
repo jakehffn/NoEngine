@@ -76,15 +76,13 @@ void Scene::renderInstance(SpriteObject* spriteObject) {
     int gameObjectShaderID = spriteObject->getShaderProgramID();
 
     // Use shader
-    ShaderProgram* gameObjectShader = this->shaderPrograms.at(gameObjectShaderID);
-    GLuint openGLShaderProgramID = gameObjectShader->getOpenGLShaderProgramID();
-    glUseProgram(openGLShaderProgramID);
+    glUseProgram(this->shaderProgram->getOpenGLShaderProgramID());
 
     glm::mat4 model = spriteObject->getModel();
     glm::mat4 view = this->camera.getViewMatrix();
     glm::mat4 projection = this->camera.getProjectionMatrix();
 
-    gameObjectShader->renderSetup(model, view, projection);
+    this->shaderProgram->renderSetup(model, view, projection);
     
     Sprite& sprite = this->sprites.at(spriteObject->getSpriteID());
 
