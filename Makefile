@@ -6,7 +6,7 @@ HEADER_DIR = headers
 OBJS := $(call rwildcard,$(SRC_DIR),*.cpp)
 
 #INCLUDE_PATHS specifies the additional include paths we'll need
-INCLUDE_PATHS = -I./$(HEADER_DIR) -I./$(HEADER_DIR)/libs -IC:\mingw_dev_lib\SDL2\include\SDL2 -IC:\mingw_dev_lib\glew-2.1.0\include
+INCLUDE_PATHS = -I./$(HEADER_DIR) -I./$(HEADER_DIR)/libs -I./$(HEADER_DIR)/libs/entt -IC:\mingw_dev_lib\SDL2\include\SDL2 -IC:\mingw_dev_lib\glew-2.1.0\include
 
 INCLUDE_SUB_PATHS = util camera camera/controllers vprograms camera/controllers/pathCameraController/paths camera/controllers/pathCameraController
 INCLUDE_SUB_PATHS += scene shaderPrograms scene/gameObjects scene/gameObjects/logicObjects scene/gameObjects/spriteObjects scene/maps
@@ -18,13 +18,13 @@ LIBRARY_PATHS = -LC:\mingw_dev_lib\SDL2\lib -LC:\mingw_dev_lib\glew-2.1.0\lib\Re
 #COMPILER_FLAGS specifies the additional compilation options we're using
 # -w suppresses all warnings
 # -Wl,-subsystem,windows gets rid of the console window
-COMPILER_FLAGS = 
+COMPILER_FLAGS = -std=c++17
 
 #LINKER_FLAGS specifies the libraries we're linking against
 LINKER_FLAGS = -lmingw32 -lSDL2main -lSDL2 -lglew32 -lglu32 -lopengl32 -lgdi32
 
 #OBJ_NAME specifies the name of our exectuable
-OBJ_NAME = game
+OBJ_NAME = untitledRPG
 
 #CC specifies which compiler we're using
 CC = g++
