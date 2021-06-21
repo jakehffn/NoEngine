@@ -5,8 +5,6 @@
 #include <SDL.h>
 #include <SDL_opengl.h>
 
-#include <entt/entity/registry.hpp>
-
 #include "Scene.h"
 
 #include "Camera.h"
@@ -31,9 +29,5 @@ private:
     Input* input;
     Scene* scene;
 
-    entt::registry registry;
-
     CameraController* cameraController;
-
-
 };

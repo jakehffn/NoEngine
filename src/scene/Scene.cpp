@@ -2,15 +2,10 @@
 
 Scene::Scene(SDL_Window* window, Clock* clock, Input* input, CameraController* cameraController) :
     window{ window }, clock{ clock }, input{ input }, cameraControllerPosition{ 0 },
-    shaderPrograms{ std::vector<ShaderProgram*>() }, 
-    sprites{ std::vector<Sprite>() }, logicObjects{ std::vector<LogicObject*>() }, 
-    spriteObjects{ std::vector<SpriteObject*>() } {
+    shaderProgram{ new BasicShader() } {
 
         this->cameraControllers = std::vector<CameraController*>{ cameraController };
         this->camera = Camera(this->cameraControllers.at(0));
-
-        ShaderProgram* shaderProgram = new BasicShader();
-        int shaderID = this->addShaderProgram(shaderProgram);
 
         // glClearColor(0.0f, 0.4f, 0.4f, 0.0f);
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
@@ -21,48 +16,6 @@ Scene::Scene(SDL_Window* window, Clock* clock, Input* input, CameraController* c
 
         glEnable(GL_BLEND); 
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-}
-
-int Scene::addShaderProgram(ShaderProgram* shaderProgram) {
-
-    this->shaderPrograms.push_back(shaderProgram);
-    return this->shaderPrograms.size() - 1;
-}
-
-int Scene::addSprite(const char* spritePath) {
-
-    Sprite newSprite = Sprite(spritePath);
-    this->sprites.push_back(newSprite);
-    return this->sprites.size() - 1;
-}
-
-int Scene::addGameObject(LogicObject* logicObject) {
-
-    this->logicObjects.push_back(logicObject);
-
-    return logicObjects.size() - 1;
-}
-
-int Scene::addGameObject(SpriteObject* spriteObject) {
-
-    int spriteID = this->addSprite(spriteObject->getSpritePath());
-    spriteObject->setSpriteID(spriteID);
-    spriteObject->setScaleBySprite(this->sprites.at(spriteID));
-
-    assert(0 < shaderPrograms.size());
-
-    this->spriteObjects.push_back(spriteObject);
-
-    this->addGameObject((LogicObject*)spriteObject);
-
-    return spriteObjects.size() - 1;
-}
-
-LogicObject* Scene::getGameObject(int instanceID) {
-
-    assert(instanceID < logicObjects.size());
-
-    return this->logicObjects[instanceID];
 }
 
 int Scene::addCameraController(CameraController* cameraController) {
@@ -98,9 +51,6 @@ void Scene::loop() {
 
 void Scene::logic() {
 
-    for (auto& logicObject : this->logicObjects) {
-        logicObject->logic();
-    }
 }
 
 void Scene::render() {
@@ -111,9 +61,10 @@ void Scene::render() {
     // Clear the screen
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    for (auto& spriteObject : this->spriteObjects) {
-        renderInstance(spriteObject);
-    }
+    // for (auto& spriteObject : this->spriteObjects) {
+    //     renderInstance(spriteObject);
+    // }
+    
 }
 
 void Scene::renderInstance(SpriteObject* spriteObject) {
@@ -123,8 +74,6 @@ void Scene::renderInstance(SpriteObject* spriteObject) {
     spriteObject->updateModel();
 
     int gameObjectShaderID = spriteObject->getShaderProgramID();
-
-    assert(gameObjectShaderID < shaderPrograms.size());
 
     // Use shader
     ShaderProgram* gameObjectShader = this->shaderPrograms.at(gameObjectShaderID);
