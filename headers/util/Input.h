@@ -9,7 +9,6 @@
 class Input {
 public:
     Input();
-    ~Input();
 
     void update();
 

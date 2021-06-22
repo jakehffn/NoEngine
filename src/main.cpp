@@ -15,7 +15,6 @@ void close();
 
 SDL_Window* window = NULL;
 SDL_GLContext context;
-Scene scene(window);
 
 // Initializes SDL, GLEW, then OpenGL
 bool init() {
@@ -82,6 +81,8 @@ int main(int argv, char** args) {
 		printf("Failed to initialize!\n");
 
 	} else {
+		printf("Initialized Successfully\n");
+		Scene scene(window);
 		scene.mainLoop();
 	}
 

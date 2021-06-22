@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <iostream>
 
 // GLEW must come before OpenGL
 #include <GL\glew.h>
@@ -13,18 +14,26 @@
 #include "Input.h"
 #include "RenderSystem.h"
 
+#include "Sprite.h"
+#include "Model.h"
+#include "Spacial.h"
+
 class Scene {
 public:
     Scene(SDL_Window* window);
+    ~Scene();
     //, Clock* clock, Input* input, CameraController* cameraController
 
     void mainLoop();
 
 private:
+    GLuint programID = 0;
+    SDL_Window* window;
+
     Clock clock = Clock();
     Input input = Input();
 
-    RenderSystem renderSystem;
+    RenderSystem* renderSystem;
 
     entt::registry registry;
 };

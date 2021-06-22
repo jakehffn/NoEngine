@@ -2,6 +2,9 @@
 
 #include <entt\entt.hpp>
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
 #include "System.h"
 #include "Sprite.h"
 #include "Spacial.h"
@@ -19,6 +22,7 @@ public:
     void update(entt::registry& registry);
 private:
     void renderSprite(Sprite sprite, Model model);
+    void updateModel(Model& model, Spacial spacial);
 
     ShaderProgram* shaderProgram;
     Camera camera;
