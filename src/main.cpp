@@ -15,7 +15,7 @@ void close();
 
 SDL_Window* window = NULL;
 SDL_GLContext context;
-Scene scene;
+Scene scene(window);
 
 // Initializes SDL, GLEW, then OpenGL
 bool init() {
@@ -57,8 +57,6 @@ bool init() {
 				if( SDL_GL_SetSwapInterval( 1 ) < 0 ) {
 					printf("SDL: Warning: Unable to set VSync!\nSDL Error: %s\n", SDL_GetError());
 				}
-
-				scene = Scene(window);
 			}
 		}
 	}

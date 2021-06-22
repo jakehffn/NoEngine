@@ -11,7 +11,7 @@
 
 #include "Clock.h"
 #include "Input.h"
-#include "System.h"
+#include "RenderSystem.h"
 
 class Scene {
 public:

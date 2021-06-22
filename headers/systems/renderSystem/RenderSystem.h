@@ -9,7 +9,8 @@
 
 #include "Camera.h"
 
-#include "BasicShader.h
+#include "ShaderProgram.h"
+#include "BasicShader.h"
 
 class RenderSystem : public System {
 public:
