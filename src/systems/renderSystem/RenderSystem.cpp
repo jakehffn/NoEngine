@@ -32,7 +32,7 @@ void RenderSystem::update(entt::registry& registry) {
 
         auto [sprite, model, spacial] = sprites.get(entity);
 
-        updateModel(model, spacial);
+        updateModel(model, sprite, spacial);
         renderSprite(sprite, model);
     }
 }
@@ -63,7 +63,7 @@ void RenderSystem::renderSprite(Sprite sprite, Model model) {
     glBindVertexArray(0);
 }
 
-void RenderSystem::updateModel(Model& model, Spacial spacial) {
+void RenderSystem::updateModel(Model& model,Sprite sprite, Spacial spacial) {
 
     // Order matters
     model.model = glm::mat4(1.0f);
@@ -74,7 +74,9 @@ void RenderSystem::updateModel(Model& model, Spacial spacial) {
     rotate = glm::rotate(rotate, spacial.rot.y, glm::vec3(0, 1, 0));
     rotate = glm::rotate(rotate, spacial.rot.z, glm::vec3(0, 0, 1));
 
-    glm::mat4 scale = glm::scale(glm::mat4(1), spacial.scale);
+    glm::vec3 scaleVec = glm::vec3(spacial.scale.x * sprite.getWidth(), 
+    spacial.scale.y * sprite.getHeight(), spacial.scale.z);
+    glm::mat4 scale = glm::scale(glm::mat4(1), scaleVec);
 
     glm::mat4 translate = glm::translate(glm::mat4(1), spacial.pos);
 

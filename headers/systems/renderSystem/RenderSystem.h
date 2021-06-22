@@ -24,7 +24,7 @@ public:
 
 private:
     void renderSprite(Sprite sprite, Model model);
-    void updateModel(Model& model, Spacial spacial);
+    void updateModel(Model& model, Sprite sprite, Spacial spacial);
 
     ShaderProgram* shaderProgram;
     Camera camera;

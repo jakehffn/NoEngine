@@ -8,11 +8,16 @@ Scene::Scene(SDL_Window* window) : window{ window }{
         // Enable text input
         SDL_StartTextInput();
 
-        const auto entity = this->registry.create();
-        registry.emplace<Sprite>(entity, "./src/assets/sprites/BagHead.png");
-        registry.emplace<Model>(entity, glm::mat4(10));
-        registry.emplace<Spacial>(entity, glm::vec3(100, 100, 0), glm::vec3(0, 0, 0), glm::vec3(320, 320, 0));
-        registry.emplace<Input>(entity, 1000.0f);
+        const auto player = this->registry.create();
+        registry.emplace<Sprite>(player, "./src/assets/sprites/BagHead.png");
+        registry.emplace<Model>(player, glm::mat4(10));
+        registry.emplace<Spacial>(player, glm::vec3(100, 100, 0), glm::vec3(0, 0, 0), glm::vec3(5, 5, 0));
+        registry.emplace<Input>(player, 1000.0f);
+
+        const auto background = this->registry.create();
+        registry.emplace<Sprite>(background, "./src/assets/sprites/ScreenShot (76).png");
+        registry.emplace<Model>(background, glm::mat4(10));
+        registry.emplace<Spacial>(background, glm::vec3(0, 0, -.5), glm::vec3(0, 0, 0), glm::vec3(1, 1, 0));
 
         printf("Completed Scene initialization\n");
 }

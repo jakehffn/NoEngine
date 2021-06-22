@@ -4,7 +4,7 @@
 
 Camera::Camera() :
 
-    position{ glm::vec3(-100, -100, 0) }, viewMatrix{ glm::mat4(1.0f) } {
+    position{ glm::vec3(0, 0, 0) }, viewMatrix{ glm::mat4(1.0f) } {
 
     this->projectionMatrix = glm::ortho(0.0f, float(render_consts::SCREEN_WIDTH), float(render_consts::SCREEN_HEIGHT), 0.0f, -1.0f, 1.0f);
 }
