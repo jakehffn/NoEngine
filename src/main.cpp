@@ -8,14 +8,14 @@
 #include <SDL.h>
 
 #include "consts.h"
-#include "Game.h"
+#include "Scene.h"
 
 bool init();
 void close();
 
 SDL_Window* window = NULL;
 SDL_GLContext context;
-Game game;
+Scene scene;
 
 // Initializes SDL, GLEW, then OpenGL
 bool init() {
@@ -58,7 +58,7 @@ bool init() {
 					printf("SDL: Warning: Unable to set VSync!\nSDL Error: %s\n", SDL_GetError());
 				}
 
-				game.init(window);
+				scene = Scene(window);
 			}
 		}
 	}
@@ -84,7 +84,7 @@ int main(int argv, char** args) {
 		printf("Failed to initialize!\n");
 
 	} else {
-		game.run();
+		scene.mainLoop();
 	}
 
 	close();

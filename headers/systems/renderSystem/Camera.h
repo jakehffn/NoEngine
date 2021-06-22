@@ -8,7 +8,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "consts.h"
-#include "CameraController.h"
 
 /*
     The Camera class handles generation of the view and projection matricies 
@@ -21,20 +20,16 @@ No time delta should be tracked within the Camera class.
 class Camera {
 public:
     Camera();
-    Camera(CameraController*);
 
     glm::mat4 getViewMatrix();
     glm::mat4 getProjectionMatrix();
 
-    void setController(CameraController* cameraController);
-
     void update();
+
+    void setPosition(glm::vec3 pos);
 
 private:
     glm::mat4 viewMatrix;
     glm::mat4 projectionMatrix;
-
-    CameraController* cameraController;
-
     glm::vec3 position; 
 };
