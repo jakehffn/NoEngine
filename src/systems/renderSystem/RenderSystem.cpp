@@ -80,3 +80,7 @@ void RenderSystem::updateModel(Model& model, Spacial spacial) {
 
     model.model = translate * scale * rotate;
 }
+
+void RenderSystem::systemState() {
+    printf("No state currently\n");
+}

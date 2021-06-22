@@ -4,5 +4,5 @@
 
 class System {
 public:
-    virtual void update(entt::registry&)=0;
+    virtual void systemState()=0;
 };

@@ -20,6 +20,8 @@ public:
     RenderSystem(entt::registry& registry);
 
     void update(entt::registry& registry);
+    void systemState() override;
+
 private:
     void renderSprite(Sprite sprite, Model model);
     void updateModel(Model& model, Spacial spacial);

@@ -12,7 +12,9 @@
 
 #include "Clock.h"
 #include "Input.h"
+
 #include "RenderSystem.h"
+#include "InputSystem.h"
 
 #include "Sprite.h"
 #include "Model.h"
@@ -31,9 +33,9 @@ private:
     SDL_Window* window;
 
     Clock clock = Clock();
-    Input input = Input();
 
     RenderSystem* renderSystem;
+    InputSystem* inputSystem;
 
     entt::registry registry;
 };
