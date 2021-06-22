@@ -19,6 +19,7 @@
 #include "Sprite.h"
 #include "Model.h"
 #include "Spacial.h"
+#include "CameraController.h"
 
 class Scene {
 public:

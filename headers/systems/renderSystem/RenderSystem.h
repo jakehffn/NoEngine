@@ -9,8 +9,11 @@
 #include "Sprite.h"
 #include "Spacial.h"
 #include "Model.h"
+#include "CameraController.h"
 
 #include "Camera.h"
+
+#include "consts.h"
 
 #include "ShaderProgram.h"
 #include "BasicShader.h"
@@ -23,6 +26,9 @@ public:
     void systemState() override;
 
 private:
+    void showEntities(entt::registry& registry);
+    void updateCamera(entt::registry& registry);
+
     void renderSprite(Sprite sprite, Model model);
     void updateModel(Model& model, Sprite sprite, Spacial spacial);
 

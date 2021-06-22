@@ -21,9 +21,14 @@ RenderSystem::RenderSystem(entt::registry& registry) : shaderProgram{ new BasicS
 
 void RenderSystem::update(entt::registry& registry) {
 
-    auto sprites = registry.group<Sprite>(entt::get<Model, Spacial>);
+    // Camera update comes first as sprite rendering relies on camera
+    this->updateCamera(registry);
+    this->showEntities(registry);
+}
 
-    this->camera.update();
+void RenderSystem::showEntities(entt::registry& registry) {
+
+    auto sprites = registry.group<Sprite>(entt::get<Model, Spacial>);
 
     // Clear the screen
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -32,9 +37,28 @@ void RenderSystem::update(entt::registry& registry) {
 
         auto [sprite, model, spacial] = sprites.get(entity);
 
-        updateModel(model, sprite, spacial);
-        renderSprite(sprite, model);
+        this->updateModel(model, sprite, spacial);
+        this->renderSprite(sprite, model);
     }
+}
+
+void RenderSystem::updateCamera(entt::registry& registry) {
+
+    auto controllers = registry.group<CameraController>(entt::get<Spacial, Sprite>);
+
+    for (auto entity : controllers) {
+
+        auto [cameraController, spacial, sprite] = controllers.get(entity);
+
+        float xOffset = render_consts::SCREEN_WIDTH/2 - sprite.getWidth() * spacial.scale.x / 2;
+        float yOffset = render_consts::SCREEN_HEIGHT/2 - sprite.getHeight() * spacial.scale.y / 2;
+
+        glm::vec3 offset(xOffset, yOffset, 0);
+        this->camera.setPosition(spacial.pos - offset);
+        // this->camera.setPosition(spacial.pos);
+    }
+
+    this->camera.update();
 }
 
 void RenderSystem::renderSprite(Sprite sprite, Model model) {
@@ -75,7 +99,7 @@ void RenderSystem::updateModel(Model& model,Sprite sprite, Spacial spacial) {
     rotate = glm::rotate(rotate, spacial.rot.z, glm::vec3(0, 0, 1));
 
     glm::vec3 scaleVec = glm::vec3(spacial.scale.x * sprite.getWidth(), 
-    spacial.scale.y * sprite.getHeight(), spacial.scale.z);
+        spacial.scale.y * sprite.getHeight(), spacial.scale.z);
     glm::mat4 scale = glm::scale(glm::mat4(1), scaleVec);
 
     glm::mat4 translate = glm::translate(glm::mat4(1), spacial.pos);

@@ -28,4 +28,7 @@ void Camera::update() {
 	);
 }
 
+void Camera::setPosition(glm::vec3 position) {
+    this->position = position;
+}
 

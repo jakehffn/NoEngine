@@ -13,11 +13,12 @@ Scene::Scene(SDL_Window* window) : window{ window }{
         registry.emplace<Model>(player, glm::mat4(10));
         registry.emplace<Spacial>(player, glm::vec3(100, 100, 0), glm::vec3(0, 0, 0), glm::vec3(5, 5, 0));
         registry.emplace<Input>(player, 1000.0f);
+        registry.emplace<CameraController>(player, 100.0f);
 
         const auto background = this->registry.create();
         registry.emplace<Sprite>(background, "./src/assets/sprites/ScreenShot (76).png");
         registry.emplace<Model>(background, glm::mat4(10));
-        registry.emplace<Spacial>(background, glm::vec3(0, 0, -.5), glm::vec3(0, 0, 0), glm::vec3(1, 1, 0));
+        registry.emplace<Spacial>(background, glm::vec3(0, 0, -.5), glm::vec3(0, 0, 0), glm::vec3(5, 5, 0));
 
         printf("Completed Scene initialization\n");
 }
