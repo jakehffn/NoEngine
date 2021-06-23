@@ -15,30 +15,41 @@ RenderSystem::RenderSystem(entt::registry& registry) : shaderProgram{ new BasicS
 
     printf("Before registry init\n");
     // initialize group with empty registry for performance
-    auto init = registry.group<Sprite>(entt::get<Model, Spacial>);
+    auto init = registry.group<Sprite>(entt::get<Model, Spacial, Animation>);
     printf("After registry init\n");
 }
 
-void RenderSystem::update(entt::registry& registry) {
+void RenderSystem::update(entt::registry& registry, Clock clock) {
 
     // Camera update comes first as sprite rendering relies on camera
     this->updateCamera(registry);
-    this->showEntities(registry);
+    this->showEntities(registry, clock);
 }
 
-void RenderSystem::showEntities(entt::registry& registry) {
+void RenderSystem::showEntities(entt::registry& registry, Clock clock) {
 
-    auto sprites = registry.group<Sprite>(entt::get<Model, Spacial>);
+    auto staticSprites = registry.view<Sprite, Model, Spacial>(entt::exclude<Animation>);
 
     // Clear the screen
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    for (auto entity : sprites) {
+    for (auto entity : staticSprites) {
 
-        auto [sprite, model, spacial] = sprites.get(entity);
+        auto [sprite, model, spacial] = staticSprites.get(entity);
 
         this->updateModel(model, sprite, spacial);
         this->renderSprite(sprite, model);
+    }
+
+    auto animatedSprites = registry.group<Sprite>(entt::get<Model, Spacial, Animation>);
+
+    for (auto entity : animatedSprites) {
+
+        auto [sprite, model, spacial, animation] = animatedSprites.get(entity);
+
+        this->updateModel(model, sprite, spacial);
+        this->updateAnimation(animation, clock);
+        this->renderSprite(sprite, model, animation.frameData);
     }
 }
 
@@ -61,7 +72,7 @@ void RenderSystem::updateCamera(entt::registry& registry) {
     this->camera.update();
 }
 
-void RenderSystem::renderSprite(Sprite sprite, Model model) {
+void RenderSystem::renderSprite(Sprite sprite, Model model, glm::vec2 frameData) {
     // spriteObject->updateModel(); Remember to update somewhere else
 
     // printf("Rendering sprite\n");
@@ -73,7 +84,7 @@ void RenderSystem::renderSprite(Sprite sprite, Model model) {
     glm::mat4 view = this->camera.getViewMatrix();
     glm::mat4 projection = this->camera.getProjectionMatrix();
 
-    this->shaderProgram->renderSetup(model.model, view, projection);
+    this->shaderProgram->renderSetup(model.model, view, projection, frameData);
     
     glBindVertexArray(sprite.getVAO());
     glActiveTexture(GL_TEXTURE0);
@@ -105,6 +116,21 @@ void RenderSystem::updateModel(Model& model,Sprite sprite, Spacial spacial) {
     glm::mat4 translate = glm::translate(glm::mat4(1), spacial.pos);
 
     model.model = translate * scale * rotate;
+}
+
+void RenderSystem::updateAnimation(Animation& animation, Clock clock) {
+
+    animation.deltaTime += clock.getDeltaTime();
+
+    if (animation.deltaTime > animation.frameSpeed) {
+        animation.currAnimFrame = (animation.currAnimFrame + 1) % (animation.frameOrder.size() - 1);
+        animation.deltaTime = 0.0f;
+    }
+
+    float frameFraction = 1.0/animation.numFrames;
+    float currFrame = animation.frameOrder.at(animation.currAnimFrame);;
+
+    animation.frameData = glm::vec2(currFrame, frameFraction);
 }
 
 void RenderSystem::systemState() {

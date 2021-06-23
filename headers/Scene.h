@@ -20,6 +20,7 @@
 #include "Model.h"
 #include "Spacial.h"
 #include "CameraController.h"
+#include "Animation.h"
 
 class Scene {
 public:
