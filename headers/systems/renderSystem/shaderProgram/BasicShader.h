@@ -8,7 +8,7 @@ public:
     BasicShader();
 
     GLuint getOpenGLShaderProgramID();
-    void renderSetup(glm::mat4 model, glm::mat4 view, glm::mat4 projection, glm::vec2 frameData);
+    void renderSetup(glm::mat4 model, glm::mat4 view, glm::mat4 projection, glm::vec2 texData);
 
 private:
     GLuint openGLShaderProgramID;
@@ -18,5 +18,5 @@ private:
     GLint VuniformID;
 
     GLuint spriteColorUniformID;
-    GLuint frameDataUniformID;
+    GLuint texDataUniformID;
 };

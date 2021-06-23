@@ -18,7 +18,7 @@ Scene::Scene(SDL_Window* window) : window{ window }{
         const auto bag = this->registry.create();
         registry.emplace<Sprite>(bag, "./src/assets/sprites/Bag.png");
         registry.emplace<Model>(bag, glm::mat4(10));
-        registry.emplace<Spacial>(bag, glm::vec3(0, 0, -.2), glm::vec3(0, 0, 0), glm::vec3(1, 5, 0));
+        registry.emplace<Spacial>(bag, glm::vec3(0, 0, -.2), glm::vec3(0, 0, 0), glm::vec3(5, 5, 0));
         registry.emplace<Animation>(bag, 5, std::vector<int>{0,0,0,0,0,0,0,0,1,0,0,1,2,3,4});
 
         const auto background = this->registry.create();

@@ -15,5 +15,5 @@ public:
     // Returns the ID for the shader program given by OpenGL once compiled
     virtual GLuint getOpenGLShaderProgramID() = 0;
     // Functions that provides ability to setup the render specifically for each shader program
-    virtual void renderSetup(glm::mat4 model, glm::mat4 view, glm::mat4 projection, glm::vec2 frameData) = 0;
+    virtual void renderSetup(glm::mat4 model, glm::mat4 view, glm::mat4 projection, glm::vec2 texData) = 0;
 };

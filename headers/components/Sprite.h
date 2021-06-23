@@ -1,5 +1,7 @@
 #pragma once
 
+#include <glm\glm.hpp>
+
 // GLEW must come before OpenGL
 #include <GL\glew.h>
 #include <SDL.h>
@@ -16,6 +18,8 @@ public:
 
     int getWidth() const;
     int getHeight() const;
+
+    glm::vec2 texData{0.0f, 1.0f};
 
 private:
     int width;

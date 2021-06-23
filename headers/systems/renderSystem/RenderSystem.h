@@ -31,10 +31,10 @@ private:
     void showEntities(entt::registry& registry, Clock clock);
     void updateCamera(entt::registry& registry);
 
-    void renderSprite(Sprite sprite, Model model, glm::vec2 frameData=glm::vec2(0.0f, 1.0f));
+    void renderSprite(Sprite sprite, Model model);
 
     void updateModel(Model& model, Sprite sprite, Spacial spacial);
-    void updateAnimation(Animation& animation, Clock clock);
+    void updateAnimation(Animation& animation, Sprite& sprite, Clock clock);
 
     ShaderProgram* shaderProgram;
     Camera camera;

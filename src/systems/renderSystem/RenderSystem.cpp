@@ -13,10 +13,8 @@ RenderSystem::RenderSystem(entt::registry& registry) : shaderProgram{ new BasicS
     glEnable(GL_BLEND); 
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    printf("Before registry init\n");
     // initialize group with empty registry for performance
     auto init = registry.group<Sprite>(entt::get<Model, Spacial, Animation>);
-    printf("After registry init\n");
 }
 
 void RenderSystem::update(entt::registry& registry, Clock clock) {
@@ -28,28 +26,27 @@ void RenderSystem::update(entt::registry& registry, Clock clock) {
 
 void RenderSystem::showEntities(entt::registry& registry, Clock clock) {
 
-    auto staticSprites = registry.view<Sprite, Model, Spacial>(entt::exclude<Animation>);
+    auto animations = registry.view<Animation, Sprite>();
+
+    for (auto entity : animations) {
+
+        // printf("Animation update\n");
+        auto [animation, sprite] = animations.get(entity);
+
+        this->updateAnimation(animation, sprite, clock);
+    }
+
+    auto sprites = registry.view<Sprite, Model, Spacial>();
 
     // Clear the screen
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    for (auto entity : staticSprites) {
+    for (auto entity : sprites) {
 
-        auto [sprite, model, spacial] = staticSprites.get(entity);
+        auto [sprite, model, spacial] = sprites.get(entity);
 
         this->updateModel(model, sprite, spacial);
         this->renderSprite(sprite, model);
-    }
-
-    auto animatedSprites = registry.group<Sprite>(entt::get<Model, Spacial, Animation>);
-
-    for (auto entity : animatedSprites) {
-
-        auto [sprite, model, spacial, animation] = animatedSprites.get(entity);
-
-        this->updateModel(model, sprite, spacial);
-        this->updateAnimation(animation, clock);
-        this->renderSprite(sprite, model, animation.frameData);
     }
 }
 
@@ -72,7 +69,7 @@ void RenderSystem::updateCamera(entt::registry& registry) {
     this->camera.update();
 }
 
-void RenderSystem::renderSprite(Sprite sprite, Model model, glm::vec2 frameData) {
+void RenderSystem::renderSprite(Sprite sprite, Model model) {
     // spriteObject->updateModel(); Remember to update somewhere else
 
     // printf("Rendering sprite\n");
@@ -84,7 +81,7 @@ void RenderSystem::renderSprite(Sprite sprite, Model model, glm::vec2 frameData)
     glm::mat4 view = this->camera.getViewMatrix();
     glm::mat4 projection = this->camera.getProjectionMatrix();
 
-    this->shaderProgram->renderSetup(model.model, view, projection, frameData);
+    this->shaderProgram->renderSetup(model.model, view, projection, sprite.texData);
     
     glBindVertexArray(sprite.getVAO());
     glActiveTexture(GL_TEXTURE0);
@@ -109,7 +106,7 @@ void RenderSystem::updateModel(Model& model,Sprite sprite, Spacial spacial) {
     rotate = glm::rotate(rotate, spacial.rot.y, glm::vec3(0, 1, 0));
     rotate = glm::rotate(rotate, spacial.rot.z, glm::vec3(0, 0, 1));
 
-    glm::vec3 scaleVec = glm::vec3(spacial.scale.x * sprite.getWidth(), 
+    glm::vec3 scaleVec = glm::vec3(spacial.scale.x * sprite.getWidth() * sprite.texData.y, 
         spacial.scale.y * sprite.getHeight(), spacial.scale.z);
     glm::mat4 scale = glm::scale(glm::mat4(1), scaleVec);
 
@@ -118,7 +115,7 @@ void RenderSystem::updateModel(Model& model,Sprite sprite, Spacial spacial) {
     model.model = translate * scale * rotate;
 }
 
-void RenderSystem::updateAnimation(Animation& animation, Clock clock) {
+void RenderSystem::updateAnimation(Animation& animation, Sprite& sprite, Clock clock) {
 
     animation.deltaTime += clock.getDeltaTime();
 
@@ -130,7 +127,7 @@ void RenderSystem::updateAnimation(Animation& animation, Clock clock) {
     float frameFraction = 1.0/animation.numFrames;
     float currFrame = animation.frameOrder.at(animation.currAnimFrame);;
 
-    animation.frameData = glm::vec2(currFrame, frameFraction);
+    sprite.texData = glm::vec2(currFrame, frameFraction);
 }
 
 void RenderSystem::systemState() {

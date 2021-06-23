@@ -8,9 +8,7 @@ struct Animation {
     int numFrames;
 
     std::vector<int> frameOrder;
-
-    glm::vec2 frameData;
-
+    
     // In seconds
     double deltaTime{0};
     float frameSpeed{1.0/8.0};
