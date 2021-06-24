@@ -4,24 +4,32 @@ InputSystem::InputSystem(entt::registry& registry) :
     keyInputs{ std::unordered_set<SDL_Keycode>() },
     toggleInputs{ std::unordered_set<SDL_Keycode>() },
     abridgedInputs{ std::unordered_set<SDL_Keycode>() },
-    mouseX{ 0 }, mouseY{ 0 }, quit{ false } {
-
-        // initialize group with empty registry for performance
-        auto entities = registry.group<Input>(entt::get<Spacial>);
-
-}
+    mouseX{ 0 }, mouseY{ 0 }, quit{ false } {}
 
 void InputSystem::update(entt::registry& registry, float deltaTime) {
 
     this->collectInputs();
 
-    auto entities = registry.group<Input>(entt::get<Spacial>);
+    auto entities = registry.view<Input, Spacial>();
 
     for (auto entity : entities) {
 
         auto [input, spacial] = entities.get(entity);
 
         this->updateSpacial(spacial, input, deltaTime);
+    }
+
+    auto spriteStateEntities = registry.view<SpriteState>() | entities;
+
+    for (auto entity : entities) {
+
+        registry.patch<SpriteState>(entity, [this](auto &state) { 
+
+            ENTITY_STATE newState = this->getEntityState(state.prevState);
+
+            state.prevState = state.state;
+            state.state = newState; 
+            });
     }
 }
 
@@ -54,6 +62,51 @@ void InputSystem::updateSpacial(Spacial& spacial, Input input, float deltaTime) 
     if (dirLength != 0.0f) {
         spacial.pos += (direction * (1/dirLength) * input.pps * deltaTime);
     }
+}
+
+ENTITY_STATE InputSystem::getEntityState(ENTITY_STATE prevState) {
+
+    bool up = isKeyDown(SDLK_w);
+    bool down = isKeyDown(SDLK_s);
+    bool left = isKeyDown(SDLK_a);
+    bool right = isKeyDown(SDLK_d);
+
+    bool verticalMovement = (up != down);
+    bool horizontalMovement = (left != right);
+
+    ENTITY_STATE verticalState = IDLE;
+    ENTITY_STATE horizontalState = IDLE;
+
+    ENTITY_STATE returnState = IDLE;
+
+    if (verticalMovement) {
+        if (up) {
+            verticalState = MOVE_UP;
+        } else {
+            verticalState = MOVE_DOWN;
+        }
+    }
+
+    if (horizontalMovement) {
+        if (left) {
+            horizontalState = MOVE_LEFT;
+        } else {
+            horizontalState = MOVE_RIGHT;
+        }
+    }
+
+    if (verticalState != IDLE) {
+        returnState = verticalState;
+    } else if (horizontalState != IDLE) {
+        returnState = horizontalState;
+    }
+
+    if ((horizontalState == prevState || verticalState == prevState) && prevState != IDLE) {
+        returnState = prevState;
+    }
+
+    return returnState;
+
 }
 
 void InputSystem::collectInputs() {

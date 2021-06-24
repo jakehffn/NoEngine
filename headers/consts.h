@@ -21,3 +21,11 @@ namespace input_consts {
     static const float MOUSE_SPEED = 0.003f;
     static const float KEY_SPEED = 300.0f;
 }
+
+enum ENTITY_STATE {
+    IDLE,
+    MOVE_UP,
+    MOVE_DOWN,
+    MOVE_LEFT,
+    MOVE_RIGHT
+};

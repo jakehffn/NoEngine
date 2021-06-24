@@ -11,6 +11,7 @@
 
 class Sprite {
 public:
+    Sprite();
     Sprite(const char* spritePath, int numSprites=1);
 
     GLuint getVAO() const;

@@ -10,6 +10,7 @@
 
 #include "Spacial.h"
 #include "Input.h"
+#include "SpriteState.h"
 
 #include "consts.h"
 
@@ -28,6 +29,8 @@ private:
 
     void setToggle(SDL_Keycode toggle);
     void setAbridge(SDL_Keycode abridge);
+
+    ENTITY_STATE getEntityState(ENTITY_STATE prevState);
 
     bool isKeyDown(SDL_Keycode key);
     int getMouseX();

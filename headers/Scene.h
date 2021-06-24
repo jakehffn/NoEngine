@@ -14,6 +14,7 @@
 
 #include "RenderSystem.h"
 #include "InputSystem.h"
+#include "StateSystem.h"
 
 #include "create_entity.h"
 
@@ -33,6 +34,7 @@ private:
 
     RenderSystem* renderSystem;
     InputSystem* inputSystem;
+    StateSystem* stateSystem;
 
     entt::registry registry;
 };

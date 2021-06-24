@@ -1,5 +1,7 @@
 #pragma once
 
+#include <unordered_map>
+
 #include <entt/entt.hpp>
 
 #include "consts.h"
@@ -10,13 +12,10 @@
 #include "CameraController.h"
 #include "Animation.h"
 #include "Sprite.h"
-
-
-
-
+#include "SpriteState.h"
 
 namespace create_entity {
-    void addVSCodeBackground(entt::registry& registry);
-    void addPlayer(entt::registry& registry, glm::vec3 pos);
-    void addBag(entt::registry& registry, glm::vec3 pos);
+    void VSCodeBackground(entt::registry& registry);
+    void Player(entt::registry& registry, glm::vec3 pos);
+    void Bag(entt::registry& registry, glm::vec3 pos);
 };
