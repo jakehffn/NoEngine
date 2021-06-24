@@ -4,11 +4,9 @@
 #include <vector>
 
 struct Animation {
-
-    int numFrames;
-
-    std::vector<int> frameOrder;
     
+    std::vector<int> frameOrder;
+
     // In seconds
     double deltaTime{0};
     float frameSpeed{1.0/8.0};

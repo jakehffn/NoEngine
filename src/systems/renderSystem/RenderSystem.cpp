@@ -124,7 +124,7 @@ void RenderSystem::updateAnimation(Animation& animation, Sprite& sprite, Clock c
         animation.deltaTime = 0.0f;
     }
 
-    float frameFraction = 1.0/animation.numFrames;
+    float frameFraction = 1.0/sprite.numSprites;
     float currFrame = animation.frameOrder.at(animation.currAnimFrame);;
 
     sprite.texData = glm::vec2(currFrame, frameFraction);

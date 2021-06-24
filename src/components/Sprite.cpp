@@ -3,7 +3,8 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-Sprite::Sprite(const char* spritePath) {
+Sprite::Sprite(const char* spritePath, int numSprites) : 
+    numSprites{ numSprites }, texData{ glm::vec2(0.0f, 1.0f/numSprites) } {
 
     // create VAO
     float shaderData[] = { 

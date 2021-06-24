@@ -16,18 +16,16 @@ void create_entity::addPlayer(entt::registry& registry, glm::vec3 pos) {
     registry.emplace<Model>(player, glm::mat4(10));
     registry.emplace<Spacial>(player, pos, glm::vec3(0, 0, 0), 
         glm::vec3(render_consts::SPR_SCALE_UP, render_consts::SPR_SCALE_UP, 0));
-    registry.emplace<Input>(player, 1000.0f);
-    registry.emplace<CameraController>(player, 100.0f);
+    registry.emplace<Input>(player, 750.0f);
+    registry.emplace<CameraController>(player, 750.0f);
 }
 
 void create_entity::addBag(entt::registry& registry, glm::vec3 pos) {
 
     const auto bag = registry.create();
-    registry.emplace<Sprite>(bag, "./src/assets/sprites/Bag.png");
+    registry.emplace<Sprite>(bag, "./src/assets/sprites/Bag.png", 5);
     registry.emplace<Model>(bag, glm::mat4(10));
     registry.emplace<Spacial>(bag, pos, glm::vec3(0, 0, 0), 
         glm::vec3(render_consts::SPR_SCALE_UP, render_consts::SPR_SCALE_UP, 0));
-    registry.emplace<Animation>(bag, 5, std::vector<int>{0,0,0,0,0,0,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0}); 
-    registry.emplace<Input>(bag, 1000.0f);
-       
+    registry.emplace<Animation>(bag, std::vector<int>{0,0,0,0,0,0,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0});        
 }

@@ -11,7 +11,7 @@
 
 class Sprite {
 public:
-    Sprite(const char* spritePath);
+    Sprite(const char* spritePath, int numSprites=1);
 
     GLuint getVAO() const;
     GLuint getTexture() const;
@@ -20,6 +20,7 @@ public:
     int getHeight() const;
 
     glm::vec2 texData{0.0f, 1.0f};
+    int numSprites;
 
 private:
     int width;
