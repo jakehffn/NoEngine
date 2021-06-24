@@ -11,16 +11,11 @@
 #include <entt\entt.hpp>
 
 #include "Clock.h"
-#include "Input.h"
 
 #include "RenderSystem.h"
 #include "InputSystem.h"
 
-#include "Sprite.h"
-#include "Model.h"
-#include "Spacial.h"
-#include "CameraController.h"
-#include "Animation.h"
+#include "create_entity.h"
 
 class Scene {
 public:
