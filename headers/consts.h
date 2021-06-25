@@ -1,6 +1,6 @@
 #pragma once
 
-namespace render_consts {
+namespace render_c {
     //Screen dimension constants
     static const int SCREEN_WIDTH = 1920;
     static const int SCREEN_HEIGHT = 1080;
@@ -16,16 +16,24 @@ namespace render_consts {
     static const float SPR_SCALE_UP = 5.0f;
 }
 
-namespace input_consts {
+namespace input_c {
 
     static const float MOUSE_SPEED = 0.003f;
     static const float KEY_SPEED = 300.0f;
 }
 
-enum ENTITY_STATE {
-    IDLE,
-    MOVE_UP,
-    MOVE_DOWN,
-    MOVE_LEFT,
-    MOVE_RIGHT
-};
+namespace entity_c {
+
+    enum ENTITY_STATE {
+        IDLE,
+        MOVING
+    };
+
+    enum ENTITY_DIR {
+        NONE,
+        UP,
+        DOWN,
+        LEFT,
+        RIGHT
+    };
+}

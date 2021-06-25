@@ -58,8 +58,8 @@ void RenderSystem::updateCamera(entt::registry& registry) {
 
         auto [cameraController, spacial, sprite] = controllers.get(entity);
 
-        float xOffset = render_consts::SCREEN_WIDTH/2 - sprite.getWidth() * spacial.scale.x * sprite.texData.y / 2;
-        float yOffset = render_consts::SCREEN_HEIGHT/2 - sprite.getHeight() * spacial.scale.y / 2;
+        float xOffset = render_c::SCREEN_WIDTH/2 - sprite.getWidth() * spacial.scale.x * sprite.texData.y / 2;
+        float yOffset = render_c::SCREEN_HEIGHT/2 - sprite.getHeight() * spacial.scale.y / 2;
 
         glm::vec3 offset(xOffset, yOffset, 0);
         this->camera.setPosition(spacial.pos - offset);

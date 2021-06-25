@@ -6,8 +6,6 @@ StateSystem::StateSystem(entt::registry& registry) :
 void StateSystem::update(entt::registry& registry) {
 
     for (const auto entity : spriteStateObserver) {
-        printf("This should not be executing every frame");
-
 
         auto [spriteState, sprite, animation] = registry.get<SpriteState, Sprite, Animation>(entity);
 

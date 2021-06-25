@@ -30,7 +30,7 @@ private:
     void setToggle(SDL_Keycode toggle);
     void setAbridge(SDL_Keycode abridge);
 
-    ENTITY_STATE getEntityState(ENTITY_STATE prevState);
+    SpriteStatePair getEntityState(SpriteStatePair prevState);
 
     bool isKeyDown(SDL_Keycode key);
     int getMouseX();

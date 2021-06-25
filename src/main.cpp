@@ -31,7 +31,7 @@ bool init() {
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
 		window = SDL_CreateWindow("visualCoding", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 
-			render_consts::SCREEN_WIDTH, render_consts::SCREEN_HEIGHT, 
+			render_c::SCREEN_WIDTH, render_c::SCREEN_HEIGHT, 
 			SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_INPUT_FOCUS
 		);
 

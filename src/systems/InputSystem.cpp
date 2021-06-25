@@ -1,4 +1,5 @@
 #include "InputSystem.h"
+#include <iostream>
 
 InputSystem::InputSystem(entt::registry& registry) :
     keyInputs{ std::unordered_set<SDL_Keycode>() },
@@ -25,13 +26,12 @@ void InputSystem::update(entt::registry& registry, float deltaTime) {
 
         auto& spriteState = spriteStateEntities.get<SpriteState>(entity);
 
-        ENTITY_STATE newState = this->getEntityState(spriteState.prevState);
-        printf("check for Patching\n");
+        SpriteStatePair newState = this->getEntityState(spriteState.prevState);
 
-        if (newState != spriteState.state) {
+        if (newState != spriteState.state || spriteState.state != spriteState.prevState) {
 
             registry.patch<SpriteState>(entity, [newState](auto &state) { 
-                printf("Patching\n");
+
                 state.prevState = state.state;
                 state.state = newState; 
             });
@@ -72,49 +72,63 @@ void InputSystem::updateSpacial(Spacial& spacial, Input input, float deltaTime) 
     }
 }
 
-ENTITY_STATE InputSystem::getEntityState(ENTITY_STATE prevState) {
+SpriteStatePair InputSystem::getEntityState(SpriteStatePair prevStatePair) {
 
     bool up = isKeyDown(SDLK_w);
     bool down = isKeyDown(SDLK_s);
     bool left = isKeyDown(SDLK_a);
     bool right = isKeyDown(SDLK_d);
 
-    bool verticalMovement = (up != down);
-    bool horizontalMovement = (left != right);
+    bool vMovement = (up != down);
+    bool hMovement = (left != right);
 
-    ENTITY_STATE verticalState = IDLE;
-    ENTITY_STATE horizontalState = IDLE;
+    entity_c::ENTITY_STATE returnState = (!(vMovement || hMovement) ? entity_c::IDLE : entity_c::MOVING);
 
-    ENTITY_STATE returnState = IDLE;
+    entity_c::ENTITY_STATE prevState = std::get<entity_c::ENTITY_STATE>(prevStatePair);
+    entity_c::ENTITY_DIR prevDir = std::get<entity_c::ENTITY_DIR>(prevStatePair);
 
-    if (verticalMovement) {
+    entity_c::ENTITY_DIR returnDir = prevDir;
+
+    entity_c::ENTITY_DIR vDir = entity_c::NONE;
+    entity_c::ENTITY_DIR hDir = entity_c::NONE;
+
+    if (vMovement) {
         if (up) {
-            verticalState = MOVE_UP;
+            vDir = entity_c::UP;
         } else {
-            verticalState = MOVE_DOWN;
+            vDir = entity_c::DOWN;
         }
     }
 
-    if (horizontalMovement) {
+    if (hMovement) {
         if (left) {
-            horizontalState = MOVE_LEFT;
+            hDir = entity_c::LEFT;
         } else {
-            horizontalState = MOVE_RIGHT;
+            hDir = entity_c::RIGHT;
         }
     }
 
-    if (verticalState != IDLE) {
-        returnState = verticalState;
-    } else if (horizontalState != IDLE) {
-        returnState = horizontalState;
+    if (vDir != entity_c::NONE) {
+        returnDir = vDir;
+    } else if (hDir != entity_c::NONE) {
+        returnDir = hDir;
     }
 
-    if ((horizontalState == prevState || verticalState == prevState) && prevState != IDLE) {
-        returnState = prevState;
+    if (prevState == entity_c::MOVING) {
+
+        if (returnState == entity_c::MOVING) {
+
+            if ((vDir == prevDir || hDir == prevDir)) {
+                returnDir = prevDir;
+            }
+
+        } else {
+            returnDir = prevDir;
+        }
+            
     }
 
-    return returnState;
-
+    return std::make_pair(returnState, returnDir);
 }
 
 void InputSystem::collectInputs() {
