@@ -19,17 +19,25 @@ void InputSystem::update(entt::registry& registry, float deltaTime) {
         this->updateSpacial(spacial, input, deltaTime);
     }
 
-    auto spriteStateEntities = registry.view<SpriteState>() | entities;
+    auto spriteStateEntities = registry.view<SpriteState>();
 
-    for (auto entity : entities) {
+    for (auto entity : spriteStateEntities) {
 
-        registry.patch<SpriteState>(entity, [this](auto &state) { 
+        auto& spriteState = spriteStateEntities.get<SpriteState>(entity);
 
-            ENTITY_STATE newState = this->getEntityState(state.prevState);
+        ENTITY_STATE newState = this->getEntityState(spriteState.prevState);
+        printf("check for Patching\n");
 
-            state.prevState = state.state;
-            state.state = newState; 
+        if (newState != spriteState.state) {
+
+            registry.patch<SpriteState>(entity, [newState](auto &state) { 
+                printf("Patching\n");
+                state.prevState = state.state;
+                state.state = newState; 
             });
+        }
+
+        
     }
 }
 

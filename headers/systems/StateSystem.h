@@ -6,6 +6,7 @@
 
 #include "SpriteState.h"
 #include "Sprite.h"
+#include "Animation.h"
 
 class StateSystem : public System {
 public:
@@ -15,7 +16,5 @@ public:
     void systemState() override;
 
 private:
-    void updateSpriteState(SpriteState state, Sprite& sprite);
-
     entt::observer spriteStateObserver;
 };

@@ -6,15 +6,18 @@ StateSystem::StateSystem(entt::registry& registry) :
 void StateSystem::update(entt::registry& registry) {
 
     for (const auto entity : spriteStateObserver) {
+        printf("This should not be executing every frame");
 
-        auto [spriteState, sprite] = registry.get<SpriteState, Sprite>(entity);
 
-        updateSpriteState(spriteState, sprite);
+        auto [spriteState, sprite, animation] = registry.get<SpriteState, Sprite, Animation>(entity);
+
+        auto [newSprite, newAnimation] = spriteState.stateMap[spriteState.state];
+
+        sprite = newSprite;
+        animation = newAnimation;
     }
-}
 
-void StateSystem::updateSpriteState(SpriteState state, Sprite& sprite) {
-    sprite = state.stateMap[state.state];
+    spriteStateObserver.clear();
 }
 
 void StateSystem::systemState() {}
