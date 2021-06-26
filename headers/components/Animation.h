@@ -9,7 +9,7 @@ struct Animation {
 
     // In seconds
     double deltaTime{0};
-    float frameSpeed{1.0/8.0};
+    float frameSpeed{1.0/10.0};
 
     // current animation frame
     int currAnimFrame{0};

@@ -120,7 +120,7 @@ void RenderSystem::updateAnimation(Animation& animation, Sprite& sprite, Clock c
     animation.deltaTime += clock.getDeltaTime();
 
     if (animation.deltaTime > animation.frameSpeed) {
-        animation.currAnimFrame = (animation.currAnimFrame + 1) % (animation.frameOrder.size() - 1);
+        animation.currAnimFrame = (animation.currAnimFrame + 1) % animation.frameOrder.size();
         animation.deltaTime = 0.0f;
     }
 

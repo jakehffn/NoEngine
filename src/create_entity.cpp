@@ -26,7 +26,7 @@ void create_entity::Player(entt::registry& registry, glm::vec3 pos) {
     Sprite moveDownState("./src/assets/sprites/BoxHead_MoveDown.png", 8);
 
     Animation moveUpAnimation{std::vector<int>{0,0,0,0,0,0,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0}};
-    Animation moveDownAnimation{std::vector<int>{1,2,3,4,5,6,7,0}}; 
+    Animation moveDownAnimation{std::vector<int>{0,1,2,3,4,5,6,7}}; 
     Animation idleAnimation{std::vector<int>{0,0}};
 
     std::unordered_map<SpriteStatePair, std::tuple<Sprite, Animation>, pair_hash> stateMap{
