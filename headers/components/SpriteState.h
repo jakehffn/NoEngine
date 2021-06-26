@@ -15,8 +15,7 @@ struct pair_hash {
         auto h1 = std::hash<T1>{}(p.first);
         auto h2 = std::hash<T2>{}(p.second);
 
-        // Mainly for demonstration purposes, i.e. works but is overly simple
-        // In the real world, use sth. like boost.hash_combine
+        // Bad hash; prone to need rehashing, but for this limited use-case, works fine
         return h1 ^ h2;  
     }
 };
@@ -27,5 +26,4 @@ struct SpriteState {
     std::unordered_map<SpriteStatePair, std::tuple<Sprite, Animation>, pair_hash> stateMap{};
 
     SpriteStatePair state{std::make_pair(entity_c::IDLE, entity_c::DOWN)};
-    SpriteStatePair prevState{std::make_pair(entity_c::IDLE, entity_c::DOWN)};
 };

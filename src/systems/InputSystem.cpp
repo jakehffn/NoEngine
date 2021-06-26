@@ -26,13 +26,14 @@ void InputSystem::update(entt::registry& registry, float deltaTime) {
 
         auto& spriteState = spriteStateEntities.get<SpriteState>(entity);
 
-        SpriteStatePair newState = this->getEntityState(spriteState.prevState);
+        SpriteStatePair newState = this->getEntityState(spriteState.state);
 
-        if (newState != spriteState.state || spriteState.state != spriteState.prevState) {
+        // spriteState.prevState = spriteState.state;
+
+        if (newState != spriteState.state) {
 
             registry.patch<SpriteState>(entity, [newState](auto &state) { 
 
-                state.prevState = state.state;
                 state.state = newState; 
             });
         }
@@ -114,19 +115,12 @@ SpriteStatePair InputSystem::getEntityState(SpriteStatePair prevStatePair) {
         returnDir = hDir;
     }
 
-    if (prevState == entity_c::MOVING) {
+    if (prevState == entity_c::MOVING && returnState == entity_c::MOVING) {
 
-        if (returnState == entity_c::MOVING) {
-
-            if ((vDir == prevDir || hDir == prevDir)) {
-                returnDir = prevDir;
-            }
-
-        } else {
+        if ((vDir == prevDir || hDir == prevDir)) {
             returnDir = prevDir;
-        }
-            
-    }
+        } 
+    } 
 
     return std::make_pair(returnState, returnDir);
 }
