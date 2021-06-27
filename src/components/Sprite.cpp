@@ -46,7 +46,6 @@ Sprite::Sprite(const char* spritePath, int numSprites) :
     if (textureData) {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, textureData);
         glGenerateMipmap(GL_TEXTURE_2D);
-        printf("Created Texture\n");
     } else {
         printf("Failed to load texture\n");
     }
