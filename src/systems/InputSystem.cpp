@@ -11,24 +11,15 @@ void InputSystem::update(entt::registry& registry, float deltaTime) {
 
     this->collectInputs();
 
-    auto entities = registry.view<Input, Spacial>();
+    auto entities = registry.view<Input, Spacial, SpriteState>();
 
     for (auto entity : entities) {
 
-        auto [input, spacial] = entities.get(entity);
-
-        this->updateSpacial(spacial, input, deltaTime);
-    }
-
-    auto spriteStateEntities = registry.view<SpriteState>();
-
-    for (auto entity : spriteStateEntities) {
-
-        auto& spriteState = spriteStateEntities.get<SpriteState>(entity);
+        auto [input, spacial, spriteState] = entities.get(entity);
 
         SpriteStatePair newState = this->getEntityState(spriteState.state);
 
-        // spriteState.prevState = spriteState.state;
+        this->updateSpacial(spacial, input, deltaTime, newState);
 
         if (newState != spriteState.state) {
 
@@ -37,33 +28,58 @@ void InputSystem::update(entt::registry& registry, float deltaTime) {
                 state.state = newState; 
             });
         }
+    }
+
+    auto spriteStateEntities = registry.view<SpriteState>();
+
+    for (auto entity : spriteStateEntities) {
+
+        auto& spriteState = spriteStateEntities.get<SpriteState>(entity);
 
         
     }
 }
 
-void InputSystem::updateSpacial(Spacial& spacial, Input input, float deltaTime) {
+void InputSystem::updateSpacial(Spacial& spacial, Input input, float deltaTime, SpriteStatePair state) {
 
     glm::vec3 forward(0, 1, 0);
     glm::vec3 right(1, 0, 0);
 
     glm::vec3 direction(0, 0, 0);
 
-    // Move forward
-    if (this->isKeyDown(SDLK_w)) {
-        direction -= forward;
-    }
-    // Move backward
-    if (this->isKeyDown(SDLK_s)) {
-        direction += forward;
-    }
-    // Strafe left
-    if (this->isKeyDown(SDLK_a)) {
-        direction -= right;
-    }
-    // Strafe right
-    if (this->isKeyDown(SDLK_d)) {
-        direction += right;
+    if (input.bidirectional) {
+        // Move forward
+        if (this->isKeyDown(SDLK_w)) {
+            direction -= forward;
+        }
+        // Move backward
+        if (this->isKeyDown(SDLK_s)) {
+            direction += forward;
+        }
+        // Strafe left
+        if (this->isKeyDown(SDLK_a)) {
+            direction -= right;
+        }
+        // Strafe right
+        if (this->isKeyDown(SDLK_d)) {
+            direction += right;
+        }
+    } else if (std::get<entity_c::ENTITY_STATE>(state) == entity_c::MOVING) {
+
+        switch(std::get<entity_c::ENTITY_DIR>(state)) {
+            case entity_c::UP:
+                direction -= forward;
+                break;
+            case entity_c::DOWN:
+                direction += forward;
+                break;
+            case entity_c::LEFT:
+                direction -= right;
+                break;
+            case entity_c::RIGHT:
+                direction += right;
+                break;
+        }
     }
 
     float dirLength = glm::length(direction);

@@ -25,7 +25,7 @@ public:
 
 private:
     void collectInputs();
-    void updateSpacial(Spacial& spacial, Input input, float deltaTime);
+    void updateSpacial(Spacial& spacial, Input input, float deltaTime, SpriteStatePair state);
 
     void setToggle(SDL_Keycode toggle);
     void setAbridge(SDL_Keycode abridge);
