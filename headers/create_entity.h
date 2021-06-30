@@ -16,6 +16,7 @@
 #include "Sprite.h"
 #include "SpriteState.h"
 #include "Velocity.h"
+#include "Collision.h"
 
 namespace create_entity {
     void VSCodeBackground(entt::registry& registry);

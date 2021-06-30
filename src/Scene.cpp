@@ -5,6 +5,7 @@ Scene::Scene(SDL_Window* window) : window{ window }{
         this->renderSystem = new RenderSystem(this->registry);
         this->inputSystem = new InputSystem(this->registry);
         this->stateSystem = new StateSystem(this->registry);
+        this->collisionSystem = new CollisionSystem(this->registry);
         
         // Enable text input
         SDL_StartTextInput();
@@ -27,8 +28,10 @@ void Scene::mainLoop() {
         this->clock.tick();
 
         this->inputSystem->update(this->registry, this->clock.getDeltaTime());
+        this->collisionSystem->update(this->registry);
         this->stateSystem->update(this->registry);
         this->renderSystem->update(this->registry, this->clock);
+        
 
         // Update screen
         SDL_GL_SwapWindow(window);

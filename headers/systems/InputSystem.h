@@ -26,13 +26,13 @@ public:
 
 private:
     void collectInputs();
-    void updateSpacial(Spacial& spacial, Velocity velocity, float deltaTime, float inputSpeed);
 
     void setToggle(SDL_Keycode toggle);
     void setAbridge(SDL_Keycode abridge);
 
     Velocity getVelocity(SpriteStatePair state);
     SpriteStatePair getState(SpriteStatePair state);
+    Spacial getSpacial(Spacial spacial, Velocity velocity, float deltaTime, float inputSpeed);
 
     bool isKeyDown(SDL_Keycode key);
     int getMouseX();

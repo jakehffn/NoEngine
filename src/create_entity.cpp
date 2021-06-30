@@ -25,6 +25,7 @@ void create_entity::Player(entt::registry& registry, glm::vec3 pos) {
     registry.emplace<Spacial>(player, pos, glm::vec3(0, 0, 0), 
         glm::vec3(render_c::SPR_SCALE_UP, render_c::SPR_SCALE_UP, 0));
     registry.emplace<Velocity>(player);
+    registry.emplace<Collision>(player);
     registry.emplace<Input>(player, 650.0f);
     registry.emplace<CameraController>(player, 650.0f);
 

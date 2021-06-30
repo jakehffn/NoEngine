@@ -20,9 +20,14 @@ void InputSystem::update(entt::registry& registry, float deltaTime) {
 
         SpriteStatePair newState = this->getState(spriteState.state);
         Velocity newVelocity = this->getVelocity(newState);
+        Spacial newSpacial = this->getSpacial(spacial, velocity, deltaTime, input.pps);
 
-        // Update spacial of the entity using new velocity
-        this->updateSpacial(spacial, velocity, deltaTime, input.pps);
+        if (spacial.pos != newSpacial.pos) {
+            registry.patch<Spacial>(entity, [newSpacial](auto &spacial) { 
+                spacial = newSpacial; 
+            });
+        }
+        
 
         if (newState != spriteState.state) {
 
@@ -37,11 +42,13 @@ void InputSystem::update(entt::registry& registry, float deltaTime) {
     }
 }
 
-void InputSystem::updateSpacial(Spacial& spacial, Velocity velocity, float deltaTime, float inputSpeed) {
+Spacial InputSystem::getSpacial(Spacial spacial, Velocity velocity, float deltaTime, float inputSpeed) {
     
     glm::vec3 posChange = glm::vec3(velocity.vel.x, velocity.vel.y, 0) * inputSpeed * deltaTime;
     
     spacial.pos += posChange;
+
+    return spacial;
 }
 
 Velocity InputSystem::getVelocity(SpriteStatePair state) {
