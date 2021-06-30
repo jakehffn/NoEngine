@@ -11,6 +11,7 @@
 #include "Spacial.h"
 #include "Input.h"
 #include "SpriteState.h"
+#include "Velocity.h"
 
 #include "consts.h"
 
@@ -25,12 +26,13 @@ public:
 
 private:
     void collectInputs();
-    void updateSpacial(Spacial& spacial, Input input, float deltaTime, SpriteStatePair state);
+    void updateSpacial(Spacial& spacial, Velocity velocity, float deltaTime, float inputSpeed);
 
     void setToggle(SDL_Keycode toggle);
     void setAbridge(SDL_Keycode abridge);
 
-    SpriteStatePair getEntityState(SpriteStatePair prevState);
+    Velocity getVelocity(SpriteStatePair state);
+    SpriteStatePair getState(SpriteStatePair state);
 
     bool isKeyDown(SDL_Keycode key);
     int getMouseX();

@@ -9,87 +9,70 @@ InputSystem::InputSystem(entt::registry& registry) :
 
 void InputSystem::update(entt::registry& registry, float deltaTime) {
 
+    // Update user input data
     this->collectInputs();
 
-    auto entities = registry.view<Input, Spacial, SpriteState>();
+    auto entities = registry.view<Input, Spacial, Velocity, SpriteState>();
 
     for (auto entity : entities) {
 
-        auto [input, spacial, spriteState] = entities.get(entity);
+        auto [input, spacial, velocity, spriteState] = entities.get(entity);
 
-        SpriteStatePair newState = this->getEntityState(spriteState.state);
+        SpriteStatePair newState = this->getState(spriteState.state);
+        Velocity newVelocity = this->getVelocity(newState);
 
-        this->updateSpacial(spacial, input, deltaTime, newState);
+        // Update spacial of the entity using new velocity
+        this->updateSpacial(spacial, velocity, deltaTime, input.pps);
 
         if (newState != spriteState.state) {
 
             registry.patch<SpriteState>(entity, [newState](auto &state) { 
-
                 state.state = newState; 
+            });
+
+            registry.patch<Velocity>(entity, [newVelocity](auto& velocity) {
+                velocity = newVelocity;
             });
         }
     }
-
-    auto spriteStateEntities = registry.view<SpriteState>();
-
-    for (auto entity : spriteStateEntities) {
-
-        auto& spriteState = spriteStateEntities.get<SpriteState>(entity);
-
-        
-    }
 }
 
-void InputSystem::updateSpacial(Spacial& spacial, Input input, float deltaTime, SpriteStatePair state) {
+void InputSystem::updateSpacial(Spacial& spacial, Velocity velocity, float deltaTime, float inputSpeed) {
+    
+    glm::vec3 posChange = glm::vec3(velocity.vel.x, velocity.vel.y, 0) * inputSpeed * deltaTime;
+    
+    spacial.pos += posChange;
+}
 
-    glm::vec3 forward(0, 1, 0);
-    glm::vec3 right(1, 0, 0);
+Velocity InputSystem::getVelocity(SpriteStatePair state) {
 
-    glm::vec3 direction(0, 0, 0);
+    glm::vec2 velocity(0, 0);
 
-    if (input.bidirectional) {
-        // Move forward
-        if (this->isKeyDown(SDLK_w)) {
-            direction -= forward;
-        }
-        // Move backward
-        if (this->isKeyDown(SDLK_s)) {
-            direction += forward;
-        }
-        // Strafe left
-        if (this->isKeyDown(SDLK_a)) {
-            direction -= right;
-        }
-        // Strafe right
-        if (this->isKeyDown(SDLK_d)) {
-            direction += right;
-        }
-    } else if (std::get<entity_c::ENTITY_STATE>(state) == entity_c::MOVING) {
+    if (std::get<entity_c::ENTITY_STATE>(state) == entity_c::MOVING) {
+
+        glm::vec2 forward(0, 1);
+        glm::vec2 right(1, 0); 
 
         switch(std::get<entity_c::ENTITY_DIR>(state)) {
             case entity_c::UP:
-                direction -= forward;
+                velocity -= forward;
                 break;
             case entity_c::DOWN:
-                direction += forward;
+                velocity += forward;
                 break;
             case entity_c::LEFT:
-                direction -= right;
+                velocity -= right;
                 break;
             case entity_c::RIGHT:
-                direction += right;
+                velocity += right;
                 break;
         }
     }
 
-    float dirLength = glm::length(direction);
-
-    if (dirLength != 0.0f) {
-        spacial.pos += (direction * (1/dirLength) * input.pps * deltaTime);
-    }
+    return Velocity{velocity};
 }
 
-SpriteStatePair InputSystem::getEntityState(SpriteStatePair prevStatePair) {
+SpriteStatePair InputSystem::getState(SpriteStatePair prevStatePair) {
 
     bool up = isKeyDown(SDLK_w);
     bool down = isKeyDown(SDLK_s);
