@@ -24,8 +24,8 @@ void create_entity::Player(entt::registry& registry, glm::vec3 pos) {
     registry.emplace<Model>(player, glm::mat4(10));
     registry.emplace<Spacial>(player, pos, glm::vec3(0, 0, 0), 
         glm::vec3(render_c::SPR_SCALE_UP, render_c::SPR_SCALE_UP, 0));
-    registry.emplace<Input>(player, 750.0f);
-    registry.emplace<CameraController>(player, 750.0f);
+    registry.emplace<Input>(player, 650.0f);
+    registry.emplace<CameraController>(player, 650.0f);
 
     registry.emplace<Sprite>(player, "./src/assets/sprites/Kid/Kid_IdleDown.png");
     registry.emplace<Animation>(player, std::vector<int>{0,0,0});//solve necessity for animations longer than 1 frame        
@@ -63,8 +63,8 @@ void create_entity::BoxHead(entt::registry& registry, glm::vec3 pos) {
     registry.emplace<Model>(boxHead, glm::mat4(10));
     registry.emplace<Spacial>(boxHead, pos, glm::vec3(0, 0, 0), 
         glm::vec3(render_c::SPR_SCALE_UP, render_c::SPR_SCALE_UP, 0));
-    registry.emplace<Input>(boxHead, 750.0f);
-    registry.emplace<CameraController>(boxHead, 750.0f);
+    registry.emplace<Input>(boxHead, 675.0f);
+    registry.emplace<CameraController>(boxHead, 675.0f);
 
     registry.emplace<Sprite>(boxHead, "./src/assets/sprites/BoxHead/BoxHead_IdleDown.png");
     registry.emplace<Animation>(boxHead, std::vector<int>{0,0,0});//solve necessity for animations longer than 1 frame        

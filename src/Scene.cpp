@@ -10,7 +10,7 @@ Scene::Scene(SDL_Window* window) : window{ window }{
         SDL_StartTextInput();
 
         create_entity::Player(this->registry, glm::vec3(0, 0, 0));
-        create_entity::Bag(this->registry, glm::vec3(300, 300, -0.1));
+        // create_entity::Bag(this->registry, glm::vec3(300, 300, -0.1));
         create_entity::Map1Background(this->registry);
 }
 
