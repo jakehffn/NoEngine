@@ -25,7 +25,7 @@ void create_entity::Player(entt::registry& registry, glm::vec3 pos) {
     registry.emplace<Spacial>(player, pos, glm::vec3(0, 0, 0), 
         glm::vec3(render_c::SPR_SCALE_UP, render_c::SPR_SCALE_UP, 0));
     registry.emplace<Velocity>(player);
-    registry.emplace<Collision>(player);
+    registry.emplace<Collision>(player, glm::vec2(16, 24));
     registry.emplace<Input>(player, 650.0f);
     registry.emplace<CameraController>(player, 650.0f);
 
@@ -107,4 +107,13 @@ void create_entity::Bag(entt::registry& registry, glm::vec3 pos) {
     registry.emplace<Spacial>(bag, pos, glm::vec3(0, 0, 0), 
         glm::vec3(render_c::SPR_SCALE_UP, render_c::SPR_SCALE_UP, 0));
     registry.emplace<Animation>(bag, std::vector<int>{0,0,0,0,0,0,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0});        
+}
+
+void create_entity::CollisionBox(entt::registry& registry, glm::vec2 pos, glm::vec2 dim) {
+
+    const auto collision = registry.create();
+
+    registry.emplace<Spacial>(collision, glm::vec3(pos.x, pos.y, 0), glm::vec3(0, 0, 0), 
+        glm::vec3(render_c::SPR_SCALE_UP, render_c::SPR_SCALE_UP, 0));
+    registry.emplace<Collision>(collision, dim);
 }

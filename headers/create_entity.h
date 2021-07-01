@@ -24,4 +24,6 @@ namespace create_entity {
     void Player(entt::registry& registry, glm::vec3 pos);
     void BoxHead(entt::registry& registry, glm::vec3 pos);
     void Bag(entt::registry& registry, glm::vec3 pos);
+
+    void CollisionBox(entt::registry& registry, glm::vec2 pos, glm::vec2 dim);
 };

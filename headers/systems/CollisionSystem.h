@@ -10,6 +10,7 @@
 
 #include "Collision.h"
 #include "Spacial.h"
+#include "SpriteState.h"
 
 class CollisionSystem : public System {
 public:
@@ -19,7 +20,7 @@ public:
 
     void systemState() override;
 private:
-    void resolveCollision(Collision collision, Spacial& spacial);
+    void resolveCollision(SpriteStatePair state, Collision collision, Spacial& spacial, Collision entityCol, Spacial entitySpac);
 
     entt::observer collisionObserver;
 };

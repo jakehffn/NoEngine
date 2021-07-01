@@ -13,6 +13,9 @@ Scene::Scene(SDL_Window* window) : window{ window }{
         create_entity::Player(this->registry, glm::vec3(0, 0, 0));
         // create_entity::Bag(this->registry, glm::vec3(300, 300, -0.1));
         create_entity::Map1Background(this->registry);
+        create_entity::CollisionBox(this->registry, glm::vec2(0,16), glm::vec2(32, 8*16));
+        create_entity::CollisionBox(this->registry, glm::vec2(19*16,16), glm::vec2(32, 8*16));
+        create_entity::CollisionBox(this->registry, glm::vec2(0, 16 + 7*16), glm::vec2(19*16, 2*16));
 }
 
 Scene::~Scene() {
@@ -28,8 +31,8 @@ void Scene::mainLoop() {
         this->clock.tick();
 
         this->inputSystem->update(this->registry, this->clock.getDeltaTime());
-        this->collisionSystem->update(this->registry);
         this->stateSystem->update(this->registry);
+        this->collisionSystem->update(this->registry);
         this->renderSystem->update(this->registry, this->clock);
         
 

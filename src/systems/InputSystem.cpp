@@ -20,7 +20,7 @@ void InputSystem::update(entt::registry& registry, float deltaTime) {
 
         SpriteStatePair newState = this->getState(spriteState.state);
         Velocity newVelocity = this->getVelocity(newState);
-        Spacial newSpacial = this->getSpacial(spacial, velocity, deltaTime, input.pps);
+        Spacial newSpacial = this->getSpacial(spacial, newVelocity, deltaTime, input.pps);
 
         if (spacial.pos != newSpacial.pos) {
             registry.patch<Spacial>(entity, [newSpacial](auto &spacial) { 
