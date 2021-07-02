@@ -12,6 +12,6 @@ void main(){
 	TexCoords = vertex.zw;
 	
 	// Output position of the vertex, in clip space : MVP * position
-	gl_Position =  MVP * vec4(vertex.xy, 0.0, 1.0);
+	gl_Position =  MVP * vec4(vertex.xy, 1.0, 1.0);
 	
 }

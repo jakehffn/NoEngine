@@ -30,10 +30,10 @@ void CollisionSystem::resolveCollision(SpriteStatePair state, Collision collisio
     entity_c::ENTITY_DIR dir = std::get<entity_c::ENTITY_DIR>(state);
 
     glm::vec3 pos1 = spacial.pos;
-    glm::vec2 dim1 = collision.dim * render_c::SPR_SCALE_UP;
+    glm::vec2 dim1 = collision.dim;
 
-    glm::vec3 pos2 = entitySpac.pos * render_c::SPR_SCALE_UP;
-    glm::vec2 dim2 = entityCol.dim * render_c::SPR_SCALE_UP;
+    glm::vec3 pos2 = entitySpac.pos;
+    glm::vec2 dim2 = entityCol.dim;
 
     if (pos1.y < pos2.y + dim2.y && pos1.y + dim1.y > pos2.y && pos1.x < pos2.x + dim2.x && pos1.x + dim1.x > pos2.x) {
         switch (dir) {
