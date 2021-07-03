@@ -2,11 +2,15 @@
 
 #include <vector>
 #include <iostream>
+#include <memory>
+#include <unordered_map>
 
 // GLEW must come before OpenGL
 #include <GL\glew.h>
 #include <SDL.h>
 #include <SDL_opengl.h>
+
+#include "tileson.hpp"
 
 #include <entt\entt.hpp>
 
@@ -27,7 +31,11 @@ public:
 
     void mainLoop();
 
+    void loadTiledMap(const char* mapPath);
+
 private:
+    void addObject(tson::Object& obj);
+
     GLuint programID = 0;
     SDL_Window* window;
 

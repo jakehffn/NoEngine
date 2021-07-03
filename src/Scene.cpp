@@ -2,6 +2,8 @@
 
 Scene::Scene(SDL_Window* window) : window{ window }{
 
+        this->loadTiledMap("./src/assets/maps/baseMap/baseMap.json");
+
         this->renderSystem = new RenderSystem(this->registry);
         this->inputSystem = new InputSystem(this->registry);
         this->stateSystem = new StateSystem(this->registry);
@@ -10,12 +12,7 @@ Scene::Scene(SDL_Window* window) : window{ window }{
         // Enable text input
         SDL_StartTextInput();
 
-        create_entity::Player(this->registry, glm::vec3(0, 0, 0));
-        // create_entity::Bag(this->registry, glm::vec3(300, 300, -0.1));
         create_entity::Map1Background(this->registry);
-        create_entity::CollisionBox(this->registry, glm::vec2(0,16), glm::vec2(32, 8*16));
-        create_entity::CollisionBox(this->registry, glm::vec2(19*16,16), glm::vec2(32, 8*16));
-        create_entity::CollisionBox(this->registry, glm::vec2(0, 16 + 7*16), glm::vec2(19*16, 2*16));
 }
 
 Scene::~Scene() {
@@ -43,4 +40,52 @@ void Scene::mainLoop() {
     std::cout << "\nOpenGLError Code: "<< glGetError() << "\n";
     
     SDL_StopTextInput();
+}
+
+void Scene::loadTiledMap(const char* mapPath) {
+
+    tson::Tileson t;
+    std::unique_ptr<tson::Map> map = t.parse(fs::path(mapPath));
+
+    if (map->getStatus() == tson::ParseStatus::OK) {
+
+        tson::Layer* objectLayer = map->getLayer("Object Layer");
+
+        for (auto& obj : objectLayer->getObjects()) {
+            
+            this->addObject(obj);
+        }
+
+    } else {
+        std::cout << map->getStatusMessage();
+    }
+
+}
+
+void Scene::addObject(tson::Object& obj) {
+
+    tson::ObjectType objType = obj.getObjectType();
+
+    tson::Vector2i pos = obj.getPosition();
+    tson::Vector2i size = obj.getSize();
+
+    std::unordered_map<std::string, void (*)(entt::registry&, glm::vec3)> nameFuncMap;
+    
+    nameFuncMap["Player"] = &create_entity::Player;
+    nameFuncMap["BoxHead"] = &create_entity::BoxHead;
+    nameFuncMap["Bag"] = &create_entity::Bag;
+
+    if (objType == tson::ObjectType::Rectangle) {
+
+        create_entity::CollisionBox(this->registry, glm::vec2(pos.x, pos.y), glm::vec2(size.x, size.y));
+
+    } else {
+
+        std::string name = obj.getName();
+
+        std::cout << name << std::endl;
+
+        nameFuncMap[name](this->registry, glm::vec3(pos.x, pos.y, 0));
+
+    }
 }

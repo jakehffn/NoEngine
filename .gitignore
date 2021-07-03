@@ -1,4 +1,5 @@
 *.exe
+*.json
 \.vscode
 \libs
 test.cpp
