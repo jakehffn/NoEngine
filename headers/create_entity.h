@@ -26,4 +26,6 @@ namespace create_entity {
     void Bag(entt::registry& registry, glm::vec3 pos);
 
     void CollisionBox(entt::registry& registry, glm::vec2 pos, glm::vec2 dim);
+
+    Sprite createSprite(const char* spritesheetPath, int numSprites=1);
 };

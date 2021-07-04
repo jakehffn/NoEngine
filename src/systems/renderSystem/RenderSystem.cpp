@@ -28,26 +28,35 @@ void RenderSystem::showEntities(entt::registry& registry, Clock clock) {
 
     auto animations = registry.view<Animation, Sprite>();
 
-    for (auto entity : animations) {
+    for (auto animatedEntity : animations) {
 
         // printf("Animation update\n");
-        auto [animation, sprite] = animations.get(entity);
+        auto [animation, sprite] = animations.get(animatedEntity);
 
         this->updateAnimation(animation, sprite, clock);
     }
 
-    auto sprites = registry.view<Sprite, Model, Spacial>();
+    auto sprites = registry.view<Sprite, Model, Spacial>(entt::exclude<Text>);
 
     // Clear the screen
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    for (auto entity : sprites) {
+    for (auto spriteEntity : sprites) {
 
-        auto [sprite, model, spacial] = sprites.get(entity);
+        auto [sprite, model, spacial] = sprites.get(spriteEntity);
 
-        this->updateModel(model, sprite, spacial);
-        this->renderSprite(sprite, model);
+        this->renderObject(model, sprite, spacial);
     }
+
+    // auto texts = registry.view<Text, Model, Spacial>();
+
+    // for (auto textEntity : texts) {
+
+    //     auto [text, model, spacial] = texts.get(textEntity);
+
+    //     this->updateModel(model, sprite, spacial);
+    //     this->renderText(text, model, sprite);
+    // }
 }
 
 void RenderSystem::updateCamera(entt::registry& registry) {
@@ -58,21 +67,33 @@ void RenderSystem::updateCamera(entt::registry& registry) {
 
         auto [cameraController, spacial, sprite] = controllers.get(entity);
 
-        float xOffset = render_c::SCREEN_WIDTH/2 - sprite.getWidth() * spacial.scale.x * sprite.texData.y / 2;
-        float yOffset = render_c::SCREEN_HEIGHT/2 - sprite.getHeight() * spacial.scale.y / 2;
+        float xOffset = render_c::SCREEN_WIDTH/2 - sprite.width * spacial.scale.x * sprite.texData.y / 2;
+        float yOffset = render_c::SCREEN_HEIGHT/2 - sprite.height * spacial.scale.y / 2;
 
         glm::vec3 offset(xOffset, yOffset, 0);
         this->camera.setPosition(spacial.pos - offset);
-        // this->camera.setPosition(spacial.pos);
     }
 
     this->camera.update();
 }
 
-void RenderSystem::renderSprite(Sprite sprite, Model model) {
-    // spriteObject->updateModel(); Remember to update somewhere else
+void RenderSystem::renderText(Text text, Model model, Sprite sprite) {
 
-    // printf("Rendering sprite\n");
+    // Use shader
+    GLuint openGLShaderProgramID = this->shaderProgram->getOpenGLShaderProgramID();
+    glUseProgram(openGLShaderProgramID);
+
+    glm::mat4 view = this->guiCamera.getViewMatrix();
+    glm::mat4 projection = this->guiCamera.getProjectionMatrix();
+
+    this->shaderProgram->renderSetup(model.model, view, projection, sprite.texData);
+
+    renderSprite(sprite);
+}
+
+void RenderSystem::renderObject(Model model, Sprite sprite, Spacial spacial) {
+
+    this->updateModel(model, sprite, spacial);
 
     // Use shader
     GLuint openGLShaderProgramID = this->shaderProgram->getOpenGLShaderProgramID();
@@ -82,10 +103,15 @@ void RenderSystem::renderSprite(Sprite sprite, Model model) {
     glm::mat4 projection = this->camera.getProjectionMatrix();
 
     this->shaderProgram->renderSetup(model.model, view, projection, sprite.texData);
-    
-    glBindVertexArray(sprite.getVAO());
+
+    renderSprite(sprite);
+}
+
+void RenderSystem::renderSprite(Sprite sprite) {
+
+    glBindVertexArray(sprite.VAO);
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, sprite.getTexture());
+    glBindTexture(GL_TEXTURE_2D, sprite.texture);
 
     // Remove anti-aliasing
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -95,7 +121,7 @@ void RenderSystem::renderSprite(Sprite sprite, Model model) {
     glBindVertexArray(0);
 }
 
-void RenderSystem::updateModel(Model& model,Sprite sprite, Spacial spacial) {
+void RenderSystem::updateModel(Model& model, Sprite sprite, Spacial spacial) {
 
     // Order matters
     model.model = glm::mat4(1.0f);
@@ -106,8 +132,8 @@ void RenderSystem::updateModel(Model& model,Sprite sprite, Spacial spacial) {
     rotate = glm::rotate(rotate, spacial.rot.y, glm::vec3(0, 1, 0));
     rotate = glm::rotate(rotate, spacial.rot.z, glm::vec3(0, 0, 1));
 
-    glm::vec3 scaleVec = glm::vec3(spacial.scale.x * sprite.getWidth() * sprite.texData.y, 
-        spacial.scale.y * sprite.getHeight(), spacial.scale.z);
+    glm::vec3 scaleVec = glm::vec3(spacial.scale.x * sprite.width * sprite.texData.y, 
+        spacial.scale.y * sprite.height, spacial.scale.z);
     glm::mat4 scale = glm::scale(glm::mat4(1), scaleVec);
 
     glm::mat4 translate = glm::translate(glm::mat4(1), spacial.pos);

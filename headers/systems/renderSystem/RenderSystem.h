@@ -11,6 +11,7 @@
 #include "Model.h"
 #include "CameraController.h"
 #include "Animation.h"
+#include "Text.h"
 
 #include "Camera.h"
 #include "Clock.h"
@@ -31,11 +32,15 @@ private:
     void showEntities(entt::registry& registry, Clock clock);
     void updateCamera(entt::registry& registry);
 
-    void renderSprite(Sprite sprite, Model model);
+    void renderObject(Model model, Sprite sprite, Spacial spacial);
+    void renderText(Text text, Model model, Sprite sprite);
+
+    void renderSprite(Sprite sprite);
 
     void updateModel(Model& model, Sprite sprite, Spacial spacial);
     void updateAnimation(Animation& animation, Sprite& sprite, Clock clock);
 
     ShaderProgram* shaderProgram;
     Camera camera;
+    Camera guiCamera;
 };

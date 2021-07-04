@@ -7,23 +7,12 @@
 #include <SDL.h>
 #include <SDL_opengl.h>
 
-#include "consts.h"
 
-class Sprite {
-public:
-    Sprite();
-    Sprite(const char* spritePath, int numSprites=1);
-
-    GLuint getVAO() const;
-    GLuint getTexture() const;
-
-    int getWidth() const;
-    int getHeight() const;
+struct Sprite {
 
     glm::vec2 texData{0.0f, 1.0f};
     int numSprites;
 
-private:
     int width;
     int height;
     int nColorChannels;
