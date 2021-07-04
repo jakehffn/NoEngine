@@ -37,7 +37,7 @@ private:
 
     void renderSprite(Sprite sprite);
 
-    void updateModel(Model& model, Sprite sprite, Spacial spacial);
+    void updateModel(Model& model, Spacial spacial);
     void updateAnimation(Animation& animation, Sprite& sprite, Clock clock);
 
     ShaderProgram* shaderProgram;

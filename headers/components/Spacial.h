@@ -9,4 +9,6 @@ struct Spacial {
     glm::vec3 rot;
     // scale
     glm::vec3 scale;
+    // dimensions
+    glm::vec2 dim;
 };

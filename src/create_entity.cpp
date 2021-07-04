@@ -13,7 +13,7 @@ void create_entity::VSCodeBackground(entt::registry& registry) {
 
     registry.emplace<Model>(background, glm::mat4(10));
     registry.emplace<Spacial>(background, glm::vec3(0, 0, -.5), glm::vec3(0, 0, 0), 
-        glm::vec3(1, 1, 1));
+        glm::vec3(1, 1, 1), glm::vec2(sprite.width, sprite.height));
 }
 
 void create_entity::Map1Background(entt::registry& registry) {
@@ -25,15 +25,14 @@ void create_entity::Map1Background(entt::registry& registry) {
 
     registry.emplace<Model>(background, glm::mat4(10));
     registry.emplace<Spacial>(background, glm::vec3(0, 0, -.5), glm::vec3(0, 0, 0), 
-        glm::vec3(1, 1, 1));
+        glm::vec3(1, 1, 1), glm::vec2(sprite.width, sprite.height));
 }
 
 void create_entity::Player(entt::registry& registry, glm::vec3 pos) {
 
     const auto player = registry.create();
     registry.emplace<Model>(player, glm::mat4(10));
-    registry.emplace<Spacial>(player, pos, glm::vec3(0, 0, 0), 
-        glm::vec3(1, 1, 1));
+    
     registry.emplace<Velocity>(player);
     registry.emplace<Collision>(player, glm::vec2(16, 8), glm::vec2(0, 16));
     registry.emplace<Input>(player, 200.0f);
@@ -41,6 +40,9 @@ void create_entity::Player(entt::registry& registry, glm::vec3 pos) {
 
     Sprite& sprite = registry.emplace<Sprite>(player);
     sprite = create_entity::createSprite("./src/assets/sprites/Kid/Kid_IdleDown.png");
+
+    registry.emplace<Spacial>(player, pos, glm::vec3(0, 0, 0), 
+        glm::vec3(1, 1, 1), glm::vec2(sprite.width, sprite.height));
 
     registry.emplace<Animation>(player, std::vector<int>{0,0,0});//solve necessity for animations longer than 1 frame        
 
@@ -75,13 +77,14 @@ void create_entity::BoxHead(entt::registry& registry, glm::vec3 pos) {
 
     const auto boxHead = registry.create();
     registry.emplace<Model>(boxHead, glm::mat4(10));
-    registry.emplace<Spacial>(boxHead, pos, glm::vec3(0, 0, 0), 
-        glm::vec3(1, 1, 1));
     registry.emplace<Input>(boxHead, 675.0f);
     registry.emplace<CameraController>(boxHead, 675.0f);
 
     Sprite& sprite = registry.emplace<Sprite>(boxHead);
     sprite = create_entity::createSprite("./src/assets/sprites/BoxHead/BoxHead_IdleDown.png");
+
+    registry.emplace<Spacial>(boxHead, pos, glm::vec3(0, 0, 0), 
+        glm::vec3(1, 1, 1), glm::vec2(sprite.width, sprite.height));
 
     registry.emplace<Animation>(boxHead, std::vector<int>{0,0,0});//solve necessity for animations longer than 1 frame        
 
@@ -118,11 +121,12 @@ void create_entity::Bag(entt::registry& registry, glm::vec3 pos) {
     const auto bag = registry.create();
 
     Sprite& sprite = registry.emplace<Sprite>(bag);
-    sprite = create_entity::createSprite("./src/assets/sprites/Bag.png", 5);
+    int numSprites = 5;
+    sprite = create_entity::createSprite("./src/assets/sprites/Bag.png", numSprites);
 
     registry.emplace<Model>(bag, glm::mat4(10));
     registry.emplace<Spacial>(bag, pos, glm::vec3(0, 0, 0), 
-        glm::vec3(1, 1, 1));
+        glm::vec3(1, 1, 1), glm::vec2(sprite.width/float(numSprites), sprite.height));
     registry.emplace<Animation>(bag, std::vector<int>{0,0,0,0,0,0,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0});        
 }
 
@@ -131,7 +135,7 @@ void create_entity::CollisionBox(entt::registry& registry, glm::vec2 pos, glm::v
     const auto collision = registry.create();
 
     registry.emplace<Spacial>(collision, glm::vec3(pos.x, pos.y, 0), glm::vec3(0, 0, 0), 
-        glm::vec3(1, 1, 1));
+        glm::vec3(1, 1, 1), dim);
     registry.emplace<Collision>(collision, dim);
 }
 
@@ -141,6 +145,9 @@ Sprite create_entity::createSprite(const char* spritesheetPath, int numSprites) 
 
     sprite.numSprites = numSprites;
     sprite.texData = glm::vec2(0.0f, 1.0f/numSprites);
+
+     // create texture
+    unsigned char* textureData = stbi_load(spritesheetPath, &sprite.width, &sprite.height, &sprite.nColorChannels, STBI_rgb_alpha);
 
     // create VAO
     float shaderData[] = { 
@@ -168,9 +175,6 @@ Sprite create_entity::createSprite(const char* spritesheetPath, int numSprites) 
     // Free bound buffers
     glBindBuffer(GL_ARRAY_BUFFER, 0);  
     glBindVertexArray(0);
-
-    // create texture
-    unsigned char* textureData = stbi_load(spritesheetPath, &sprite.width, &sprite.height, &sprite.nColorChannels, STBI_rgb_alpha);
 
     glGenTextures(1, &sprite.texture);
     glBindTexture(GL_TEXTURE_2D, sprite.texture);
