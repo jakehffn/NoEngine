@@ -15,9 +15,7 @@ Scene::Scene(SDL_Window* window) : window{ window }{
         SDL_StartTextInput();
 
         create_entity::Map1Background(this->registry);
-
         create_entity::TextBox(this->registry, std::string("1234567890-=[]\\;',./`!@#$%^&*()_+{}|:\"<>?~"));
-        create_entity::BoxHead(this->registry, glm::vec3(0,0,0));
 }
 
 Scene::~Scene() {
