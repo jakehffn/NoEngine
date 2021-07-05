@@ -6,12 +6,12 @@ RenderSystem::RenderSystem(entt::registry& registry) : shaderProgram{ new BasicS
     
     this->initTextMap();
 
-    // glClearColor(0.0f, 0.4f, 0.4f, 0.0f);
-    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+    glClearColor(0.0f, 0.4f, 0.4f, 0.0f);
+    // glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
     glEnable(GL_CULL_FACE);
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LESS);
+    // glEnable(GL_DEPTH_TEST);
+    // glDepthFunc(GL_LESS);
 
     glEnable(GL_BLEND); 
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -44,15 +44,15 @@ void RenderSystem::showEntities(entt::registry& registry, Clock clock) {
         this->updateAnimation(animation, sprite, clock);
     }
 
-    auto sprites = registry.view<Sprite, Model, Spacial>(entt::exclude<Text>);
+    // Sort sprites before rendering
+    registry.sort<Spacial>([](const auto& lSpacial, const auto& rSpacial) {
+        return lSpacial.pos.y < rSpacial.pos.y;
+    });
 
-    // Render objects
-    for (auto spriteEntity : sprites) {
-
-        auto [sprite, model, spacial] = sprites.get(spriteEntity);
+    registry.view<Sprite, Model, Spacial>(entt::exclude<Text>).each<Spacial>([this](auto& sprite, auto& model, auto& spacial) {  
 
         this->renderObject(model, sprite);
-    }
+    });
 
     auto texts = registry.view<Text, Spacial>();
 
@@ -72,8 +72,6 @@ void RenderSystem::updateCamera(entt::registry& registry) {
     for (auto entity : controllers) {
 
         auto [cameraController, spacial, sprite] = controllers.get(entity);
-
-        printf("Player Pos - x: %f, y: %f\r", spacial.pos.x, spacial.pos.y);
 
         float xOffset = render_c::SCREEN_WIDTH/2 - spacial.dim.x * spacial.scale.x / 2;
         float yOffset = render_c::SCREEN_HEIGHT/2 - spacial.dim.y * spacial.scale.y / 2;
@@ -103,7 +101,7 @@ void RenderSystem::renderText(Text text, Spacial spacial) {
         float kerning = 1.5;
 
         Spacial cSpacial{spacial};
-        cSpacial.pos += glm::vec3(spacial.pos.x + charOffset, spacial.pos.y, 0);
+        cSpacial.pos = glm::vec3(spacial.pos.x + charOffset, spacial.pos.y, 0);
         cSpacial.dim.x = charData.y;
         this->updateModel(cModel, cSpacial);
 

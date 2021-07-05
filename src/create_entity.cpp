@@ -163,9 +163,9 @@ void create_entity::TextBox(entt::registry& registry, std::string text) {
     const auto textBox = registry.create();
 
     registry.emplace<Text>(textBox, text);
-    registry.emplace<Spacial>(textBox, glm::vec3(0,134,0), glm::vec3(0, 0, 0), 
+    registry.emplace<Spacial>(textBox, glm::vec3(0,220,0), glm::vec3(0, 0, 0), 
         glm::vec3(1, 1, 1), glm::vec2(800, 10));
-    registry.emplace<Model>(textBox, glm::mat4(10));
+    registry.emplace<Model>(textBox, glm::mat4(1));
 }
 
 Sprite create_entity::createSprite(const char* spritesheetPath, int numSprites) {
