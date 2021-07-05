@@ -1,6 +1,8 @@
 #include "RenderSystem.h"
 
-RenderSystem::RenderSystem(entt::registry& registry) : shaderProgram{ new BasicShader() } {
+RenderSystem::RenderSystem(entt::registry& registry) : shaderProgram{ new BasicShader() },
+    spacialObserver{ entt::observer(registry, entt::collector.update<Spacial>().where<Sprite>()) },
+    textSprite{ create_entity::createSprite("./src/assets/fonts/text.png", 1) } {
     
     this->initTextMap();
 
@@ -13,19 +15,19 @@ RenderSystem::RenderSystem(entt::registry& registry) : shaderProgram{ new BasicS
 
     glEnable(GL_BLEND); 
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    this->textSprite = create_entity::createSprite("./src/assets/fonts/text.png", 1);
-
     
-
     // initialize group with empty registry for performance
     auto init = registry.group<Sprite>(entt::get<Model, Spacial, Animation>);
 }
 
 void RenderSystem::update(entt::registry& registry, Clock clock) {
 
+    // Clear the screen
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
     // Camera update comes first as sprite rendering relies on camera
     this->updateCamera(registry);
+    this->updateModels(registry);
     this->showEntities(registry, clock);
 }
 
@@ -33,6 +35,7 @@ void RenderSystem::showEntities(entt::registry& registry, Clock clock) {
 
     auto animations = registry.view<Animation, Sprite>();
 
+    // Update all entities with animations
     for (auto animatedEntity : animations) {
 
         // printf("Animation update\n");
@@ -43,22 +46,18 @@ void RenderSystem::showEntities(entt::registry& registry, Clock clock) {
 
     auto sprites = registry.view<Sprite, Model, Spacial>(entt::exclude<Text>);
 
-    // Clear the screen
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+    // Render objects
     for (auto spriteEntity : sprites) {
 
         auto [sprite, model, spacial] = sprites.get(spriteEntity);
 
-        this->updateModel(model, spacial);
         this->renderObject(model, sprite);
     }
 
     auto texts = registry.view<Text, Spacial>();
 
+    // Render all text objects
     for (auto textEntity : texts) {
-
-        // printf("Text pls");
 
         auto [text, spacial] = texts.get(textEntity);
 
@@ -146,6 +145,25 @@ void RenderSystem::renderSprite(Sprite sprite) {
     glBindVertexArray(0);
 }
 
+void RenderSystem::updateModels(entt::registry& registry) {
+
+    // Update the models of all the entities whose spacials have been changed
+    for (const auto entity : this->spacialObserver) {
+
+        auto [model, spacial] = registry.get<Model, Spacial>(entity);
+
+        // This offset allows drawing of sprites to be sorted by y-position
+        glm::vec3 bottomUpOffset(0, spacial.dim.y, 0);
+
+        Spacial offsetSpacial = spacial;
+        offsetSpacial.pos -= bottomUpOffset;
+
+        this->updateModel(model, offsetSpacial);
+    }
+
+    this->spacialObserver.clear();
+}
+
 void RenderSystem::updateModel(Model& model, Spacial spacial) {
 
     // Order matters
@@ -162,6 +180,7 @@ void RenderSystem::updateModel(Model& model, Spacial spacial) {
     glm::mat4 scale = glm::scale(glm::mat4(1), scaleVec);
 
     glm::mat4 translate = glm::translate(glm::mat4(1), spacial.pos);
+    // glm::mat4 translate = glm::translate(glm::mat4(1), spacial.pos);
 
     model.model = translate * scale * rotate;
 }
@@ -182,40 +201,42 @@ void RenderSystem::updateAnimation(Animation& animation, Sprite& sprite, Clock c
 }
 
 void RenderSystem::initTextMap() {
+
+    float endPuncuationSpace = 2;
     
     this->textMap[' '] = glm::vec2(0*8, 3); // char start, char width
-    this->textMap['!'] = glm::vec2(1*8, 3);
+    this->textMap['!'] = glm::vec2(1*8, 1 + endPuncuationSpace);
     this->textMap['"'] = glm::vec2(2*8, 3);
-    this->textMap['#'] = glm::vec2(3*8, 3);
-    this->textMap['$'] = glm::vec2(4*8, 3);
-    this->textMap['%'] = glm::vec2(5*8, 3);
-    this->textMap['&'] = glm::vec2(6*8, 3);
-    this->textMap['\''] = glm::vec2(7*8, 3);
+    this->textMap['#'] = glm::vec2(3*8, 5);
+    this->textMap['$'] = glm::vec2(4*8, 5);
+    this->textMap['%'] = glm::vec2(5*8, 6);
+    this->textMap['&'] = glm::vec2(6*8, 6);
+    this->textMap['\''] = glm::vec2(7*8, 1);
     this->textMap['('] = glm::vec2(8*8, 3);
     this->textMap[')'] = glm::vec2(9*8, 3);
     this->textMap['*'] = glm::vec2(10*8, 3);
-    this->textMap['+'] = glm::vec2(11*8, 3);
-    this->textMap[','] = glm::vec2(12*8, 3);
-    this->textMap['-'] = glm::vec2(13*8, 3);
-    this->textMap['.'] = glm::vec2(14*8, 3);
-    this->textMap['/'] = glm::vec2(15*8, 3);
-    this->textMap['0'] = glm::vec2(16*8, 3);
+    this->textMap['+'] = glm::vec2(11*8, 5);
+    this->textMap[','] = glm::vec2(12*8, 2);
+    this->textMap['-'] = glm::vec2(13*8, 5);
+    this->textMap['.'] = glm::vec2(14*8, 2 + endPuncuationSpace);
+    this->textMap['/'] = glm::vec2(15*8, 4);
+    this->textMap['0'] = glm::vec2(16*8, 5);
     this->textMap['1'] = glm::vec2(17*8, 3);
-    this->textMap['2'] = glm::vec2(18*8, 3);
-    this->textMap['3'] = glm::vec2(19*8, 3);
-    this->textMap['4'] = glm::vec2(20*8, 3);
-    this->textMap['5'] = glm::vec2(21*8, 3);
-    this->textMap['6'] = glm::vec2(22*8, 3);
-    this->textMap['7'] = glm::vec2(23*8, 3);
-    this->textMap['8'] = glm::vec2(24*8, 3);
-    this->textMap['9'] = glm::vec2(25*8, 3);
-    this->textMap[':'] = glm::vec2(26*8, 3);
-    this->textMap[';'] = glm::vec2(27*8, 3);
-    this->textMap['<'] = glm::vec2(28*8, 3);
-    this->textMap['='] = glm::vec2(29*8, 3);
-    this->textMap['>'] = glm::vec2(30*8, 3);
-    this->textMap['?'] = glm::vec2(31*8, 3);
-    this->textMap['@'] = glm::vec2(32*8, 3);
+    this->textMap['2'] = glm::vec2(18*8, 5);
+    this->textMap['3'] = glm::vec2(19*8, 5);
+    this->textMap['4'] = glm::vec2(20*8, 5);
+    this->textMap['5'] = glm::vec2(21*8, 5);
+    this->textMap['6'] = glm::vec2(22*8, 5);
+    this->textMap['7'] = glm::vec2(23*8, 5);
+    this->textMap['8'] = glm::vec2(24*8, 5);
+    this->textMap['9'] = glm::vec2(25*8, 5);
+    this->textMap[':'] = glm::vec2(26*8, 2);
+    this->textMap[';'] = glm::vec2(27*8, 2);
+    this->textMap['<'] = glm::vec2(28*8, 5);
+    this->textMap['='] = glm::vec2(29*8, 4);
+    this->textMap['>'] = glm::vec2(30*8, 5);
+    this->textMap['?'] = glm::vec2(31*8, 5 + endPuncuationSpace);
+    this->textMap['@'] = glm::vec2(32*8, 7);
     this->textMap['A'] = glm::vec2(33*8, 5); 
     this->textMap['B'] = glm::vec2(34*8, 5);
     this->textMap['C'] = glm::vec2(35*8, 5);
@@ -243,11 +264,11 @@ void RenderSystem::initTextMap() {
     this->textMap['Y'] = glm::vec2(57*8, 5);
     this->textMap['Z'] = glm::vec2(58*8, 6);
     this->textMap['['] = glm::vec2(59*8, 3);
-    this->textMap['\\'] = glm::vec2(60*8, 3);
+    this->textMap['\\'] = glm::vec2(60*8, 4);
     this->textMap[']'] = glm::vec2(61*8, 3);
     this->textMap['^'] = glm::vec2(62*8, 3);
-    this->textMap['_'] = glm::vec2(63*8, 3);
-    this->textMap['`'] = glm::vec2(64*8, 3);
+    this->textMap['_'] = glm::vec2(63*8, 5);
+    this->textMap['`'] = glm::vec2(64*8, 2);
     this->textMap['a'] = glm::vec2(65*8, 5); 
     this->textMap['b'] = glm::vec2(66*8, 5);
     this->textMap['c'] = glm::vec2(67*8, 5);
@@ -275,9 +296,9 @@ void RenderSystem::initTextMap() {
     this->textMap['y'] = glm::vec2(89*8, 5);
     this->textMap['z'] = glm::vec2(90*8, 5);
     this->textMap['{'] = glm::vec2(91*8, 3);
-    this->textMap['|'] = glm::vec2(92*8, 3);
+    this->textMap['|'] = glm::vec2(92*8, 1);
     this->textMap['}'] = glm::vec2(93*8, 3);
-    this->textMap['~'] = glm::vec2(94*8, 3);
+    this->textMap['~'] = glm::vec2(94*8, 6);
 }
 
 void RenderSystem::systemState() {

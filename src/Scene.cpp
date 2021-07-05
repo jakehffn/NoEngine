@@ -2,19 +2,21 @@
 
 Scene::Scene(SDL_Window* window) : window{ window }{
 
-        this->loadTiledMap("./src/assets/maps/baseMap/baseMap.json");
-
         this->renderSystem = new RenderSystem(this->registry);
         this->inputSystem = new InputSystem(this->registry);
         this->stateSystem = new StateSystem(this->registry);
         this->collisionSystem = new CollisionSystem(this->registry);
+
+        // Tiled map must be loaded after systems are created in order for observers to be able to
+        //  monitor patches during creation of entities
+        this->loadTiledMap("./src/assets/maps/baseMap/baseMap.json");
         
         // Enable text input
         SDL_StartTextInput();
 
         create_entity::Map1Background(this->registry);
 
-        create_entity::TextBox(this->registry, std::string("There, over in the distance! I can see the enemy. We better watch for Jake."));
+        create_entity::TextBox(this->registry, std::string("1234567890-=[]\\;',./`!@#$%^&*()_+{}|:\"<>?~"));
         create_entity::BoxHead(this->registry, glm::vec3(0,0,0));
 }
 

@@ -11,7 +11,7 @@ void create_entity::VSCodeBackground(entt::registry& registry) {
     Sprite& sprite = registry.emplace<Sprite>(background);
     sprite = create_entity::createSprite("./src/assets/sprites/ScreenShot (76).png");
 
-    registry.emplace<Model>(background, glm::mat4(10));
+    registry.emplace<Model>(background, glm::scale(glm::mat4(1), glm::vec3(sprite.width, sprite.height, 0)));
     registry.emplace<Spacial>(background, glm::vec3(0, 0, -.5), glm::vec3(0, 0, 0), 
         glm::vec3(1, 1, 1), glm::vec2(sprite.width, sprite.height));
 }
@@ -23,7 +23,7 @@ void create_entity::Map1Background(entt::registry& registry) {
     Sprite& sprite = registry.emplace<Sprite>(background);
     sprite = create_entity::createSprite("./src/assets/maps/baseMap/baseMap.png");
 
-    registry.emplace<Model>(background, glm::mat4(10));
+    registry.emplace<Model>(background, glm::scale(glm::mat4(1), glm::vec3(sprite.width, sprite.height, 0)));
     registry.emplace<Spacial>(background, glm::vec3(0, 0, -.5), glm::vec3(0, 0, 0), 
         glm::vec3(1, 1, 1), glm::vec2(sprite.width, sprite.height));
 }
@@ -31,20 +31,26 @@ void create_entity::Map1Background(entt::registry& registry) {
 void create_entity::Player(entt::registry& registry, glm::vec3 pos) {
 
     const auto player = registry.create();
-    registry.emplace<Model>(player, glm::mat4(10));
+    registry.emplace<Model>(player, glm::mat4(1));
     
     registry.emplace<Velocity>(player);
-    registry.emplace<Collision>(player, glm::vec2(16, 8), glm::vec2(0, 16));
+    registry.emplace<Collision>(player, glm::vec2(15, 8), glm::vec2(1, -8));
     registry.emplace<Input>(player, 200.0f);
     registry.emplace<CameraController>(player, 650.0f);
 
     Sprite& sprite = registry.emplace<Sprite>(player);
     sprite = create_entity::createSprite("./src/assets/sprites/Kid/Kid_IdleDown.png");
 
-    registry.emplace<Spacial>(player, pos, glm::vec3(0, 0, 0), 
-        glm::vec3(1, 1, 1), glm::vec2(sprite.width, sprite.height));
+    // Patch spacial in for render system to update on start
+    registry.emplace<Spacial>(player);
+    Spacial initSpacial{pos, glm::vec3(0, 0, 0), 
+        glm::vec3(1, 1, 1), glm::vec2(sprite.width, sprite.height)};
 
-    registry.emplace<Animation>(player, std::vector<int>{0,0,0});//solve necessity for animations longer than 1 frame        
+    registry.patch<Spacial>(player, [initSpacial](auto &spacial) { 
+                spacial = initSpacial;
+    });
+
+    registry.emplace<Animation>(player, std::vector<int>{0,0,0}); //solve necessity for animations longer than 1 frame        
 
     Sprite idleUpSprite = create_entity::createSprite("./src/assets/sprites/Kid/Kid_IdleUp.png");
     Sprite moveUpSprite = create_entity::createSprite("./src/assets/sprites/Kid/Kid_MoveUp.png", 4);
@@ -82,8 +88,14 @@ void create_entity::BoxHead(entt::registry& registry, glm::vec3 pos) {
     Sprite& sprite = registry.emplace<Sprite>(boxHead);
     sprite = create_entity::createSprite("./src/assets/sprites/BoxHead/BoxHead_IdleDown.png");
 
-    registry.emplace<Spacial>(boxHead, pos, glm::vec3(0, 0, 0), 
-        glm::vec3(1, 1, 1), glm::vec2(sprite.width, sprite.height));
+    // Patch spacial in for render system to update on start
+    registry.emplace<Spacial>(boxHead);
+    Spacial initSpacial{pos, glm::vec3(0, 0, 0), 
+        glm::vec3(1, 1, 1), glm::vec2(sprite.width, sprite.height)};
+
+    registry.patch<Spacial>(boxHead, [initSpacial](auto &spacial) { 
+                spacial = initSpacial;
+    });
 
     registry.emplace<Animation>(boxHead, std::vector<int>{0,0,0});//solve necessity for animations longer than 1 frame        
 
@@ -123,9 +135,17 @@ void create_entity::Bag(entt::registry& registry, glm::vec3 pos) {
     int numSprites = 5;
     sprite = create_entity::createSprite("./src/assets/sprites/Bag.png", numSprites);
 
-    registry.emplace<Model>(bag, glm::mat4(10));
-    registry.emplace<Spacial>(bag, pos, glm::vec3(0, 0, 0), 
-        glm::vec3(1, 1, 1), glm::vec2(sprite.width/float(numSprites), sprite.height));
+    registry.emplace<Model>(bag, glm::mat4(1));
+
+    // Patch spacial in for render system to update on start
+    registry.emplace<Spacial>(bag);
+    Spacial initSpacial{pos, glm::vec3(0, 0, 0), 
+        glm::vec3(1, 1, 1), glm::vec2(sprite.width/numSprites, sprite.height)};
+
+    registry.patch<Spacial>(bag, [initSpacial](auto &spacial) { 
+                spacial = initSpacial;
+    });
+
     registry.emplace<Animation>(bag, std::vector<int>{0,0,0,0,0,0,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0});        
 }
 
@@ -143,7 +163,7 @@ void create_entity::TextBox(entt::registry& registry, std::string text) {
     const auto textBox = registry.create();
 
     registry.emplace<Text>(textBox, text);
-    registry.emplace<Spacial>(textBox, glm::vec3(0,0,0), glm::vec3(0, 0, 0), 
+    registry.emplace<Spacial>(textBox, glm::vec3(0,134,0), glm::vec3(0, 0, 0), 
         glm::vec3(1, 1, 1), glm::vec2(800, 10));
     registry.emplace<Model>(textBox, glm::mat4(10));
 }

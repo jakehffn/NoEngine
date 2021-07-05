@@ -39,6 +39,7 @@ private:
 
     void renderSprite(Sprite sprite);
 
+    void updateModels(entt::registry& registry);
     void updateModel(Model& model, Spacial spacial);
     void updateAnimation(Animation& animation, Sprite& sprite, Clock clock);
 
@@ -50,6 +51,8 @@ private:
 
     Camera camera;
     Camera guiCamera;
+
+    entt::observer spacialObserver;
 
     std::unordered_map<char, glm::vec2> textMap;
 };
