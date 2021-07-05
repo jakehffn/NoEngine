@@ -21,6 +21,8 @@
 #include "ShaderProgram.h"
 #include "BasicShader.h"
 
+#include "create_entity.h"
+
 class RenderSystem : public System {
 public:
     RenderSystem(entt::registry& registry);
@@ -32,15 +34,22 @@ private:
     void showEntities(entt::registry& registry, Clock clock);
     void updateCamera(entt::registry& registry);
 
-    void renderObject(Model model, Sprite sprite, Spacial spacial);
-    void renderText(Text text, Model model, Sprite sprite);
+    void renderObject(Model model, Sprite sprite);
+    void renderText(Text text, Spacial spacial);
 
     void renderSprite(Sprite sprite);
 
     void updateModel(Model& model, Spacial spacial);
     void updateAnimation(Animation& animation, Sprite& sprite, Clock clock);
 
+    void initTextMap();
+
     ShaderProgram* shaderProgram;
+
+    Sprite textSprite;
+
     Camera camera;
     Camera guiCamera;
+
+    std::unordered_map<char, glm::vec2> textMap;
 };

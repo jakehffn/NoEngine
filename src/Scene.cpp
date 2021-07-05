@@ -13,6 +13,9 @@ Scene::Scene(SDL_Window* window) : window{ window }{
         SDL_StartTextInput();
 
         create_entity::Map1Background(this->registry);
+
+        create_entity::TextBox(this->registry, std::string("There, over in the distance! I can see the enemy. We better watch for Jake."));
+        create_entity::BoxHead(this->registry, glm::vec3(0,0,0));
 }
 
 Scene::~Scene() {

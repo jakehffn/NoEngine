@@ -6,27 +6,41 @@ Camera::Camera() :
 
     position{ glm::vec3(0, 0, 0) }, viewMatrix{ glm::mat4(1.0f) } {
 
-        float zoom = 4.0f;
+        this->zoom = 4.0f;
 
-        // this->projectionMatrix = glm::ortho(0.5f*(render_c::SCREEN_WIDTH - render_c::SCREEN_WIDTH/zoom), 
-        // float(render_c::SCREEN_WIDTH/zoom), float(render_c::SCREEN_HEIGHT/zoom),
-        // 0.5f*(render_c::SCREEN_HEIGHT - render_c::SCREEN_HEIGHT/zoom), -100.0f, 100.0f);
+        // float left = 0;
+        // float right = render_c::SCREEN_WIDTH;
+        // float top = 0;
+        // float bottom = render_c::SCREEN_HEIGHT;
 
-        float left = (render_c::SCREEN_WIDTH - (render_c::SCREEN_WIDTH/zoom)) / 2;
-        float right = left + float(render_c::SCREEN_WIDTH/zoom);
-        float top = (render_c::SCREEN_HEIGHT - (render_c::SCREEN_HEIGHT/zoom)) / 2;
-        float bottom = top + float(render_c::SCREEN_HEIGHT/zoom);
+        float left = (render_c::SCREEN_WIDTH - (render_c::SCREEN_WIDTH/this->zoom)) / 2;
+        float right = left + float(render_c::SCREEN_WIDTH/this->zoom);
+        float top = (render_c::SCREEN_HEIGHT - (render_c::SCREEN_HEIGHT/this->zoom)) / 2;
+        float bottom = top + float(render_c::SCREEN_HEIGHT/this->zoom);
 
         this->projectionMatrix = glm::ortho(left, right, 
             bottom, top, -100.0f, 100.0f);
+
+        this->position = glm::vec3(-left, -top, 0);
+        this->update();
+
+        this->cameraDim = glm::vec2(right - left, bottom - top);
 }
 
-glm::mat4 Camera::getViewMatrix() {
-    return viewMatrix;
+glm::mat4 Camera::getViewMatrix() const {
+    return this->viewMatrix;
 }
 
-glm::mat4 Camera::getProjectionMatrix() {
-    return projectionMatrix;
+glm::mat4 Camera::getProjectionMatrix() const {
+    return this->projectionMatrix;
+}
+
+float Camera::getZoom() const {
+    return this->zoom;
+}
+
+glm::vec2 Camera::getCameraDim() const {
+    return this->cameraDim;
 }
 
 void Camera::update() {
@@ -41,6 +55,7 @@ void Camera::update() {
 }
 
 void Camera::setPosition(glm::vec3 position) {
+    // printf("Camera Pos - x: %f, y: %f\r", position.x, position.y);
     this->position = position;
 }
 

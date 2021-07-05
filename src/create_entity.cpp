@@ -21,7 +21,7 @@ void create_entity::Map1Background(entt::registry& registry) {
     const auto background = registry.create();
 
     Sprite& sprite = registry.emplace<Sprite>(background);
-    sprite = create_entity::createSprite("./src/assets/sprites/Maps/UntitledRPG.png");
+    sprite = create_entity::createSprite("./src/assets/maps/baseMap/baseMap.png");
 
     registry.emplace<Model>(background, glm::mat4(10));
     registry.emplace<Spacial>(background, glm::vec3(0, 0, -.5), glm::vec3(0, 0, 0), 
@@ -78,7 +78,6 @@ void create_entity::BoxHead(entt::registry& registry, glm::vec3 pos) {
     const auto boxHead = registry.create();
     registry.emplace<Model>(boxHead, glm::mat4(10));
     registry.emplace<Input>(boxHead, 675.0f);
-    registry.emplace<CameraController>(boxHead, 675.0f);
 
     Sprite& sprite = registry.emplace<Sprite>(boxHead);
     sprite = create_entity::createSprite("./src/assets/sprites/BoxHead/BoxHead_IdleDown.png");
@@ -137,6 +136,16 @@ void create_entity::CollisionBox(entt::registry& registry, glm::vec2 pos, glm::v
     registry.emplace<Spacial>(collision, glm::vec3(pos.x, pos.y, 0), glm::vec3(0, 0, 0), 
         glm::vec3(1, 1, 1), dim);
     registry.emplace<Collision>(collision, dim);
+}
+
+void create_entity::TextBox(entt::registry& registry, std::string text) {
+
+    const auto textBox = registry.create();
+
+    registry.emplace<Text>(textBox, text);
+    registry.emplace<Spacial>(textBox, glm::vec3(0,0,0), glm::vec3(0, 0, 0), 
+        glm::vec3(1, 1, 1), glm::vec2(800, 10));
+    registry.emplace<Model>(textBox, glm::mat4(10));
 }
 
 Sprite create_entity::createSprite(const char* spritesheetPath, int numSprites) {

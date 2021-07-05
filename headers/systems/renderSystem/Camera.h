@@ -21,8 +21,10 @@ class Camera {
 public:
     Camera();
 
-    glm::mat4 getViewMatrix();
-    glm::mat4 getProjectionMatrix();
+    glm::mat4 getViewMatrix() const;
+    glm::mat4 getProjectionMatrix() const;
+    float getZoom() const;
+    glm::vec2 getCameraDim() const;
 
     void update();
 
@@ -32,4 +34,7 @@ private:
     glm::mat4 viewMatrix;
     glm::mat4 projectionMatrix;
     glm::vec3 position; 
+
+    float zoom;
+    glm::vec2 cameraDim;
 };
