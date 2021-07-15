@@ -45,16 +45,16 @@ void CollisionSystem::resolveCollision(SpriteStatePair state, Collision collisio
     if (pos1.y < pos2.y + dim2.y && pos1.y + dim1.y > pos2.y && pos1.x < pos2.x + dim2.x && pos1.x + dim1.x > pos2.x) {
         switch (dir) {
             case entity_c::UP:
-                spacial.pos.y = (pos2.y + dim2.y) - offset1.y - offset2.y;
+                spacial.pos.y = (pos2.y + dim2.y) - offset1.y;
                 break;
             case entity_c::DOWN:
-                spacial.pos.y = (pos2.y - dim1.y) - offset1.y - offset2.y;
+                spacial.pos.y = (pos2.y - dim1.y) - offset1.y;
                 break;
             case entity_c::LEFT:
-                spacial.pos.x = (pos2.x + dim2.x) - offset1.x - offset2.x;
+                spacial.pos.x = (pos2.x + dim2.x) - offset1.x;
                 break;
             case entity_c::RIGHT:
-                spacial.pos.x = (pos2.x - dim1.x) - offset1.x - offset2.x;
+                spacial.pos.x = (pos2.x - dim1.x) - offset1.x;
                 break;
         }
     }

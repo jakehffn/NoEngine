@@ -34,8 +34,8 @@ void create_entity::Player(entt::registry& registry, glm::vec3 pos) {
     registry.emplace<Model>(player, glm::mat4(1));
     
     registry.emplace<Velocity>(player);
-    registry.emplace<Collision>(player, glm::vec2(15, 8), glm::vec2(1, -8));
-    registry.emplace<Input>(player, 200.0f);
+    registry.emplace<Collision>(player, glm::vec2(12, 8), glm::vec2(3, -8));
+    registry.emplace<Input>(player, 100.0f);
     registry.emplace<CameraController>(player, 650.0f);
 
     Sprite& sprite = registry.emplace<Sprite>(player);
@@ -97,6 +97,7 @@ void create_entity::BoxHead(entt::registry& registry, glm::vec3 pos) {
                 spacial = initSpacial;
     });
 
+    registry.emplace<Collision>(boxHead, glm::vec2(12, 8), glm::vec2(2, -8));
     registry.emplace<Animation>(boxHead, std::vector<int>{0,0,0});//solve necessity for animations longer than 1 frame        
 
     Sprite idleUpSprite = create_entity::createSprite("./src/assets/sprites/BoxHead/BoxHead_IdleUp.png");
