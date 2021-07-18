@@ -240,7 +240,7 @@ void RenderSystem::initTextMap() {
     this->textMap['C'] = glm::vec2(35*8, 5);
     this->textMap['D'] = glm::vec2(36*8, 5);
     this->textMap['E'] = glm::vec2(37*8, 5);
-    this->textMap['F'] = glm::vec2(38*8, 5);
+    this->textMap['F'] = glm::vec2(38*8, 4);
     this->textMap['G'] = glm::vec2(39*8, 6);
     this->textMap['H'] = glm::vec2(40*8, 5);
     this->textMap['I'] = glm::vec2(41*8, 3);

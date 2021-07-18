@@ -23,6 +23,7 @@
 namespace create_entity {
     void VSCodeBackground(entt::registry& registry);
     void Map1Background(entt::registry& registry);
+    void IslandMapBackground(entt::registry& registry);
     void Player(entt::registry& registry, glm::vec3 pos);
     void BoxHead(entt::registry& registry, glm::vec3 pos);
     void Bag(entt::registry& registry, glm::vec3 pos);

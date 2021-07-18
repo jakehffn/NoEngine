@@ -9,13 +9,15 @@ Scene::Scene(SDL_Window* window) : window{ window }{
 
         // Tiled map must be loaded after systems are created in order for observers to be able to
         //  monitor patches during creation of entities
-        this->loadTiledMap("./src/assets/maps/baseMap/baseMap.json");
+        // this->loadTiledMap("./src/assets/maps/baseMap/baseMap.json");
+        this->loadTiledMap("./src/assets/maps/islandMap/islandMap.json");
         
         // Enable text input
         SDL_StartTextInput();
 
-        create_entity::Map1Background(this->registry);
-        create_entity::TextBox(this->registry, std::string("1234567890-=[]\\;',./`!@#$%^&*()_+{}|:\"<>?~"));
+        // create_entity::Map1Background(this->registry);
+        create_entity::IslandMapBackground(this->registry);
+        create_entity::TextBox(this->registry, std::string("    This is a very nice island. Be grateful."));
 }
 
 Scene::~Scene() {

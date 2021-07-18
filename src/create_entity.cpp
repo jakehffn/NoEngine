@@ -28,6 +28,18 @@ void create_entity::Map1Background(entt::registry& registry) {
         glm::vec3(1, 1, 1), glm::vec2(sprite.width, sprite.height));
 }
 
+void create_entity::IslandMapBackground(entt::registry& registry) {
+
+    const auto background = registry.create();
+
+    Sprite& sprite = registry.emplace<Sprite>(background);
+    sprite = create_entity::createSprite("./src/assets/maps/islandMap/islandMap.png");
+
+    registry.emplace<Model>(background, glm::scale(glm::mat4(1), glm::vec3(sprite.width, sprite.height, 0)));
+    registry.emplace<Spacial>(background, glm::vec3(0, 0, -.5), glm::vec3(0, 0, 0), 
+        glm::vec3(1, 1, 1), glm::vec2(sprite.width, sprite.height));
+}
+
 void create_entity::Player(entt::registry& registry, glm::vec3 pos) {
 
     const auto player = registry.create();
