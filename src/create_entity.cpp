@@ -188,35 +188,8 @@ Sprite create_entity::createSprite(const char* spritesheetPath, int numSprites) 
     sprite.numSprites = numSprites;
     sprite.texData = glm::vec2(0.0f, 1.0f/numSprites);
 
-     // create texture
+    // create texture
     unsigned char* textureData = stbi_load(spritesheetPath, &sprite.width, &sprite.height, &sprite.nColorChannels, STBI_rgb_alpha);
-
-    // create VAO
-    float shaderData[] = { 
-        // pos      // tex
-        0.0f, 1.0f, 0.0f, 1.0f,
-        1.0f, 0.0f, 1.0f, 0.0f,
-        0.0f, 0.0f, 0.0f, 0.0f, 
-    
-        0.0f, 1.0f, 0.0f, 1.0f,
-        1.0f, 1.0f, 1.0f, 1.0f,
-        1.0f, 0.0f, 1.0f, 0.0f
-    };
-    
-    glGenVertexArrays(1, &sprite.VAO);
-    
-    GLuint dataBuffer;
-    glGenBuffers(1, &dataBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, dataBuffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(shaderData), shaderData, GL_STATIC_DRAW);
-
-    glBindVertexArray(sprite.VAO);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
-    
-    // Free bound buffers
-    glBindBuffer(GL_ARRAY_BUFFER, 0);  
-    glBindVertexArray(0);
 
     glGenTextures(1, &sprite.texture);
     glBindTexture(GL_TEXTURE_2D, sprite.texture);

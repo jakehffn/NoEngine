@@ -17,6 +17,5 @@ struct Sprite {
     int height;
     int nColorChannels;
 
-    GLuint VAO;
     GLuint texture;
 };

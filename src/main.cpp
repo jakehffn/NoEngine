@@ -63,6 +63,20 @@ bool init() {
 	return success;
 }
 
+void GLAPIENTRY
+MessageCallback( GLenum source,
+                 GLenum type,
+                 GLuint id,
+                 GLenum severity,
+                 GLsizei length,
+                 const GLchar* message,
+                 const void* userParam )
+{
+  fprintf( stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
+           ( type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : "" ),
+            type, severity, message );
+}
+
 void close() {
 
 	// Destroy window	
@@ -82,6 +96,11 @@ int main(int argv, char** args) {
 
 	} else {
 		printf("Initialized Successfully\n");
+
+		// Enable debug output
+		glEnable( GL_DEBUG_OUTPUT );
+		glDebugMessageCallback( MessageCallback, 0 );
+
 		Scene scene(window);
 		scene.mainLoop();
 	}

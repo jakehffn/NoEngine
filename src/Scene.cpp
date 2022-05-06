@@ -16,8 +16,8 @@ Scene::Scene(SDL_Window* window) : window{ window }{
         SDL_StartTextInput();
 
         // create_entity::Map1Background(this->registry);
-        create_entity::IslandMapBackground(this->registry);
-        create_entity::TextBox(this->registry, std::string("    This is a very nice island. Be grateful."));
+        // create_entity::IslandMapBackground(this->registry);
+        create_entity::TextBox(this->registry, std::string("    Hello"));
 }
 
 Scene::~Scene() {
@@ -56,10 +56,8 @@ void Scene::loadTiledMap(const char* mapPath) {
 
         tson::Layer* objectLayer = map->getLayer("Object Layer");
 
-        for (auto& obj : objectLayer->getObjects()) {
-            
-            this->addObject(obj);
-        }
+        this->addObjects(objectLayer->getObjects());
+
 
     } else {
         std::cout << map->getStatusMessage();
@@ -67,12 +65,7 @@ void Scene::loadTiledMap(const char* mapPath) {
 
 }
 
-void Scene::addObject(tson::Object& obj) {
-
-    tson::ObjectType objType = obj.getObjectType();
-
-    tson::Vector2i pos = obj.getPosition();
-    tson::Vector2i size = obj.getSize();
+void Scene::addObjects(std::vector<tson::Object> objs) {
 
     std::unordered_map<std::string, void (*)(entt::registry&, glm::vec3)> nameFuncMap;
     
@@ -80,17 +73,27 @@ void Scene::addObject(tson::Object& obj) {
     nameFuncMap["BoxHead"] = &create_entity::BoxHead;
     nameFuncMap["Bag"] = &create_entity::Bag;
 
-    if (objType == tson::ObjectType::Rectangle) {
+    for (auto& obj : objs) {
+
+        tson::ObjectType objType = obj.getObjectType();
+
+        tson::Vector2i pos = obj.getPosition();
+        tson::Vector2i size = obj.getSize();
+
+        if (objType == tson::ObjectType::Rectangle) {
 
         create_entity::CollisionBox(this->registry, glm::vec2(pos.x, pos.y), glm::vec2(size.x, size.y));
 
-    } else {
+        } else {
 
-        std::string name = obj.getName();
+            std::string name = obj.getName();
 
-        std::cout << name << std::endl;
+            std::cout << name << std::endl;
 
-        nameFuncMap[name](this->registry, glm::vec3(pos.x, pos.y, 0));
+            nameFuncMap[name](this->registry, glm::vec3(pos.x, pos.y, 0));
 
+        }
     }
+
+    
 }

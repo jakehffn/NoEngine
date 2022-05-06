@@ -1,5 +1,7 @@
 #pragma once 
 
+#include "tileson.hpp"
+
 #include <entt\entt.hpp>
 
 #include <glm/glm.hpp>
@@ -19,7 +21,8 @@
 #include "consts.h"
 
 #include "ShaderProgram.h"
-#include "BasicShader.h"
+#include "SpriteShader.h"
+#include "TileShader.h"
 
 #include "create_entity.h"
 
@@ -38,6 +41,7 @@ private:
     void renderText(Text text, Spacial spacial);
 
     void renderSprite(Sprite sprite);
+    void renderTiles();
 
     void updateModels(entt::registry& registry);
     void updateModel(Model& model, Spacial spacial);
@@ -45,12 +49,19 @@ private:
 
     void initTextMap();
 
-    ShaderProgram* shaderProgram;
+    ShaderProgram* spriteShader;
+    ShaderProgram* tileShader;
 
     Sprite textSprite;
 
+    glm::vec3 translations[3]{glm::vec3{0,0,0},glm::vec3{1,0,1},glm::vec3{2,0,2}};
+
+    Sprite tileSheet;
+
     Camera camera;
     Camera guiCamera;
+
+    GLuint quadVAO;
 
     entt::observer spacialObserver;
 

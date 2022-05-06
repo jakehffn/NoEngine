@@ -1,9 +1,9 @@
-#include "BasicShader.h"
+#include "TileShader.h"
 
-BasicShader::BasicShader() {
+TileShader::TileShader() {
     
-    std::string vertexShaderPath = "./src/systems/renderSystem/shaderPrograms/BasicShader/vertexShader.glsl";
-    std::string fragmentShaderPath = "./src/systems/renderSystem/shaderPrograms/BasicShader/fragmentShader.glsl";
+    std::string vertexShaderPath = "./src/systems/renderSystem/shaderPrograms/TileShader/vertexShader.glsl";
+    std::string fragmentShaderPath = "./src/systems/renderSystem/shaderPrograms/TileShader/fragmentShader.glsl";
 
     this->openGLShaderProgramID = LoadShaders(vertexShaderPath.c_str(), fragmentShaderPath.c_str());
 
@@ -12,14 +12,14 @@ BasicShader::BasicShader() {
     this->VuniformID = glGetUniformLocation(this->openGLShaderProgramID, "V");
 
     this->texDataUniformID = glGetUniformLocation(this->openGLShaderProgramID, "texData");
-    this->spriteColorUniformID = glGetUniformLocation(this->openGLShaderProgramID, "spriteColor");
+    this->tileColorUniformID = glGetUniformLocation(this->openGLShaderProgramID, "spriteColor");
 }
 
-GLuint BasicShader::getOpenGLShaderProgramID() {
+GLuint TileShader::getOpenGLShaderProgramID() {
     return this->openGLShaderProgramID;
 }
 
-void BasicShader::renderSetup(glm::mat4 model, glm::mat4 view, glm::mat4 projection, glm::vec2 texData) {
+void TileShader::renderSetup(glm::mat4 model, glm::mat4 view, glm::mat4 projection, glm::vec2 texData) {
     
     glm::mat4 MVP = projection*view*model;
 
@@ -27,6 +27,6 @@ void BasicShader::renderSetup(glm::mat4 model, glm::mat4 view, glm::mat4 project
     glUniformMatrix4fv(this->MuniformID, 1, GL_FALSE, &model[0][0]);
     glUniformMatrix4fv(this->VuniformID, 1, GL_FALSE, &view[0][0]);
 
-    glUniform3f(this->spriteColorUniformID, 1, 1, 1);
+    glUniform3f(this->tileColorUniformID, 1, 1, 1);
     glUniform2f(this->texDataUniformID, texData.x, texData.y);
 }

@@ -34,7 +34,7 @@ public:
     void loadTiledMap(const char* mapPath);
 
 private:
-    void addObject(tson::Object& obj);
+    void addObjects(std::vector<tson::Object> objs);
 
     GLuint programID = 0;
     SDL_Window* window;
