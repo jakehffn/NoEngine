@@ -24,7 +24,7 @@
 #include "SpriteShader.h"
 #include "TileShader.h"
 
-#include "create_entity.h"
+#include "entities.h"
 
 class RenderSystem : public System {
 public:
@@ -32,6 +32,8 @@ public:
 
     void update(entt::registry& registry, Clock clock);
     void systemState() override;
+
+    void updateTiles(std::vector<glm::vec3> tiles);
 
 private:
     void showEntities(entt::registry& registry, Clock clock);
@@ -41,6 +43,7 @@ private:
     void renderText(Text text, Spacial spacial);
 
     void renderSprite(Sprite sprite);
+    
     void renderTiles();
 
     void updateModels(entt::registry& registry);
@@ -53,15 +56,15 @@ private:
     ShaderProgram* tileShader;
 
     Sprite textSprite;
-
-    glm::vec3 translations[3]{glm::vec3{0,0,0},glm::vec3{1,0,1},glm::vec3{2,0,2}};
-
     Sprite tileSheet;
+
+    std::vector<glm::vec3> tiles{glm::vec3{0, 0, 0}};
 
     Camera camera;
     Camera guiCamera;
 
     GLuint quadVAO;
+    GLuint tileVBO;
 
     entt::observer spacialObserver;
 

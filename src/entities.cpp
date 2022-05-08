@@ -1,46 +1,46 @@
-#include "create_entity.h"
+#include "entities.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
 
-void create_entity::VSCodeBackground(entt::registry& registry) {
+void entities::VSCodeBackground(entt::registry& registry) {
 
     const auto background = registry.create();
 
     Sprite& sprite = registry.emplace<Sprite>(background);
-    sprite = create_entity::createSprite("./src/assets/sprites/ScreenShot (76).png");
+    sprite = entities::createSprite("./src/assets/sprites/ScreenShot (76).png");
 
     registry.emplace<Model>(background, glm::scale(glm::mat4(1), glm::vec3(sprite.width, sprite.height, 0)));
     registry.emplace<Spacial>(background, glm::vec3(0, 0, -.5), glm::vec3(0, 0, 0), 
         glm::vec3(1, 1, 1), glm::vec2(sprite.width, sprite.height));
 }
 
-void create_entity::Map1Background(entt::registry& registry) {
+void entities::Map1Background(entt::registry& registry) {
 
     const auto background = registry.create();
 
     Sprite& sprite = registry.emplace<Sprite>(background);
-    sprite = create_entity::createSprite("./src/assets/maps/baseMap/baseMap.png");
+    sprite = entities::createSprite("./src/assets/maps/baseMap/baseMap.png");
 
     registry.emplace<Model>(background, glm::scale(glm::mat4(1), glm::vec3(sprite.width, sprite.height, 0)));
     registry.emplace<Spacial>(background, glm::vec3(0, 0, -.5), glm::vec3(0, 0, 0), 
         glm::vec3(1, 1, 1), glm::vec2(sprite.width, sprite.height));
 }
 
-void create_entity::IslandMapBackground(entt::registry& registry) {
+void entities::IslandMapBackground(entt::registry& registry) {
 
     const auto background = registry.create();
 
     Sprite& sprite = registry.emplace<Sprite>(background);
-    sprite = create_entity::createSprite("./src/assets/maps/islandMap/islandMap.png");
+    sprite = entities::createSprite("./src/assets/maps/islandMap/islandMap.png");
 
     registry.emplace<Model>(background, glm::scale(glm::mat4(1), glm::vec3(sprite.width, sprite.height, 0)));
     registry.emplace<Spacial>(background, glm::vec3(0, 0, -.5), glm::vec3(0, 0, 0), 
         glm::vec3(1, 1, 1), glm::vec2(sprite.width, sprite.height));
 }
 
-void create_entity::Player(entt::registry& registry, glm::vec3 pos) {
+void entities::Player(entt::registry& registry, glm::vec3 pos) {
 
     const auto player = registry.create();
     registry.emplace<Model>(player, glm::mat4(1));
@@ -51,7 +51,7 @@ void create_entity::Player(entt::registry& registry, glm::vec3 pos) {
     registry.emplace<CameraController>(player, 650.0f);
 
     Sprite& sprite = registry.emplace<Sprite>(player);
-    sprite = create_entity::createSprite("./src/assets/sprites/Kid/Kid_IdleDown.png");
+    sprite = entities::createSprite("./src/assets/sprites/Kid/Kid_IdleDown.png");
 
     // Patch spacial in for render system to update on start
     registry.emplace<Spacial>(player);
@@ -64,14 +64,14 @@ void create_entity::Player(entt::registry& registry, glm::vec3 pos) {
 
     registry.emplace<Animation>(player, std::vector<int>{0,0,0}); //solve necessity for animations longer than 1 frame        
 
-    Sprite idleUpSprite = create_entity::createSprite("./src/assets/sprites/Kid/Kid_IdleUp.png");
-    Sprite moveUpSprite = create_entity::createSprite("./src/assets/sprites/Kid/Kid_MoveUp.png", 4);
-    Sprite idleDownSprite = create_entity::createSprite("./src/assets/sprites/Kid/Kid_IdleDown.png");
-    Sprite moveDownSprite = create_entity::createSprite("./src/assets/sprites/Kid/Kid_MoveDown.png", 4);
-    Sprite idleLeftSprite = create_entity::createSprite("./src/assets/sprites/Kid/Kid_IdleLeft.png");
-    Sprite moveLeftSprite = create_entity::createSprite("./src/assets/sprites/Kid/Kid_MoveLeft.png", 4);
-    Sprite idleRightSprite = create_entity::createSprite("./src/assets/sprites/Kid/Kid_IdleRight.png");
-    Sprite moveRightSprite = create_entity::createSprite("./src/assets/sprites/Kid/Kid_MoveRight.png", 4);
+    Sprite idleUpSprite = entities::createSprite("./src/assets/sprites/Kid/Kid_IdleUp.png");
+    Sprite moveUpSprite = entities::createSprite("./src/assets/sprites/Kid/Kid_MoveUp.png", 4);
+    Sprite idleDownSprite = entities::createSprite("./src/assets/sprites/Kid/Kid_IdleDown.png");
+    Sprite moveDownSprite = entities::createSprite("./src/assets/sprites/Kid/Kid_MoveDown.png", 4);
+    Sprite idleLeftSprite = entities::createSprite("./src/assets/sprites/Kid/Kid_IdleLeft.png");
+    Sprite moveLeftSprite = entities::createSprite("./src/assets/sprites/Kid/Kid_MoveLeft.png", 4);
+    Sprite idleRightSprite = entities::createSprite("./src/assets/sprites/Kid/Kid_IdleRight.png");
+    Sprite moveRightSprite = entities::createSprite("./src/assets/sprites/Kid/Kid_MoveRight.png", 4);
 
     Animation moveAnim{std::vector<int>{0,1,2,3}}; 
     Animation idleAnim{std::vector<int>{0,0}};
@@ -91,14 +91,14 @@ void create_entity::Player(entt::registry& registry, glm::vec3 pos) {
     registry.emplace<SpriteState>(player, stateMap);
 }
 
-void create_entity::BoxHead(entt::registry& registry, glm::vec3 pos) {
+void entities::BoxHead(entt::registry& registry, glm::vec3 pos) {
 
     const auto boxHead = registry.create();
     registry.emplace<Model>(boxHead, glm::mat4(10));
     registry.emplace<Input>(boxHead, 675.0f);
 
     Sprite& sprite = registry.emplace<Sprite>(boxHead);
-    sprite = create_entity::createSprite("./src/assets/sprites/BoxHead/BoxHead_IdleDown.png");
+    sprite = entities::createSprite("./src/assets/sprites/BoxHead/BoxHead_IdleDown.png");
 
     // Patch spacial in for render system to update on start
     registry.emplace<Spacial>(boxHead);
@@ -112,14 +112,14 @@ void create_entity::BoxHead(entt::registry& registry, glm::vec3 pos) {
     registry.emplace<Collision>(boxHead, glm::vec2(12, 8), glm::vec2(2, -8));
     registry.emplace<Animation>(boxHead, std::vector<int>{0,0,0});//solve necessity for animations longer than 1 frame        
 
-    Sprite idleUpSprite = create_entity::createSprite("./src/assets/sprites/BoxHead/BoxHead_IdleUp.png");
-    Sprite moveUpSprite = create_entity::createSprite("./src/assets/sprites/BoxHead/BoxHead_MoveUp.png", 8);
-    Sprite idleDownSprite = create_entity::createSprite("./src/assets/sprites/BoxHead/BoxHead_IdleDown.png");
-    Sprite moveDownSprite = create_entity::createSprite("./src/assets/sprites/BoxHead/BoxHead_MoveDown.png", 8);
-    Sprite idleLeftSprite = create_entity::createSprite("./src/assets/sprites/BoxHead/BoxHead_IdleLeft.png");
-    Sprite moveLeftSprite = create_entity::createSprite("./src/assets/sprites/BoxHead/BoxHead_MoveLeft.png", 8);
-    Sprite idleRightSprite = create_entity::createSprite("./src/assets/sprites/BoxHead/BoxHead_IdleRight.png");
-    Sprite moveRightSprite = create_entity::createSprite("./src/assets/sprites/BoxHead/BoxHead_MoveRight.png", 8);
+    Sprite idleUpSprite = entities::createSprite("./src/assets/sprites/BoxHead/BoxHead_IdleUp.png");
+    Sprite moveUpSprite = entities::createSprite("./src/assets/sprites/BoxHead/BoxHead_MoveUp.png", 8);
+    Sprite idleDownSprite = entities::createSprite("./src/assets/sprites/BoxHead/BoxHead_IdleDown.png");
+    Sprite moveDownSprite = entities::createSprite("./src/assets/sprites/BoxHead/BoxHead_MoveDown.png", 8);
+    Sprite idleLeftSprite = entities::createSprite("./src/assets/sprites/BoxHead/BoxHead_IdleLeft.png");
+    Sprite moveLeftSprite = entities::createSprite("./src/assets/sprites/BoxHead/BoxHead_MoveLeft.png", 8);
+    Sprite idleRightSprite = entities::createSprite("./src/assets/sprites/BoxHead/BoxHead_IdleRight.png");
+    Sprite moveRightSprite = entities::createSprite("./src/assets/sprites/BoxHead/BoxHead_MoveRight.png", 8);
 
     Animation moveUpAnim{std::vector<int>{0,0,0,0,0,0,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0}};
     Animation moveAnim{std::vector<int>{0,1,2,3,4,5,6,7}}; 
@@ -140,13 +140,13 @@ void create_entity::BoxHead(entt::registry& registry, glm::vec3 pos) {
     registry.emplace<SpriteState>(boxHead, stateMap);
 }
 
-void create_entity::Bag(entt::registry& registry, glm::vec3 pos) {
+void entities::Bag(entt::registry& registry, glm::vec3 pos) {
 
     const auto bag = registry.create();
 
     Sprite& sprite = registry.emplace<Sprite>(bag);
     int numSprites = 5;
-    sprite = create_entity::createSprite("./src/assets/sprites/Bag.png", numSprites);
+    sprite = entities::createSprite("./src/assets/sprites/Bag.png", numSprites);
 
     registry.emplace<Model>(bag, glm::mat4(1));
 
@@ -162,7 +162,7 @@ void create_entity::Bag(entt::registry& registry, glm::vec3 pos) {
     registry.emplace<Animation>(bag, std::vector<int>{0,0,0,0,0,0,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0});        
 }
 
-void create_entity::CollisionBox(entt::registry& registry, glm::vec2 pos, glm::vec2 dim) {
+void entities::CollisionBox(entt::registry& registry, glm::vec2 pos, glm::vec2 dim) {
 
     const auto collision = registry.create();
 
@@ -171,7 +171,7 @@ void create_entity::CollisionBox(entt::registry& registry, glm::vec2 pos, glm::v
     registry.emplace<Collision>(collision, dim);
 }
 
-void create_entity::TextBox(entt::registry& registry, std::string text) {
+void entities::TextBox(entt::registry& registry, std::string text) {
 
     const auto textBox = registry.create();
 
@@ -181,7 +181,7 @@ void create_entity::TextBox(entt::registry& registry, std::string text) {
     registry.emplace<Model>(textBox, glm::mat4(1));
 }
 
-Sprite create_entity::createSprite(const char* spritesheetPath, int numSprites) {
+Sprite entities::createSprite(const char* spritesheetPath, int numSprites) {
 
     Sprite sprite;
 

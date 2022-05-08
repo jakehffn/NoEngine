@@ -21,7 +21,7 @@
 #include "StateSystem.h"
 #include "CollisionSystem.h"
 
-#include "create_entity.h"
+#include "entities.h"
 
 class Scene {
 public:
@@ -35,6 +35,7 @@ public:
 
 private:
     void addObjects(std::vector<tson::Object> objs);
+    void addTiles(std::map<std::tuple<int, int>, tson::Tile*> tileData);
 
     GLuint programID = 0;
     SDL_Window* window;

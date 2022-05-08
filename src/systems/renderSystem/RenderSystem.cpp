@@ -3,70 +3,61 @@
 RenderSystem::RenderSystem(entt::registry& registry) : spriteShader{ new SpriteShader() },
     tileShader{ new TileShader() },
     spacialObserver{ entt::observer(registry, entt::collector.update<Spacial>().where<Sprite>()) },
-    textSprite{ create_entity::createSprite("./src/assets/fonts/text.png") },
-    tileSheet{ create_entity::createSprite("./src/assets/tileSheets/tileSet2.png") } {
+    textSprite{ entities::createSprite("./src/assets/fonts/text.png") },
+    tileSheet{ entities::createSprite("./src/assets/tileSheets/tileSet2.png") } {
     
-    this->initTextMap();
+        this->initTextMap();
 
-    glClearColor(0.0f, 0.4f, 0.4f, 0.0f);
-    // glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+        glClearColor(0.0f, 0.4f, 0.4f, 0.0f);
+        // glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
-    glEnable(GL_CULL_FACE);
-    // glEnable(GL_DEPTH_TEST);
-    // glDepthFunc(GL_LESS);
+        glEnable(GL_CULL_FACE);
+        // glEnable(GL_DEPTH_TEST);
+        // glDepthFunc(GL_LESS);
 
-    glEnable(GL_BLEND); 
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glEnable(GL_BLEND); 
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    // create quadVAO
-    float vertexData[] = { 
-        // pos      // tex
-        0.0f, 1.0f, 0.0f, 1.0f,
-        1.0f, 0.0f, 1.0f, 0.0f,
-        0.0f, 0.0f, 0.0f, 0.0f, 
-    
-        0.0f, 1.0f, 0.0f, 1.0f,
-        1.0f, 1.0f, 1.0f, 1.0f,
-        1.0f, 0.0f, 1.0f, 0.0f
-    };
-    
-    glGenVertexArrays(1, &(this->quadVAO));
-    
-    GLuint dataBuffer;
-    glGenBuffers(1, &dataBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, dataBuffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertexData), vertexData, GL_STATIC_DRAW);
+        // create quadVAO
+        float vertexData[] = { 
+            // pos      // tex
+            0.0f, 1.0f, 0.0f, 1.0f,
+            1.0f, 0.0f, 1.0f, 0.0f,
+            0.0f, 0.0f, 0.0f, 0.0f, 
+        
+            0.0f, 1.0f, 0.0f, 1.0f,
+            1.0f, 1.0f, 1.0f, 1.0f,
+            1.0f, 0.0f, 1.0f, 0.0f
+        };
+        
+        glGenVertexArrays(1, &(this->quadVAO));
+        glBindVertexArray(this->quadVAO);
+        
+        // The verticies will never change so the buffer ID is not saved
+        GLuint vertexBuffer;
+        glGenBuffers(1, &vertexBuffer);
+        glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(vertexData), vertexData, GL_STATIC_DRAW);
+        
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+        
+        glGenBuffers(1, &(this->tileVBO));
+        glBindBuffer(GL_ARRAY_BUFFER, this->tileVBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * this->tiles.size(), this->tiles.data(), GL_STATIC_DRAW);
 
-    glBindVertexArray(this->quadVAO);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
-    
+        glEnableVertexAttribArray(1);
+        glBindBuffer(GL_ARRAY_BUFFER, this->tileVBO);
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+        glVertexAttribDivisor(1, 1); 
 
-
-    
-
-    
-
-    unsigned int instanceVBO;
-    glGenBuffers(1, &instanceVBO);
-    glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * 3, &translations[0], GL_STATIC_DRAW);
-    glBindBuffer(GL_ARRAY_BUFFER, 0); 
-
-    glEnableVertexAttribArray(1);
-    glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);	
-    glVertexAttribDivisor(1, 1); 
-
-
-
-    // Free bound buffers
-    glBindBuffer(GL_ARRAY_BUFFER, 0);  
-    glBindVertexArray(0);
-    
-    // initialize group with empty registry for performance
-    auto init = registry.group<Sprite>(entt::get<Model, Spacial, Animation>);
+        // Free bound buffers
+        glBindVertexArray(0);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);  
+        
+        
+        // Initialize group with empty registry for performance
+        auto init = registry.group<Sprite>(entt::get<Model, Spacial, Animation>);
 }
 
 void RenderSystem::update(entt::registry& registry, Clock clock) {
@@ -77,8 +68,9 @@ void RenderSystem::update(entt::registry& registry, Clock clock) {
     // Camera update comes first as sprite rendering relies on camera
     this->updateCamera(registry);
     this->updateModels(registry);
-    this->showEntities(registry, clock);
     this->renderTiles();
+    this->showEntities(registry, clock);
+    
 }
 
 void RenderSystem::showEntities(entt::registry& registry, Clock clock) {
@@ -193,6 +185,17 @@ void RenderSystem::renderSprite(Sprite sprite) {
     glBindVertexArray(0);
 }
 
+void RenderSystem::updateTiles(std::vector<glm::vec3> tiles) {
+
+    this->tiles = tiles;
+
+    glBindVertexArray(this->quadVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, this->tileVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * this->tiles.size(), this->tiles.data(), GL_STATIC_DRAW);
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
 void RenderSystem::renderTiles() {
 
     glBindVertexArray(this->quadVAO);
@@ -218,7 +221,7 @@ void RenderSystem::renderTiles() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-    glDrawArraysInstanced(GL_TRIANGLES, 0, 6, 3); 
+    glDrawArraysInstanced(GL_TRIANGLES, 0, 6, this->tiles.size()); 
     glBindVertexArray(0);
 }
 

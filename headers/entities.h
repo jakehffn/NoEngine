@@ -20,7 +20,8 @@
 #include "Collision.h"
 #include "Text.h"
 
-namespace create_entity {
+namespace entities {
+
     void VSCodeBackground(entt::registry& registry);
     void Map1Background(entt::registry& registry);
     void IslandMapBackground(entt::registry& registry);
@@ -33,4 +34,10 @@ namespace create_entity {
     void TextBox(entt::registry& registry, std::string text);
 
     Sprite createSprite(const char* spritesheetPath, int numSprites=1);
+
+    // Tiled map name to entity create function map
+    static std::unordered_map<std::string, void (*)(entt::registry&, glm::vec3)> create{
+        {"Player", &Player}
+    };
+
 };
