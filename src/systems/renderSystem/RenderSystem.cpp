@@ -19,7 +19,7 @@ RenderSystem::RenderSystem(entt::registry& registry) : spriteShader{ new SpriteS
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         // create quadVAO
-        float vertexData[] = { 
+        float quadVertexData[] = { 
             // pos      // tex
             0.0f, 1.0f, 0.0f, 1.0f,
             1.0f, 0.0f, 1.0f, 0.0f,
@@ -37,7 +37,7 @@ RenderSystem::RenderSystem(entt::registry& registry) : spriteShader{ new SpriteS
         GLuint vertexBuffer;
         glGenBuffers(1, &vertexBuffer);
         glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(vertexData), vertexData, GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertexData), quadVertexData, GL_STATIC_DRAW);
         
         glEnableVertexAttribArray(0);
         glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
@@ -54,7 +54,6 @@ RenderSystem::RenderSystem(entt::registry& registry) : spriteShader{ new SpriteS
         // Free bound buffers
         glBindVertexArray(0);
         glBindBuffer(GL_ARRAY_BUFFER, 0);  
-        
         
         // Initialize group with empty registry for performance
         auto init = registry.group<Sprite>(entt::get<Model, Spacial, Animation>);
@@ -151,7 +150,7 @@ void RenderSystem::renderText(Text text, Spacial spacial) {
 
         this->spriteShader->renderSetup(cModel.model, view, projection, this->textSprite.texData);
 
-        renderSprite(textSprite);
+        this->renderSprite(textSprite);
 
         charOffset += charData.y + kerning;
     }
@@ -168,7 +167,7 @@ void RenderSystem::renderObject(Model model, Sprite sprite) {
 
     this->spriteShader->renderSetup(model.model, view, projection, sprite.texData);
 
-    renderSprite(sprite);
+    this->renderSprite(sprite);
 }
 
 void RenderSystem::renderSprite(Sprite sprite) {
