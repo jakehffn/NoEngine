@@ -17,7 +17,7 @@ Scene::Scene(SDL_Window* window) : window{ window }{
 
         // entities::Map1Background(this->registry);
         // entities::IslandMapBackground(this->registry);
-        entities::TextBox(this->registry, std::string("    Hello"));
+        entities::TextBox(this->registry, std::string("    Hello"), true);
 }
 
 Scene::~Scene() {

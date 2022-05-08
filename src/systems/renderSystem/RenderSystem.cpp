@@ -1,10 +1,10 @@
 #include "RenderSystem.h"
 
 RenderSystem::RenderSystem(entt::registry& registry) : spriteShader{ new SpriteShader() },
-    tileShader{ new TileShader() },
+    tileShader{ new TileShader() }, tileAnimation{ std::vector<int>{ 0,1,2,3 }, 1.0/4.0 },
     spacialObserver{ entt::observer(registry, entt::collector.update<Spacial>().where<Sprite>()) },
     textSprite{ entities::createSprite("./src/assets/fonts/text.png") },
-    tileSheet{ entities::createSprite("./src/assets/tileSheets/tileSet2.png") } {
+    tileSheet{ entities::createSprite("./src/assets/tileSheets/tileSet2.png", 4) } {
     
         this->initTextMap();
 
@@ -67,7 +67,7 @@ void RenderSystem::update(entt::registry& registry, Clock clock) {
     // Camera update comes first as sprite rendering relies on camera
     this->updateCamera(registry);
     this->updateModels(registry);
-    this->renderTiles();
+    this->renderTiles(clock);
     this->showEntities(registry, clock);
     
 }
@@ -92,7 +92,7 @@ void RenderSystem::showEntities(entt::registry& registry, Clock clock) {
 
     registry.view<Sprite, Model, Spacial>(entt::exclude<Text>).each<Spacial>([this](auto& sprite, auto& model, auto& spacial) {  
 
-        this->renderObject(model, sprite);
+        this->renderSprite(model, sprite);
     });
 
     auto texts = registry.view<Text, Spacial>();
@@ -126,13 +126,6 @@ void RenderSystem::updateCamera(entt::registry& registry) {
 
 void RenderSystem::renderText(Text text, Spacial spacial) {
 
-    // Use shader
-    GLuint openGLShaderProgramID = this->spriteShader->getOpenGLShaderProgramID();
-    glUseProgram(openGLShaderProgramID);
-
-    glm::mat4 view = this->guiCamera.getViewMatrix();
-    glm::mat4 projection = this->guiCamera.getProjectionMatrix();
-
     Model cModel;
     float charOffset = 0;
 
@@ -148,29 +141,23 @@ void RenderSystem::renderText(Text text, Spacial spacial) {
 
         this->textSprite.texData = glm::vec2(charData.x/spacial.dim.x, (charData.y + charData.x)/spacial.dim.x);
 
-        this->spriteShader->renderSetup(cModel.model, view, projection, this->textSprite.texData);
-
-        this->renderSprite(textSprite);
+        this->renderSprite(cModel, textSprite, text.guiElement);
 
         charOffset += charData.y + kerning;
     }
 }
 
-void RenderSystem::renderObject(Model model, Sprite sprite) {
+void RenderSystem::renderSprite(Model model, Sprite sprite, bool guiElement) {
 
-    // Use shader
+    // Use the sprite shader
     GLuint openGLShaderProgramID = this->spriteShader->getOpenGLShaderProgramID();
     glUseProgram(openGLShaderProgramID);
 
-    glm::mat4 view = this->camera.getViewMatrix();
-    glm::mat4 projection = this->camera.getProjectionMatrix();
+    Camera cam = guiElement ? this->guiCamera : this->camera;
+    glm::mat4 view = cam.getViewMatrix();
+    glm::mat4 projection = cam.getProjectionMatrix();
 
     this->spriteShader->renderSetup(model.model, view, projection, sprite.texData);
-
-    this->renderSprite(sprite);
-}
-
-void RenderSystem::renderSprite(Sprite sprite) {
 
     glBindVertexArray(this->quadVAO);
     glActiveTexture(GL_TEXTURE0);
@@ -195,7 +182,7 @@ void RenderSystem::updateTiles(std::vector<glm::vec3> tiles) {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void RenderSystem::renderTiles() {
+void RenderSystem::renderTiles(Clock clock) {
 
     glBindVertexArray(this->quadVAO);
 
@@ -210,6 +197,7 @@ void RenderSystem::renderTiles() {
     Spacial spacial{glm::vec3{0,0,0}, glm::vec3{0,0,0}, glm::vec3{1,1,1}, glm::vec2{16,16}};
 
     this->updateModel(model, spacial);
+    this->updateAnimation(this->tileAnimation, this->tileSheet, clock);
 
     this->tileShader->renderSetup(model.model, view, projection, this->tileSheet.texData);
 

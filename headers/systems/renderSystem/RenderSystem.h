@@ -39,12 +39,10 @@ private:
     void showEntities(entt::registry& registry, Clock clock);
     void updateCamera(entt::registry& registry);
 
-    void renderObject(Model model, Sprite sprite);
     void renderText(Text text, Spacial spacial);
-
-    void renderSprite(Sprite sprite);
+    void renderSprite(Model model, Sprite sprite, bool guiElement=false);
     
-    void renderTiles();
+    void renderTiles(Clock clock);
 
     void updateModels(entt::registry& registry);
     void updateModel(Model& model, Spacial spacial);
@@ -57,6 +55,8 @@ private:
 
     Sprite textSprite;
     Sprite tileSheet;
+
+    Animation tileAnimation;
 
     std::vector<glm::vec3> tiles{glm::vec3{0, 0, 0}};
 

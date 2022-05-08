@@ -15,5 +15,15 @@ void main()
     int xID = TileID % 32;
     int yID = TileID / 32;
 
-    color = vec4(spriteColor, 1.0) * texture(image, vec2(TexCoords.x*tilePart + tilePart*xID, TexCoords.y*tilePart + tilePart*yID));
+    float framePercentage = (texData.y-texData.x);
+
+    float xPercentage = framePercentage*tilePart;
+    float xOffset = texData.x + (tilePart*xID)*framePercentage;
+
+    float yPercentage = tilePart;
+    float yOffset = tilePart*yID;
+
+    color = vec4(spriteColor, 1.0) * texture(image, vec2(TexCoords.x*xPercentage + xOffset, TexCoords.y*yPercentage + yOffset));
+    // color = vec4(spriteColor, 1.0) * texture(image, vec2(TexCoords.x*tilePart + tilePart*xID, TexCoords.y*tilePart + tilePart*yID));
+    // color = vec4(spriteColor, 1.0) * texture(image, vec2(TexCoords.x * (texData.y-texData.x) + texData.x, TexCoords.y));
 }  

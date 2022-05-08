@@ -31,7 +31,7 @@ namespace entities {
 
     void CollisionBox(entt::registry& registry, glm::vec2 pos, glm::vec2 dim);
 
-    void TextBox(entt::registry& registry, std::string text);
+    void TextBox(entt::registry& registry, std::string text, bool guiElement=false);
 
     Sprite createSprite(const char* spritesheetPath, int numSprites=1);
 

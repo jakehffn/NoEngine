@@ -171,11 +171,11 @@ void entities::CollisionBox(entt::registry& registry, glm::vec2 pos, glm::vec2 d
     registry.emplace<Collision>(collision, dim);
 }
 
-void entities::TextBox(entt::registry& registry, std::string text) {
+void entities::TextBox(entt::registry& registry, std::string text, bool guiElement) {
 
     const auto textBox = registry.create();
 
-    registry.emplace<Text>(textBox, text);
+    registry.emplace<Text>(textBox, text, guiElement);
     registry.emplace<Spacial>(textBox, glm::vec3(0,220,0), glm::vec3(0, 0, 0), 
         glm::vec3(1, 1, 1), glm::vec2(800, 10));
     registry.emplace<Model>(textBox, glm::mat4(1));
