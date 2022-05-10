@@ -58,7 +58,7 @@ private:
 
     Animation tileAnimation;
 
-    std::vector<glm::vec3> tiles{glm::vec3{0, 0, 0}};
+    std::vector<glm::vec3> tiles; // Tile data for vbo
 
     Camera camera;
     Camera guiCamera;

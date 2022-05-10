@@ -13,6 +13,8 @@ void CollisionSystem::update(entt::registry& registry) {
 
         for (auto colEntity : entities) {
 
+            // printf("col entity\n");
+
             if (colEntity != entity) {
 
                 auto [entityCollision, entitySpacial] = entities.get(colEntity);

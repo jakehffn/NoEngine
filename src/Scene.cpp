@@ -9,14 +9,11 @@ Scene::Scene(SDL_Window* window) : window{ window }{
 
         // Tiled map must be loaded after systems are created in order for observers to be able to
         //  monitor patches during creation of entities
-        // this->loadTiledMap("./src/assets/maps/baseMap/baseMap.json");
-        this->loadTiledMap("./src/assets/maps/islandMap/islandMap.json");
+        this->loadTiledMap("./src/assets/maps/Test/test.json");
         
         // Enable text input
         SDL_StartTextInput();
 
-        // entities::Map1Background(this->registry);
-        // entities::IslandMapBackground(this->registry);
         entities::TextBox(this->registry, std::string("    Hello"), true);
 }
 
@@ -75,30 +72,34 @@ void Scene::addObjects(std::vector<tson::Object> objs) {
         tson::Vector2i pos = obj.getPosition();
         tson::Vector2i size = obj.getSize();
 
-        if (objType == tson::ObjectType::Rectangle) {
-
-            entities::CollisionBox(this->registry, glm::vec2(pos.x, pos.y), glm::vec2(size.x, size.y));
-
-        } else {
-
-            std::string name = obj.getName();
-            entities::create[name](this->registry, glm::vec3(pos.x, pos.y, 0));
-        }
+        std::string name = obj.getName();
+        entities::create[name](this->registry, glm::vec3(pos.x, pos.y, 0));
     }
-
-    
 }
 
 void Scene::addTiles(std::map<std::tuple<int, int>, tson::Tile*> tileData) {
 
     std::vector<glm::vec3> tiles;
 
-    // Create vector of all the tile information
     for (const auto &[pos, tile] : tileData) {
-
+        
         // Emplace vector containing the position of the tile and the tile id for use in renderer.
         tiles.emplace_back(std::get<0>(pos), std::get<1>(pos), tile->getId() - 1); // ID seems to be off by one for some reason. Not sure why.
-    }
 
-    this->renderSystem->updateTiles(tiles);
+        tson::PropertyCollection properties = tile->getProperties();
+
+        if (properties.getSize() == 4) {
+
+            glm::vec2 collisionDim{ properties.getValue<int>("CollisionWidth"), 
+                properties.getValue<int>("CollisionHeight") };
+            glm::vec2 collisionOffsets{ properties.getValue<int>("CollisionXOffset"), 
+                properties.getValue<int>("CollisionYOffset") }; 
+
+            entities::TileEntity(this->registry, pos, tile->getId() - 1, collisionDim, collisionOffsets);
+
+        } else {
+            entities::TileEntity(this->registry, pos, tile->getId() - 1);
+        }
+    }
+        this->renderSystem->updateTiles(tiles);
 }

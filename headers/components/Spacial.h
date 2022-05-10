@@ -9,6 +9,6 @@ struct Spacial {
     glm::vec3 rot;
     // scale
     glm::vec3 scale;
-    // dimensions of sprite
+    // dimensions of entity
     glm::vec2 dim;
 };

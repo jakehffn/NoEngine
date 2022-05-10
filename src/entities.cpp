@@ -181,6 +181,30 @@ void entities::TextBox(entt::registry& registry, std::string text, bool guiEleme
     registry.emplace<Model>(textBox, glm::mat4(1));
 }
 
+void entities::TileEntity(entt::registry& registry, std::tuple<int, int> pos, int id, glm::vec2 colDim, glm::vec2 colOffset) {
+
+    const auto tile = registry.create();
+
+    glm::vec3 position = glm::vec3(16)*glm::vec3(std::get<0>(pos), std::get<1>(pos), 0);
+
+    registry.emplace<Tile>(tile, id);
+    registry.emplace<Collision>(tile, colDim, colOffset);
+    registry.emplace<Spacial>(tile, position, glm::vec3(0, 0, 0), 
+        glm::vec3(1, 1, 1), glm::vec2(0, 0));
+
+}
+
+void entities::TileEntity(entt::registry& registry, std::tuple<int, int> pos, int id) {
+
+    const auto tile = registry.create();
+
+    glm::vec3 position = glm::vec3(std::get<0>(pos), std::get<1>(pos), 0);
+
+    registry.emplace<Tile>(tile, id);
+    registry.emplace<Spacial>(tile, glm::vec3(16)*position, glm::vec3(0, 0, 0), 
+        glm::vec3(1, 1, 1), glm::vec2(0, 0));
+}
+
 Sprite entities::createSprite(const char* spritesheetPath, int numSprites) {
 
     Sprite sprite;

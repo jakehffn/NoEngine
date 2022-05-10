@@ -19,6 +19,7 @@
 #include "Velocity.h"
 #include "Collision.h"
 #include "Text.h"
+#include "Tile.h"
 
 namespace entities {
 
@@ -32,6 +33,10 @@ namespace entities {
     void CollisionBox(entt::registry& registry, glm::vec2 pos, glm::vec2 dim);
 
     void TextBox(entt::registry& registry, std::string text, bool guiElement=false);
+
+    // Position is in tile units
+    void TileEntity(entt::registry& registry, std::tuple<int, int> pos, int id, glm::vec2 colDim, glm::vec2 colOffset);
+    void TileEntity(entt::registry& registry, std::tuple<int, int> pos, int id);
 
     Sprite createSprite(const char* spritesheetPath, int numSprites=1);
 

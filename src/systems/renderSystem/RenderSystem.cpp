@@ -4,7 +4,7 @@ RenderSystem::RenderSystem(entt::registry& registry) : spriteShader{ new SpriteS
     tileShader{ new TileShader() }, tileAnimation{ std::vector<int>{ 0,1,2,3 }, 1.0/4.0 },
     spacialObserver{ entt::observer(registry, entt::collector.update<Spacial>().where<Sprite>()) },
     textSprite{ entities::createSprite("./src/assets/fonts/text.png") },
-    tileSheet{ entities::createSprite("./src/assets/tileSheets/tileSet2.png", 4) } {
+    tileSheet{ entities::createSprite("./src/assets/tileSheets/TempTileSheet.png", 4) } {
     
         this->initTextMap();
 
@@ -57,6 +57,9 @@ RenderSystem::RenderSystem(entt::registry& registry) : spriteShader{ new SpriteS
         
         // Initialize group with empty registry for performance
         auto init = registry.group<Sprite>(entt::get<Model, Spacial, Animation>);
+
+        // registry.on_construct<Tile>().connect<&updateTiles>();
+        // registry.on_destroy<Tile>().connect<&updateTiles>();
 }
 
 void RenderSystem::update(entt::registry& registry, Clock clock) {
