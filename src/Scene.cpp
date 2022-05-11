@@ -51,12 +51,8 @@ void Scene::loadTiledMap(const char* mapPath) {
 
     if (map->getStatus() == tson::ParseStatus::OK) {
 
-        // Add all objects from the object layer of the map
-        tson::Layer* objectLayer = map->getLayer("Object Layer");
-        this->addObjects(objectLayer->getObjects());
-
-        tson::Layer* tileLayer = map->getLayer("Tile Layer");
-        this->addTiles(tileLayer->getTileData());
+        this->addObjects(map->getLayer("Object Layer"));
+        this->addTiles(map->getLayer("Tile Layer"));
 
     } else {
         std::cout << map->getStatusMessage();
@@ -64,41 +60,54 @@ void Scene::loadTiledMap(const char* mapPath) {
 
 }
 
-void Scene::addObjects(std::vector<tson::Object> objs) {
+void Scene::addObjects(tson::Layer* objectLayer) {
 
-    for (auto& obj : objs) {
+    for (auto& obj : objectLayer->getObjects()) {
 
         tson::ObjectType objType = obj.getObjectType();
         tson::Vector2i pos = obj.getPosition();
         tson::Vector2i size = obj.getSize();
 
         std::string name = obj.getName();
-        entities::create[name](this->registry, glm::vec3(pos.x, pos.y, 0));
+
+        if (entities::create.find(name) != entities::create.end()) {
+            entities::create[name](this->registry, glm::vec3(pos.x, pos.y, 0));
+        } else {
+            std::cerr << "entities::create mapping does not exist for name \"" + name + "\"" << std::endl;
+        }
     }
 }
 
-void Scene::addTiles(std::map<std::tuple<int, int>, tson::Tile*> tileData) {
+void Scene::addTiles(tson::Layer* tileLayer) {
 
     std::vector<glm::vec3> tiles;
 
-    for (const auto &[pos, tile] : tileData) {
-        
+    for (const auto &[pos, tile] : tileLayer->getTileData()) {
+
+        int firstGid = tile->getTileset()->getFirstgid();
+
         // Emplace vector containing the position of the tile and the tile id for use in renderer.
-        tiles.emplace_back(std::get<0>(pos), std::get<1>(pos), tile->getId() - 1); // ID seems to be off by one for some reason. Not sure why.
+        tiles.emplace_back(std::get<0>(pos), std::get<1>(pos), tile->getGid() - firstGid); // ID seems to be off by one for some reason. Not sure why.
 
-        tson::PropertyCollection properties = tile->getProperties();
+        tson::Layer objectGroup = tile->getObjectgroup();
+        std::vector<tson::Object> tileCollisions = objectGroup.getObjects();
 
-        if (properties.getSize() == 4) {
+        if (!tileCollisions.size() == 0) {
 
-            glm::vec2 collisionDim{ properties.getValue<int>("CollisionWidth"), 
-                properties.getValue<int>("CollisionHeight") };
-            glm::vec2 collisionOffsets{ properties.getValue<int>("CollisionXOffset"), 
-                properties.getValue<int>("CollisionYOffset") }; 
+            std::vector<glm::vec4> collisionBoxes;
 
-            entities::TileEntity(this->registry, pos, tile->getId() - 1, collisionDim, collisionOffsets);
+            for (auto tileCollision : tileCollisions) {
+
+                tson::Vector2i dim = tileCollision.getSize();
+                tson::Vector2i offset = tileCollision.getPosition();
+
+                collisionBoxes.emplace_back(dim.x, dim.y, offset.x, offset.y);
+            }
+
+            entities::TileEntity(this->registry, pos, tile->getGid() - firstGid, collisionBoxes);
 
         } else {
-            entities::TileEntity(this->registry, pos, tile->getId() - 1);
+            entities::TileEntity(this->registry, pos, tile->getGid() - firstGid);
         }
     }
         this->renderSystem->updateTiles(tiles);

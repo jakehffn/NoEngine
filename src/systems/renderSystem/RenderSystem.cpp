@@ -4,7 +4,7 @@ RenderSystem::RenderSystem(entt::registry& registry) : spriteShader{ new SpriteS
     tileShader{ new TileShader() }, tileAnimation{ std::vector<int>{ 0,1,2,3 }, 1.0/4.0 },
     spacialObserver{ entt::observer(registry, entt::collector.update<Spacial>().where<Sprite>()) },
     textSprite{ entities::createSprite("./src/assets/fonts/text.png") },
-    tileSheet{ entities::createSprite("./src/assets/tileSheets/TempTileSheet.png", 4) } {
+    tileSheet{ entities::createSprite("./src/assets/tileSheets/BrightWorldTileSheet.png", 4) } {
     
         this->initTextMap();
 

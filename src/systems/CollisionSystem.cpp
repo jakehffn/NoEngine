@@ -5,21 +5,23 @@ CollisionSystem::CollisionSystem(entt::registry& registry) :
 
 void CollisionSystem::update(entt::registry& registry) {
 
-    for (const auto entity : this->collisionObserver) {
+    // Iterate over all entities were moved in the last frame and have Collision
+    for (const auto observedEntity : this->collisionObserver) {
 
-        auto [collision, spacial, spriteState] = registry.get<Collision, Spacial, SpriteState>(entity);
+        auto [observedCollision, spacial, spriteState] = registry.get<Collision, Spacial, SpriteState>(observedEntity);
 
         auto entities = registry.view<Collision, Spacial>();
 
         for (auto colEntity : entities) {
 
-            // printf("col entity\n");
-
-            if (colEntity != entity) {
+            if (colEntity != observedEntity) {
 
                 auto [entityCollision, entitySpacial] = entities.get(colEntity);
 
-                resolveCollision(spriteState.state, collision, spacial, entityCollision, entitySpacial);
+                for (auto boundingBox : entityCollision.boundingBoxes) {
+
+                    resolveCollision(spriteState.state, observedCollision.boundingBoxes.at(0), spacial, boundingBox, entitySpacial);
+                }
             }
         }  
     }
@@ -27,22 +29,22 @@ void CollisionSystem::update(entt::registry& registry) {
     this->collisionObserver.clear();
 }
 
-void CollisionSystem::resolveCollision(SpriteStatePair state, Collision collision, Spacial& spacial, Collision entityCol, Spacial entitySpac) {
+void CollisionSystem::resolveCollision(SpriteStatePair state, glm::vec4 collision, Spacial& spacial, glm::vec4 entityCol, Spacial entitySpac) {
 
     entity_c::ENTITY_DIR dir = std::get<entity_c::ENTITY_DIR>(state);
 
-    glm::vec3 offset1(collision.offset.x, collision.offset.y, 0);
-    glm::vec3 offset2(entityCol.offset.x, entityCol.offset.y, 0);
+    glm::vec3 offset1(collision.z, collision.w, 0);
+    glm::vec3 offset2(entityCol.z, entityCol.w, 0);
 
     // Collision is based on top left corner while rendered obejcts are based on bottom left
     //  This might need to be a temporary solution, as this will not work for two rendered objects colliding
     glm::vec3 collisionOffset(0, spacial.dim.y, 0);
 
     glm::vec3 pos1 = spacial.pos + offset1;
-    glm::vec2 dim1 = collision.dim;
+    glm::vec2 dim1{collision};
 
     glm::vec3 pos2 = entitySpac.pos + offset2;
-    glm::vec2 dim2 = entityCol.dim;
+    glm::vec2 dim2{entityCol};
 
     if (pos1.y < pos2.y + dim2.y && pos1.y + dim1.y > pos2.y && pos1.x < pos2.x + dim2.x && pos1.x + dim1.x > pos2.x) {
         switch (dir) {

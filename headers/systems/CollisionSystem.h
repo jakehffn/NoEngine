@@ -20,7 +20,7 @@ public:
 
     void systemState() override;
 private:
-    void resolveCollision(SpriteStatePair state, Collision collision, Spacial& spacial, Collision entityCol, Spacial entitySpac);
+    void resolveCollision(SpriteStatePair state, glm::vec4 collision, Spacial& spacial, glm::vec4 entityCol, Spacial entitySpac);
 
     entt::observer collisionObserver;
 };

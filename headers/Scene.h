@@ -34,8 +34,8 @@ public:
     void loadTiledMap(const char* mapPath);
 
 private:
-    void addObjects(std::vector<tson::Object> objs);
-    void addTiles(std::map<std::tuple<int, int>, tson::Tile*> tileData);
+    void addObjects(tson::Layer* objectLayer);
+    void addTiles(tson::Layer* tileLayer);
 
     GLuint programID = 0;
     SDL_Window* window;
