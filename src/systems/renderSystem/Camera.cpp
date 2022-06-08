@@ -6,7 +6,7 @@ Camera::Camera() :
 
     position{ glm::vec3(0, 0, 0) }, viewMatrix{ glm::mat4(1.0f) } {
 
-        this->zoom = 4.0f;
+        this->zoom = 3.0f;
 
         // float left = 0;
         // float right = render_c::SCREEN_WIDTH;

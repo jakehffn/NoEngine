@@ -7,8 +7,13 @@ uniform sampler2D image;
 uniform vec2 texData; // startX, endX
 uniform vec3 spriteColor;
 
-void main()
-{    
+// float rand(vec2 co) {
+
+//     return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
+// }
+
+void main() {
+
     float tilePart = 0.03125; // 1/32 or number of tiles per row
     float bleedOffset = 0.000001; // There may be a better solution that exists to avoid texture bleeding
 
@@ -23,6 +28,9 @@ void main()
 
     float yPercentage = tilePart - 2*bleedOffset;
     float yOffset = tilePart*yID + bleedOffset;
+
+    // float xNoise = rand(vec2(TexCoords.x, TexCoords.y))/3000;
+    // float yNoise = rand(vec2(TexCoords.y, TexCoords.x))/3000;
 
     color = vec4(spriteColor, 1.0) * texture(image, vec2(TexCoords.x*xPercentage + xOffset, TexCoords.y*yPercentage + yOffset));
     // color = vec4(spriteColor, 1.0) * texture(image, vec2(TexCoords.x*tilePart + tilePart*xID, TexCoords.y*tilePart + tilePart*yID));

@@ -23,12 +23,14 @@
 #include "ShaderProgram.h"
 #include "SpriteShader.h"
 #include "TileShader.h"
+#include "ScreenShader.h"
 
 #include "entities.h"
 
 class RenderSystem : public System {
 public:
     RenderSystem(entt::registry& registry);
+    ~RenderSystem();
 
     void update(entt::registry& registry, Clock clock);
     void systemState() override;
@@ -52,6 +54,7 @@ private:
 
     ShaderProgram* spriteShader;
     ShaderProgram* tileShader;
+    ShaderProgram* screenShader;
 
     Sprite textSprite;
     Sprite tileSheet;
@@ -65,6 +68,9 @@ private:
 
     GLuint quadVAO;
     GLuint tileVBO;
+
+    GLuint FBO;
+    GLuint renderTexture;
 
     entt::observer spacialObserver;
 

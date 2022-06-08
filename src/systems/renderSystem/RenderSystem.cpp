@@ -1,13 +1,14 @@
 #include "RenderSystem.h"
 
 RenderSystem::RenderSystem(entt::registry& registry) : spriteShader{ new SpriteShader() },
-    tileShader{ new TileShader() }, tileAnimation{ std::vector<int>{ 0,1,2,3 }, 1.0/4.0 },
+    tileShader{ new TileShader() }, screenShader{ new ScreenShader() }, tileAnimation{ std::vector<int>{ 0,1,2,3 }, 1.0/4.0 },
     spacialObserver{ entt::observer(registry, entt::collector.update<Spacial>().where<Sprite>()) },
     textSprite{ entities::createSprite("./src/assets/fonts/text.png") },
-    tileSheet{ entities::createSprite("./src/assets/tileSheets/BrightWorldTileSheet.png", 4) } {
+    tileSheet{ entities::createSprite("./src/assets/tileSheets/TileSheetColorChange.png", 4) } {
     
         this->initTextMap();
 
+        // glBindFramebuffer(GL_FRAMEBUFFER, 0); 
         glClearColor(0.0f, 0.4f, 0.4f, 0.0f);
         // glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
@@ -17,6 +18,8 @@ RenderSystem::RenderSystem(entt::registry& registry) : spriteShader{ new SpriteS
 
         glEnable(GL_BLEND); 
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+        // glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 
         // create quadVAO
         float quadVertexData[] = { 
@@ -29,6 +32,18 @@ RenderSystem::RenderSystem(entt::registry& registry) : spriteShader{ new SpriteS
             1.0f, 1.0f, 1.0f, 1.0f,
             1.0f, 0.0f, 1.0f, 0.0f
         };
+
+        // // create quadVAO
+        // float quadVertexData[] = { 
+        //     // pos      // tex
+        //     -1.0f, 1.0f, -1.0f, 1.0f,
+        //     1.0f, -1.0f, 1.0f, -1.0f,
+        //     -1.0f, -1.0f, -1.0f, -1.0f, 
+        
+        //     -1.0f, 1.0f, -1.0f, 1.0f,
+        //     1.0f, 1.0f, 1.0f, 1.0f,
+        //     1.0f, -1.0f, 1.0f, -1.0f
+        // };
         
         glGenVertexArrays(1, &(this->quadVAO));
         glBindVertexArray(this->quadVAO);
@@ -54,25 +69,68 @@ RenderSystem::RenderSystem(entt::registry& registry) : spriteShader{ new SpriteS
         // Free bound buffers
         glBindVertexArray(0);
         glBindBuffer(GL_ARRAY_BUFFER, 0);  
+
+
+        glGenFramebuffers(1, &(this->FBO));
+        glBindFramebuffer(GL_FRAMEBUFFER, this->FBO);
+
+        glGenTextures(1, &(this->renderTexture));
+        glBindTexture(GL_TEXTURE_2D, this->renderTexture);
+        
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1920, 1080, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);  
+
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, this->renderTexture, 0); 
+
+        // unsigned int rbo;
+        // glGenRenderbuffers(1, &rbo);
+        // glBindRenderbuffer(GL_RENDERBUFFER, rbo); 
+        // glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, 1920, 1080);  
+        // glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
+
+        if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+            std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
+        }
+        
+        glBindFramebuffer(GL_FRAMEBUFFER, 0); 
         
         // Initialize group with empty registry for performance
         auto init = registry.group<Sprite>(entt::get<Model, Spacial, Animation>);
+}
 
-        // registry.on_construct<Tile>().connect<&updateTiles>();
-        // registry.on_destroy<Tile>().connect<&updateTiles>();
+RenderSystem::~RenderSystem() {
+    glDeleteFramebuffers(1, &(this->FBO));  
 }
 
 void RenderSystem::update(entt::registry& registry, Clock clock) {
 
-    // Clear the screen
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
     // Camera update comes first as sprite rendering relies on camera
     this->updateCamera(registry);
     this->updateModels(registry);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, this->FBO);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    
     this->renderTiles(clock);
     this->showEntities(registry, clock);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0); // back to default
     
+    glDisable(GL_DEPTH_TEST);
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    // Use the screen shader
+    GLuint shaderProgram = this->screenShader->getOpenGLShaderProgramID();
+
+    glUseProgram(shaderProgram);
+
+    glBindVertexArray(quadVAO);
+    glBindTexture(GL_TEXTURE_2D, this->renderTexture);
+    glDrawArrays(GL_TRIANGLES, 0, 6);   
+
+    glUseProgram(0);
 }
 
 void RenderSystem::showEntities(entt::registry& registry, Clock clock) {
@@ -171,7 +229,7 @@ void RenderSystem::renderSprite(Model model, Sprite sprite, bool guiElement) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
     glDrawArrays(GL_TRIANGLES, 0, 6); 
-    glBindVertexArray(0);
+    // glBindVertexArray(0); Causes : "Program/shader state performance warning: Vertex shader in program 3 is being recompiled based on GL state.""
 }
 
 void RenderSystem::updateTiles(std::vector<glm::vec3> tiles) {

@@ -9,7 +9,7 @@ uniform mat4 MVP;
 uniform mat4 V;
 uniform mat4 M;
 
-void main(){
+void main() {
 
 	TexCoords = vertex.zw;
 

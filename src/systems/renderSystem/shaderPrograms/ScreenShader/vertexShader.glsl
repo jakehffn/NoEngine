@@ -11,8 +11,7 @@ uniform mat4 M;
 void main() {
 
 	TexCoords = vertex.zw;
-	
-	// Output position of the vertex, in clip space : MVP * position
-	gl_Position =  MVP * vec4(vertex.xy, 1.0, 1.0);
+	// Convert from 0,0 being top left and 1,1 being bottom right to -1,1 being top left and 1,-1 being bottom right
+	gl_Position = vec4(2*vertex.x - 1, 1 - 2*vertex.y, 0.0, 1.0);
 	
 }
