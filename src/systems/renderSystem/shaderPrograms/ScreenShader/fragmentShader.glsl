@@ -3,8 +3,6 @@ in vec2 TexCoords;
 out vec4 color;
 
 uniform sampler2D screenTexture;
-uniform vec2 texData; // startX, endX
-uniform vec3 spriteColor;
 
 float random (vec2 st) {
     return fract(sin(dot(st.xy,

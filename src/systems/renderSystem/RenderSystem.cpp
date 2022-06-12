@@ -122,9 +122,10 @@ void RenderSystem::update(entt::registry& registry, Clock clock) {
     glClear(GL_COLOR_BUFFER_BIT);
 
     // Use the screen shader
-    GLuint shaderProgram = this->screenShader->getOpenGLShaderProgramID();
+    // GLuint shaderProgram = this->screenShader->getOpenGLShaderProgramID();
 
-    glUseProgram(shaderProgram);
+    // glUseProgram(shaderProgram);
+    this->screenShader->useShader();
 
     glBindVertexArray(quadVAO);
     glBindTexture(GL_TEXTURE_2D, this->renderTexture);
@@ -211,8 +212,10 @@ void RenderSystem::renderText(Text text, Spacial spacial) {
 void RenderSystem::renderSprite(Model model, Sprite sprite, bool guiElement) {
 
     // Use the sprite shader
-    GLuint openGLShaderProgramID = this->spriteShader->getOpenGLShaderProgramID();
-    glUseProgram(openGLShaderProgramID);
+    // GLuint openGLShaderProgramID = this->spriteShader->getOpenGLShaderProgramID();
+    // glUseProgram(openGLShaderProgramID);
+
+    this->spriteShader->useShader();
 
     Camera cam = guiElement ? this->guiCamera : this->camera;
     glm::mat4 view = cam.getViewMatrix();
@@ -248,8 +251,10 @@ void RenderSystem::renderTiles(Clock clock) {
     glBindVertexArray(this->quadVAO);
 
     // Use shader
-    GLuint openGLShaderProgramID = this->tileShader->getOpenGLShaderProgramID();
-    glUseProgram(openGLShaderProgramID);
+    // GLuint openGLShaderProgramID = this->tileShader->getOpenGLShaderProgramID();
+    // glUseProgram(openGLShaderProgramID);
+
+    this->tileShader->useShader();
 
     glm::mat4 view = this->camera.getViewMatrix();
     glm::mat4 projection = this->camera.getProjectionMatrix();

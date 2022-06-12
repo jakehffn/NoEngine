@@ -15,10 +15,6 @@ SpriteShader::SpriteShader() {
     this->spriteColorUniformID = glGetUniformLocation(this->openGLShaderProgramID, "spriteColor");
 }
 
-GLuint SpriteShader::getOpenGLShaderProgramID() {
-    return this->openGLShaderProgramID;
-}
-
 void SpriteShader::renderSetup(glm::mat4 model, glm::mat4 view, glm::mat4 projection, glm::vec2 texData) {
     
     glm::mat4 MVP = projection*view*model;

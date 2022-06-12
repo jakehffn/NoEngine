@@ -52,9 +52,9 @@ private:
 
     void initTextMap();
 
-    ShaderProgram* spriteShader;
-    ShaderProgram* tileShader;
-    ShaderProgram* screenShader;
+    ShaderProgram<glm::mat4, glm::mat4, glm::mat4, glm::vec2>* spriteShader;
+    ShaderProgram<glm::mat4, glm::mat4, glm::mat4, glm::vec2>* tileShader;
+    ShaderProgram<>* screenShader;
 
     Sprite textSprite;
     Sprite tileSheet;
