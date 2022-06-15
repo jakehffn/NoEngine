@@ -14,6 +14,7 @@
 #include "CameraController.h"
 #include "Animation.h"
 #include "Text.h"
+#include "ToRender.h"
 
 #include "Camera.h"
 #include "Clock.h"

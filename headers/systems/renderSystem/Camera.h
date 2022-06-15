@@ -25,6 +25,7 @@ public:
     glm::mat4 getProjectionMatrix() const;
     float getZoom() const;
     glm::vec2 getCameraDim() const;
+    glm::vec2 getPosition() const;
 
     void update();
 

@@ -26,6 +26,7 @@ void Scene::mainLoop() {
 
     while(!this->inputSystem->isQuit()) {
 
+        printf("\rFPS: %f", this->clock.getAverageFPS());
 
         this->clock.tick();
 

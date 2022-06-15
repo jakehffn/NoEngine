@@ -77,7 +77,7 @@ RenderSystem::RenderSystem(entt::registry& registry) : spriteShader{ new SpriteS
         glGenTextures(1, &(this->renderTexture));
         glBindTexture(GL_TEXTURE_2D, this->renderTexture);
         
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1920, 1080, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, render_c::SCREEN_WIDTH, render_c::SCREEN_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);  
@@ -147,15 +147,28 @@ void RenderSystem::showEntities(entt::registry& registry, Clock clock) {
         this->updateAnimation(animation, sprite, clock);
     }
 
+    registry.view<Sprite, Model, Spacial>(entt::exclude<Text>).each([this, &registry](const auto entity, auto& sprite, auto& model, auto& spacial) {  
+
+        glm::vec2 camDim = this->camera.getCameraDim();
+        glm::vec2 camPos = this->camera.getPosition();
+        glm::vec3 entPos = spacial.pos;
+        
+
+        if (entPos.x < camPos.x + camDim.x/2 && entPos.y < camPos.y + camDim.y/2 && entPos.x > camPos.x - camDim.x/2 && entPos.y > camPos.y - camDim.y/2) {
+            registry.emplace_or_replace<ToRender>(entity);
+        }
+    });
+
     // Sort sprites before rendering
     registry.sort<Spacial>([](const auto& lSpacial, const auto& rSpacial) {
         return lSpacial.pos.y < rSpacial.pos.y;
-    });
+    }, entt::insertion_sort {}); // Insertion sort is much faster as the spacials will generally be "mostly sorted"
 
-    registry.view<Sprite, Model, Spacial>(entt::exclude<Text>).each<Spacial>([this](auto& sprite, auto& model, auto& spacial) {  
-
+    registry.view<Sprite, Model, Spacial, ToRender>(entt::exclude<Text>).each<Spacial>([this](auto& sprite, auto& model, auto& spacial) {  
         this->renderSprite(model, sprite);
     });
+
+    registry.clear<ToRender>();    
 
     auto texts = registry.view<Text, Spacial>();
 
@@ -176,8 +189,8 @@ void RenderSystem::updateCamera(entt::registry& registry) {
 
         auto [cameraController, spacial, sprite] = controllers.get(entity);
 
-        float xOffset = render_c::SCREEN_WIDTH/2 - spacial.dim.x * spacial.scale.x / 2;
-        float yOffset = render_c::SCREEN_HEIGHT/2 - spacial.dim.y * spacial.scale.y / 2;
+        float xOffset = spacial.dim.x * spacial.scale.x / 2;
+        float yOffset = spacial.dim.y * spacial.scale.y / 2;
 
         glm::vec3 offset(xOffset, yOffset, 0);
         this->camera.setPosition(spacial.pos - offset);
