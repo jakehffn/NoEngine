@@ -104,7 +104,7 @@ RenderSystem::~RenderSystem() {
     glDeleteFramebuffers(1, &(this->FBO));  
 }
 
-void RenderSystem::update(entt::registry& registry, Clock clock) {
+void RenderSystem::update(entt::registry& registry) {
 
     // Camera update comes first as sprite rendering relies on camera
     this->updateCamera(registry);
@@ -113,8 +113,8 @@ void RenderSystem::update(entt::registry& registry, Clock clock) {
     glBindFramebuffer(GL_FRAMEBUFFER, this->FBO);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
-    this->renderTiles(clock);
-    this->showEntities(registry, clock);
+    this->renderTiles(registry.ctx().at<Clock&>());
+    this->showEntities(registry);
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0); // back to default
     
@@ -134,7 +134,7 @@ void RenderSystem::update(entt::registry& registry, Clock clock) {
     glUseProgram(0);
 }
 
-void RenderSystem::showEntities(entt::registry& registry, Clock clock) {
+void RenderSystem::showEntities(entt::registry& registry) {
 
     auto animations = registry.view<Animation, Sprite>();
 
@@ -144,9 +144,10 @@ void RenderSystem::showEntities(entt::registry& registry, Clock clock) {
         // printf("Animation update\n");
         auto [animation, sprite] = animations.get(animatedEntity);
 
-        this->updateAnimation(animation, sprite, clock);
+        this->updateAnimation(animation, sprite, registry.ctx().at<Clock&>());
     }
 
+    // Label which entities are on screen and should be rendered
     registry.view<Sprite, Model, Spacial>(entt::exclude<Text>).each([this, &registry](const auto entity, auto& sprite, auto& model, auto& spacial) {  
 
         glm::vec2 camDim = this->camera.getCameraDim();
@@ -155,16 +156,17 @@ void RenderSystem::showEntities(entt::registry& registry, Clock clock) {
         
 
         if (entPos.x < camPos.x + camDim.x/2 && entPos.y < camPos.y + camDim.y/2 && entPos.x > camPos.x - camDim.x/2 && entPos.y > camPos.y - camDim.y/2) {
-            registry.emplace_or_replace<ToRender>(entity);
+            registry.emplace<ToRender>(entity);
         }
     });
 
-    // Sort sprites before rendering
+    // Sort sprites by Spacial y-pos before rendering
     registry.sort<Spacial>([](const auto& lSpacial, const auto& rSpacial) {
         return lSpacial.pos.y < rSpacial.pos.y;
     }, entt::insertion_sort {}); // Insertion sort is much faster as the spacials will generally be "mostly sorted"
 
-    registry.view<Sprite, Model, Spacial, ToRender>(entt::exclude<Text>).each<Spacial>([this](auto& sprite, auto& model, auto& spacial) {  
+    // Render all non-text entities labeled with ToRender; Ordered by the sorted spacial
+    registry.view<Sprite, Model, Spacial, ToRender>(entt::exclude<Text>).use<Spacial>().each([this](auto& sprite, auto& model, auto& spacial) {  
         this->renderSprite(model, sprite);
     });
 

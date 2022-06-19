@@ -33,19 +33,21 @@ public:
     RenderSystem(entt::registry& registry);
     ~RenderSystem();
 
-    void update(entt::registry& registry, Clock clock);
+    void update(entt::registry& registry);
     void systemState() override;
 
     void updateTiles(std::vector<glm::vec3> tiles);
 
 private:
-    void showEntities(entt::registry& registry, Clock clock);
+    void showEntities(entt::registry& registry);
     void updateCamera(entt::registry& registry);
 
     void renderText(Text text, Spacial spacial);
     void renderSprite(Model model, Sprite sprite, bool guiElement=false);
     
     void renderTiles(Clock clock);
+
+    
 
     void updateModels(entt::registry& registry);
     void updateModel(Model& model, Spacial spacial);

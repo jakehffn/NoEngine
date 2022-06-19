@@ -17,7 +17,7 @@
 #include "Clock.h"
 
 #include "RenderSystem.h"
-#include "InputSystem.h"
+#include "InputHandler.h"
 #include "StateSystem.h"
 #include "CollisionSystem.h"
 
@@ -43,7 +43,7 @@ private:
     Clock clock = Clock();
 
     RenderSystem* renderSystem;
-    InputSystem* inputSystem;
+    InputHandler* inputSystem;
     StateSystem* stateSystem;
     CollisionSystem* collisionSystem;
 

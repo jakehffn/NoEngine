@@ -3,9 +3,11 @@
 Scene::Scene(SDL_Window* window) : window{ window }{
 
         this->renderSystem = new RenderSystem(this->registry);
-        this->inputSystem = new InputSystem(this->registry);
+        this->inputSystem = new InputHandler(this->registry);
         this->stateSystem = new StateSystem(this->registry);
         this->collisionSystem = new CollisionSystem(this->registry);
+
+        this->registry.ctx().emplace<Clock&>(this->clock);
 
         // Tiled map must be loaded after systems are created in order for observers to be able to
         //  monitor patches during creation of entities
@@ -30,10 +32,10 @@ void Scene::mainLoop() {
 
         this->clock.tick();
 
-        this->inputSystem->update(this->registry, this->clock.getDeltaTime());
+        this->inputSystem->update(this->registry);
         this->stateSystem->update(this->registry);
         this->collisionSystem->update(this->registry);
-        this->renderSystem->update(this->registry, this->clock);
+        this->renderSystem->update(this->registry);
         
 
         // Update screen
