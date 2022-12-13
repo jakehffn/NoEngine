@@ -8,14 +8,14 @@
 #include <SDL_opengl.h>
 
 
-struct Sprite {
+struct Texture {
 
     glm::vec2 texData{0.0f, 1.0f};
-    int numSprites;
+    int numFrames;
 
     int width;
     int height;
     int nColorChannels;
 
-    GLuint texture;
+    GLuint glTextureID;
 };

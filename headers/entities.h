@@ -9,13 +9,12 @@
 
 #include "consts.h"
 
-#include "Input.h"
+#include "PlayerControl.h"
 #include "Model.h"
 #include "Spacial.h"
 #include "CameraController.h"
 #include "Animation.h"
 #include "Sprite.h"
-#include "SpriteState.h"
 #include "Velocity.h"
 #include "Collision.h"
 #include "Text.h"
@@ -39,7 +38,7 @@ namespace entities {
     void TileEntity(entt::registry& registry, std::tuple<int, int> pos, int id, std::vector<glm::vec4> collisions);
     void TileEntity(entt::registry& registry, std::tuple<int, int> pos, int id);
 
-    Sprite createSprite(const char* spritesheetPath, int numSprites=1);
+    Texture createSprite(const char* spritesheetPath, int numFrames=1);
 
     // Tiled map name to entity create function map
     static std::unordered_map<std::string, void (*)(entt::registry&, glm::vec3)> create{

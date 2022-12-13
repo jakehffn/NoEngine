@@ -4,5 +4,12 @@
 
 class System {
 public:
-    virtual void systemState()=0;
+
+    System(entt::registry& registry) : registry{registry}{}
+    
+    virtual void update() = 0;
+
+protected:
+    entt::registry& registry;
+
 };

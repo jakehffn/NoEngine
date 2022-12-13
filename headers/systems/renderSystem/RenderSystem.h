@@ -33,25 +33,22 @@ public:
     RenderSystem(entt::registry& registry);
     ~RenderSystem();
 
-    void update(entt::registry& registry);
-    void systemState() override;
+    void update() override;
 
-    void updateTiles(std::vector<glm::vec3> tiles);
+    void updateTiles();
 
 private:
     void showEntities(entt::registry& registry);
     void updateCamera(entt::registry& registry);
 
     void renderText(Text text, Spacial spacial);
-    void renderSprite(Model model, Sprite sprite, bool guiElement=false);
+    void renderSprite(Model model, Texture sprite, bool guiElement=false);
     
     void renderTiles(Clock clock);
 
-    
-
     void updateModels(entt::registry& registry);
     void updateModel(Model& model, Spacial spacial);
-    void updateAnimation(Animation& animation, Sprite& sprite, Clock clock);
+    void updateAnimation(Animation& animation, Texture& sprite, Clock clock);
 
     void initTextMap();
 
@@ -59,8 +56,8 @@ private:
     ShaderProgram<glm::mat4, glm::mat4, glm::mat4, glm::vec2>* tileShader;
     ShaderProgram<>* screenShader;
 
-    Sprite textSprite;
-    Sprite tileSheet;
+    Texture textSprite;
+    Texture tileSheet;
 
     Animation tileAnimation;
 
@@ -76,6 +73,7 @@ private:
     GLuint renderTexture;
 
     entt::observer spacialObserver;
+    entt::observer tileObserver;
 
     std::unordered_map<char, glm::vec2> textMap;
 };

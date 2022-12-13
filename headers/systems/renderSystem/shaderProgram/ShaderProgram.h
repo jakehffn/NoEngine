@@ -8,7 +8,7 @@
 #include <glm/glm.hpp>
 #include "ShaderLoader.h"
 
-// ShaderProgram provides a way for the Scene to interface with each shader prorgam
+// ShaderProgram provides a way for the Game to interface with each shader prorgam
 //  This is done through the renderSetup() function
 template <typename... Ts>
 class ShaderProgram {

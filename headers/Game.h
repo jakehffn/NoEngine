@@ -15,18 +15,19 @@
 #include <entt\entt.hpp>
 
 #include "Clock.h"
+#include "InputManager.h"
 
+#include "InputSystem.h"
 #include "RenderSystem.h"
-#include "InputHandler.h"
-#include "StateSystem.h"
 #include "CollisionSystem.h"
+#include "MovementSystem.h"
 
 #include "entities.h"
 
-class Scene {
+class Game {
 public:
-    Scene(SDL_Window* window);
-    ~Scene();
+    Game(SDL_Window* window);
+    ~Game();
     //, Clock* clock, Input* input, CameraController* cameraController
 
     void mainLoop();
@@ -41,11 +42,9 @@ private:
     SDL_Window* window;
 
     Clock clock = Clock();
+    InputManager inputManager = InputManager();
 
-    RenderSystem* renderSystem;
-    InputHandler* inputSystem;
-    StateSystem* stateSystem;
-    CollisionSystem* collisionSystem;
+    std::vector<System*> systems;
 
     entt::registry registry;
 };

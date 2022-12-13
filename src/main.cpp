@@ -8,7 +8,7 @@
 #include <SDL.h>
 
 #include "consts.h"
-#include "Scene.h"
+#include "Game.h"
 
 bool init();
 void close();
@@ -101,7 +101,7 @@ int main(int argv, char** args) {
 		glEnable( GL_DEBUG_OUTPUT );
 		glDebugMessageCallback( MessageCallback, 0 );
 
-		Scene scene(window);
+		Game scene(window);
 		scene.mainLoop();
 	}
 

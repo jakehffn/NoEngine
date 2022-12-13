@@ -1,6 +1,6 @@
 #pragma once
 
-struct Input {
+struct PlayerControl {
     // Pixels per second
     float pps;
 };

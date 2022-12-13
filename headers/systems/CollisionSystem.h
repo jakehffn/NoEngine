@@ -10,17 +10,15 @@
 
 #include "Collision.h"
 #include "Spacial.h"
-#include "SpriteState.h"
 
 class CollisionSystem : public System {
 public:
     CollisionSystem(entt::registry& registry);
 
-    void update(entt::registry& registry);
+    void update() override;
 
-    void systemState() override;
 private:
-    void resolveCollision(SpriteStatePair state, glm::vec4 collision, Spacial& spacial, glm::vec4 entityCol, Spacial entitySpac);
+    void resolveCollision(glm::vec4 collision, Spacial& spacial, glm::vec4 entityCol, Spacial entitySpac);
 
     entt::observer collisionObserver;
 };

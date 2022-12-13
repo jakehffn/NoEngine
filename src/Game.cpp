@@ -1,13 +1,14 @@
-#include "Scene.h"
+#include "Game.h"
 
-Scene::Scene(SDL_Window* window) : window{ window }{
+Game::Game(SDL_Window* window) : window{ window }{
 
-        this->renderSystem = new RenderSystem(this->registry);
-        this->inputSystem = new InputHandler(this->registry);
-        this->stateSystem = new StateSystem(this->registry);
-        this->collisionSystem = new CollisionSystem(this->registry);
+        this->systems.push_back(new InputSystem(this->registry));
+        this->systems.push_back(new CollisionSystem(this->registry));
+        this->systems.push_back(new MovementSystem(this->registry));
+        this->systems.push_back(new RenderSystem(this->registry));
 
         this->registry.ctx().emplace<Clock&>(this->clock);
+        this->registry.ctx().emplace<InputManager&>(this->inputManager);
 
         // Tiled map must be loaded after systems are created in order for observers to be able to
         //  monitor patches during creation of entities
@@ -19,24 +20,23 @@ Scene::Scene(SDL_Window* window) : window{ window }{
         entities::TextBox(this->registry, std::string("    Hello"), true);
 }
 
-Scene::~Scene() {
+Game::~Game() {
     // Deallocate Program
     glDeleteProgram(programID);
 }
 
-void Scene::mainLoop() {
+void Game::mainLoop() {
 
-    while(!this->inputSystem->isQuit()) {
+    while(!this->inputManager.isQuit()) {
 
         printf("\rFPS: %f", this->clock.getAverageFPS());
 
         this->clock.tick();
+        this->inputManager.update();
 
-        this->inputSystem->update(this->registry);
-        this->stateSystem->update(this->registry);
-        this->collisionSystem->update(this->registry);
-        this->renderSystem->update(this->registry);
-        
+        for (System* system : this->systems) {
+            system->update();
+        }
 
         // Update screen
         SDL_GL_SwapWindow(window);
@@ -47,7 +47,7 @@ void Scene::mainLoop() {
     SDL_StopTextInput();
 }
 
-void Scene::loadTiledMap(const char* mapPath) {
+void Game::loadTiledMap(const char* mapPath) {
 
     tson::Tileson t;
     std::unique_ptr<tson::Map> map = t.parse(fs::path(mapPath));
@@ -63,7 +63,7 @@ void Scene::loadTiledMap(const char* mapPath) {
 
 }
 
-void Scene::addObjects(tson::Layer* objectLayer) {
+void Game::addObjects(tson::Layer* objectLayer) {
 
     for (auto& obj : objectLayer->getObjects()) {
 
@@ -81,16 +81,11 @@ void Scene::addObjects(tson::Layer* objectLayer) {
     }
 }
 
-void Scene::addTiles(tson::Layer* tileLayer) {
-
-    std::vector<glm::vec3> tiles;
+void Game::addTiles(tson::Layer* tileLayer) {
 
     for (const auto &[pos, tile] : tileLayer->getTileData()) {
 
         int firstGid = tile->getTileset()->getFirstgid();
-
-        // Emplace vector containing the position of the tile and the tile id for use in renderer.
-        tiles.emplace_back(std::get<0>(pos), std::get<1>(pos), tile->getGid() - firstGid); // ID seems to be off by one for some reason. Not sure why.
 
         tson::Layer objectGroup = tile->getObjectgroup();
         std::vector<tson::Object> tileCollisions = objectGroup.getObjects();
@@ -113,5 +108,4 @@ void Scene::addTiles(tson::Layer* tileLayer) {
             entities::TileEntity(this->registry, pos, tile->getGid() - firstGid);
         }
     }
-        this->renderSystem->updateTiles(tiles);
 }

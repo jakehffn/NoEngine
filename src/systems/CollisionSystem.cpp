@@ -1,14 +1,14 @@
 #include "CollisionSystem.h"
 
-CollisionSystem::CollisionSystem(entt::registry& registry) :
-    collisionObserver{ entt::observer(registry, entt::collector.update<Spacial>().where<Collision, SpriteState>()) } {}
+CollisionSystem::CollisionSystem(entt::registry& registry) : System(registry),
+    collisionObserver{ entt::observer(registry, entt::collector.update<Spacial>().where<Collision>()) } {}
 
-void CollisionSystem::update(entt::registry& registry) {
+void CollisionSystem::update() {
 
     // Iterate over all entities were moved in the last frame and have Collision
     for (const auto observedEntity : this->collisionObserver) {
 
-        auto [observedCollision, spacial, spriteState] = registry.get<Collision, Spacial, SpriteState>(observedEntity);
+        auto [observedCollision, spacial] = this->registry.get<Collision, Spacial>(observedEntity);
 
         auto entities = registry.view<Collision, Spacial>();
 
@@ -20,7 +20,7 @@ void CollisionSystem::update(entt::registry& registry) {
 
                 for (auto boundingBox : entityCollision.boundingBoxes) {
 
-                    resolveCollision(spriteState.state, observedCollision.boundingBoxes.at(0), spacial, boundingBox, entitySpacial);
+                    resolveCollision(observedCollision.boundingBoxes.at(0), spacial, boundingBox, entitySpacial);
                 }
             }
         }  
@@ -29,9 +29,7 @@ void CollisionSystem::update(entt::registry& registry) {
     this->collisionObserver.clear();
 }
 
-void CollisionSystem::resolveCollision(SpriteStatePair state, glm::vec4 collision, Spacial& spacial, glm::vec4 entityCol, Spacial entitySpac) {
-
-    entity_c::ENTITY_DIR dir = std::get<entity_c::ENTITY_DIR>(state);
+void CollisionSystem::resolveCollision(glm::vec4 collision, Spacial& spacial, glm::vec4 entityCol, Spacial entitySpac) {
 
     glm::vec3 offset1(collision.z, collision.w, 0);
     glm::vec3 offset2(entityCol.z, entityCol.w, 0);
@@ -47,21 +45,19 @@ void CollisionSystem::resolveCollision(SpriteStatePair state, glm::vec4 collisio
     glm::vec2 dim2{entityCol};
 
     if (pos1.y < pos2.y + dim2.y && pos1.y + dim1.y > pos2.y && pos1.x < pos2.x + dim2.x && pos1.x + dim1.x > pos2.x) {
-        switch (dir) {
-            case entity_c::UP:
+        switch (spacial.direction) {
+            case UP:
                 spacial.pos.y = (pos2.y + dim2.y) - offset1.y;
                 break;
-            case entity_c::DOWN:
+            case DOWN:
                 spacial.pos.y = (pos2.y - dim1.y) - offset1.y;
                 break;
-            case entity_c::LEFT:
+            case LEFT:
                 spacial.pos.x = (pos2.x + dim2.x) - offset1.x;
                 break;
-            case entity_c::RIGHT:
+            case RIGHT:
                 spacial.pos.x = (pos2.x - dim1.x) - offset1.x;
                 break;
         }
     }
 }
-
-void CollisionSystem::systemState() {}

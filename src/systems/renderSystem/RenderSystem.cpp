@@ -1,8 +1,9 @@
 #include "RenderSystem.h"
 
-RenderSystem::RenderSystem(entt::registry& registry) : spriteShader{ new SpriteShader() },
+RenderSystem::RenderSystem(entt::registry& registry) : System(registry), spriteShader{ new SpriteShader() },
     tileShader{ new TileShader() }, screenShader{ new ScreenShader() }, tileAnimation{ std::vector<int>{ 0,1,2,3 }, 1.0/4.0 },
-    spacialObserver{ entt::observer(registry, entt::collector.update<Spacial>().where<Sprite>()) },
+    spacialObserver{ entt::observer(registry, entt::collector.update<Spacial>().where<Texture>()) },
+    tileObserver{ entt::observer(registry, entt::collector.group<Tile, Spacial>()) },
     textSprite{ entities::createSprite("./src/assets/fonts/text.png") },
     tileSheet{ entities::createSprite("./src/assets/tileSheets/TileSheetColorChange.png", 4) } {
     
@@ -97,14 +98,16 @@ RenderSystem::RenderSystem(entt::registry& registry) : spriteShader{ new SpriteS
         glBindFramebuffer(GL_FRAMEBUFFER, 0); 
         
         // Initialize group with empty registry for performance
-        auto init = registry.group<Sprite>(entt::get<Model, Spacial, Animation>);
+        auto init = registry.group<Texture>(entt::get<Model, Spacial, Animation>);
 }
 
 RenderSystem::~RenderSystem() {
     glDeleteFramebuffers(1, &(this->FBO));  
 }
 
-void RenderSystem::update(entt::registry& registry) {
+void RenderSystem::update() {
+
+    this->updateTiles(); // Should not be done every frame
 
     // Camera update comes first as sprite rendering relies on camera
     this->updateCamera(registry);
@@ -136,7 +139,7 @@ void RenderSystem::update(entt::registry& registry) {
 
 void RenderSystem::showEntities(entt::registry& registry) {
 
-    auto animations = registry.view<Animation, Sprite>();
+    auto animations = registry.view<Animation, Texture>();
 
     // Update all entities with animations
     for (auto animatedEntity : animations) {
@@ -148,7 +151,7 @@ void RenderSystem::showEntities(entt::registry& registry) {
     }
 
     // Label which entities are on screen and should be rendered
-    registry.view<Sprite, Model, Spacial>(entt::exclude<Text>).each([this, &registry](const auto entity, auto& sprite, auto& model, auto& spacial) {  
+    registry.view<Texture, Model, Spacial>(entt::exclude<Text>).each([this, &registry](const auto entity, auto& sprite, auto& model, auto& spacial) {  
 
         glm::vec2 camDim = this->camera.getCameraDim();
         glm::vec2 camPos = this->camera.getPosition();
@@ -166,7 +169,7 @@ void RenderSystem::showEntities(entt::registry& registry) {
     }, entt::insertion_sort {}); // Insertion sort is much faster as the spacials will generally be "mostly sorted"
 
     // Render all non-text entities labeled with ToRender; Ordered by the sorted spacial
-    registry.view<Sprite, Model, Spacial, ToRender>(entt::exclude<Text>).use<Spacial>().each([this](auto& sprite, auto& model, auto& spacial) {  
+    registry.view<Texture, Model, Spacial, ToRender>(entt::exclude<Text>).use<Spacial>().each([this](auto& sprite, auto& model, auto& spacial) {  
         this->renderSprite(model, sprite);
     });
 
@@ -185,7 +188,7 @@ void RenderSystem::showEntities(entt::registry& registry) {
 
 void RenderSystem::updateCamera(entt::registry& registry) {
 
-    auto controllers = registry.group<CameraController>(entt::get<Spacial, Sprite>);
+    auto controllers = registry.group<CameraController>(entt::get<Spacial, Texture>);
 
     for (auto entity : controllers) {
 
@@ -224,7 +227,7 @@ void RenderSystem::renderText(Text text, Spacial spacial) {
     }
 }
 
-void RenderSystem::renderSprite(Model model, Sprite sprite, bool guiElement) {
+void RenderSystem::renderSprite(Model model, Texture sprite, bool guiElement) {
 
     // Use the sprite shader
     // GLuint openGLShaderProgramID = this->spriteShader->getOpenGLShaderProgramID();
@@ -240,7 +243,7 @@ void RenderSystem::renderSprite(Model model, Sprite sprite, bool guiElement) {
 
     glBindVertexArray(this->quadVAO);
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, sprite.texture);
+    glBindTexture(GL_TEXTURE_2D, sprite.glTextureID);
 
     // Remove anti-aliasing
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -250,13 +253,18 @@ void RenderSystem::renderSprite(Model model, Sprite sprite, bool guiElement) {
     // glBindVertexArray(0); Causes : "Program/shader state performance warning: Vertex shader in program 3 is being recompiled based on GL state.""
 }
 
-void RenderSystem::updateTiles(std::vector<glm::vec3> tiles) {
+void RenderSystem::updateTiles() {
 
-    this->tiles = tiles;
+    this->tiles.clear();
+
+    registry.view<Tile, Spacial>().each([this](auto& tile, auto& spacial) {  
+        this->tiles.emplace_back(spacial.pos.x, spacial.pos.y, tile.id); // ID seems to be off by one for some reason. Not sure why.
+    });
 
     glBindVertexArray(this->quadVAO);
     glBindBuffer(GL_ARRAY_BUFFER, this->tileVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * this->tiles.size(), this->tiles.data(), GL_STATIC_DRAW);
+    // glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * this->tiles.size(), this->tiles.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * this->tiles.size(), this->tiles.data(), GL_DYNAMIC_DRAW);
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
@@ -283,7 +291,7 @@ void RenderSystem::renderTiles(Clock clock) {
     this->tileShader->renderSetup(model.model, view, projection, this->tileSheet.texData);
 
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, this->tileSheet.texture);
+    glBindTexture(GL_TEXTURE_2D, this->tileSheet.glTextureID);
 
     // Remove anti-aliasing
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -333,7 +341,7 @@ void RenderSystem::updateModel(Model& model, Spacial spacial) {
     model.model = translate * scale * rotate;
 }
 
-void RenderSystem::updateAnimation(Animation& animation, Sprite& sprite, Clock clock) {
+void RenderSystem::updateAnimation(Animation& animation, Texture& sprite, Clock clock) {
 
     animation.deltaTime += clock.getDeltaTime();
 
@@ -342,7 +350,7 @@ void RenderSystem::updateAnimation(Animation& animation, Sprite& sprite, Clock c
         animation.deltaTime = 0.0f;
     }
 
-    float frameFraction = 1.0/sprite.numSprites;
+    float frameFraction = 1.0/sprite.numFrames;
     float currFrame = animation.frameOrder.at(animation.currAnimFrame);;
 
     sprite.texData = glm::vec2(currFrame * frameFraction, (currFrame + 1) * frameFraction);
@@ -447,8 +455,4 @@ void RenderSystem::initTextMap() {
     this->textMap['|'] = glm::vec2(92*8, 1);
     this->textMap['}'] = glm::vec2(93*8, 3);
     this->textMap['~'] = glm::vec2(94*8, 6);
-}
-
-void RenderSystem::systemState() {
-    printf("No state currently\n");
 }
