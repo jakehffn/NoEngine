@@ -4,6 +4,7 @@
 
 #include "Velocity.h"
 #include "PlayerControl.h"
+#include "Spacial.h"
 
 #include "System.h"
 
@@ -18,4 +19,5 @@ public:
 
 private:
     void playerControlUpdate();
+    DIRECTION previousDirection = DOWN;
 };
