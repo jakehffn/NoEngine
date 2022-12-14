@@ -25,8 +25,11 @@ void InputManager::update() {
         
         if (e.type == SDL_KEYDOWN) {
 
-            this->active.insert(currentKey);
-            this->added.insert(currentKey);
+            if (!this->isActive(currentKey)){
+
+                this->active.insert(currentKey);
+                this->added.insert(currentKey);
+            }
 
         } else if (e.type == SDL_KEYUP) {
 
