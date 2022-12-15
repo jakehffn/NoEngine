@@ -21,6 +21,7 @@
 #include "RenderSystem.h"
 #include "CollisionSystem.h"
 #include "MovementSystem.h"
+#include "AnimationSystem.h"
 
 #include "entities.h"
 

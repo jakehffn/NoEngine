@@ -8,13 +8,12 @@ void entities::Player(entt::registry& registry, glm::vec3 pos) {
     const auto player = registry.create();
     registry.emplace<Model>(player, glm::mat4(1));
     
-    registry.emplace<Velocity>(player);
     registry.emplace<Collision>(player, std::vector<glm::vec4>{glm::vec4(12, 8, 3, -8)});
     registry.emplace<PlayerControl>(player, 100.0f);
     registry.emplace<CameraController>(player, 650.0f);
 
     Texture& sprite = registry.emplace<Texture>(player);
-    sprite = entities::createSprite("./src/assets/sprites/Kid/Kid_IdleDown.png");
+    sprite = entities::createSprite("./src/assets/sprites/Kid/Kid_IdleDown.png", 2);
 
     // Patch spacial in for render system to update on start
     registry.emplace<Spacial>(player);
@@ -25,33 +24,31 @@ void entities::Player(entt::registry& registry, glm::vec3 pos) {
                 spacial = initSpacial;
     });
 
-    // registry.emplace<Animation>(player, std::vector<int>{0,0,0}); //solve necessity for animations longer than 1 frame        
+    registry.emplace<Animation>(player, 1.0f/10.0f); //solve necessity for animations longer than 1 frame        
 
-    // Texture idleUpSprite = entities::createSprite("./src/assets/sprites/Kid/Kid_IdleUp.png");
-    // Texture moveUpSprite = entities::createSprite("./src/assets/sprites/Kid/Kid_MoveUp.png", 4);
-    // Texture idleDownSprite = entities::createSprite("./src/assets/sprites/Kid/Kid_IdleDown.png");
-    // Texture moveDownSprite = entities::createSprite("./src/assets/sprites/Kid/Kid_MoveDown.png", 4);
-    // Texture idleLeftSprite = entities::createSprite("./src/assets/sprites/Kid/Kid_IdleLeft.png");
-    // Texture moveLeftSprite = entities::createSprite("./src/assets/sprites/Kid/Kid_MoveLeft.png", 4);
-    // Texture idleRightSprite = entities::createSprite("./src/assets/sprites/Kid/Kid_IdleRight.png");
-    // Texture moveRightSprite = entities::createSprite("./src/assets/sprites/Kid/Kid_MoveRight.png", 4);
+    Texture idleUpSprite = entities::createSprite("./src/assets/sprites/Kid/Kid_IdleUp.png");
+    Texture moveUpSprite = entities::createSprite("./src/assets/sprites/Kid/Kid_MoveUp.png", 4);
+    Texture idleDownSprite = entities::createSprite("./src/assets/sprites/Kid/Kid_IdleDown.png");
+    Texture moveDownSprite = entities::createSprite("./src/assets/sprites/Kid/Kid_MoveDown.png", 4);
+    Texture idleLeftSprite = entities::createSprite("./src/assets/sprites/Kid/Kid_IdleLeft.png");
+    Texture moveLeftSprite = entities::createSprite("./src/assets/sprites/Kid/Kid_MoveLeft.png", 4);
+    Texture idleRightSprite = entities::createSprite("./src/assets/sprites/Kid/Kid_IdleRight.png");
+    Texture moveRightSprite = entities::createSprite("./src/assets/sprites/Kid/Kid_MoveRight.png", 4);
 
-    // Animation moveAnim{std::vector<int>{0,1,2,3}}; 
-    // Animation idleAnim{std::vector<int>{0,0}};
+    // IdleAnimation idleAnimation = IdleAnimation{};
+    registry.emplace<IdleAnimation>(player, std::unordered_map<DIRECTION, Texture>{
+        {UP, idleUpSprite},
+        {DOWN, idleDownSprite},
+        {LEFT, idleLeftSprite},
+        {RIGHT, idleRightSprite}
+    });
 
-    // std::unordered_map<SpriteStatePair, std::tuple<Texture, Animation>, pair_hash> stateMap{
-    //     {std::make_pair(entity_c::IDLE, entity_c::UP), std::tuple<Texture, Animation>(idleUpSprite, idleAnim)},
-    //     {std::make_pair(entity_c::IDLE, entity_c::DOWN), std::tuple<Texture, Animation>(idleDownSprite, idleAnim)},
-    //     {std::make_pair(entity_c::IDLE, entity_c::LEFT), std::tuple<Texture, Animation>(idleLeftSprite, idleAnim)},
-    //     {std::make_pair(entity_c::IDLE, entity_c::RIGHT), std::tuple<Texture, Animation>(idleRightSprite, idleAnim)},
-    //     {std::make_pair(entity_c::MOVING, entity_c::UP), std::tuple<Texture, Animation>(moveUpSprite, moveAnim)},
-    //     {std::make_pair(entity_c::MOVING, entity_c::DOWN), std::tuple<Texture, Animation>(moveDownSprite, moveAnim)},
-    //     {std::make_pair(entity_c::MOVING, entity_c::LEFT), std::tuple<Texture, Animation>(moveLeftSprite, moveAnim)},
-    //     {std::make_pair(entity_c::MOVING, entity_c::RIGHT), std::tuple<Texture, Animation>(moveRightSprite, moveAnim)}
-
-    // };
-
-    // registry.emplace<SpriteState>(player, stateMap);
+    registry.emplace<MoveAnimation>(player, std::unordered_map<DIRECTION, Texture>{
+        {UP, moveUpSprite},
+        {DOWN, moveDownSprite},
+        {LEFT, moveLeftSprite},
+        {RIGHT, moveRightSprite}
+    });
 }
 
 void entities::Bag(entt::registry& registry, glm::vec3 pos) {
@@ -73,7 +70,7 @@ void entities::Bag(entt::registry& registry, glm::vec3 pos) {
                 spacial = initSpacial;
     });
 
-    registry.emplace<Animation>(bag, std::vector<int>{0,0,0,0,0,0,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0});        
+    registry.emplace<Animation>(bag, 1.0f/4.0f);        
 }
 
 // void entities::CollisionBox(entt::registry& registry, glm::vec2 pos, glm::vec2 dim) {

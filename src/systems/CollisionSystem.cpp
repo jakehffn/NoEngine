@@ -8,9 +8,10 @@ void CollisionSystem::update() {
     // Iterate over all entities were moved in the last frame and have Collision
     for (const auto observedEntity : this->collisionObserver) {
 
-        auto [observedCollision, spacial] = this->registry.get<Collision, Spacial>(observedEntity);
-
+        
         auto entities = registry.view<Collision, Spacial>();
+
+        auto [observedCollision, spacial] = entities.get<Collision, Spacial>(observedEntity);
 
         for (auto colEntity : entities) {
 

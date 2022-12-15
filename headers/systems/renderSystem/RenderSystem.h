@@ -8,7 +8,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "System.h"
-#include "Sprite.h"
+#include "Texture.h"
 #include "Spacial.h"
 #include "Model.h"
 #include "CameraController.h"
@@ -48,7 +48,6 @@ private:
 
     void updateModels(entt::registry& registry);
     void updateModel(Model& model, Spacial spacial);
-    void updateAnimation(Animation& animation, Texture& sprite, Clock clock);
 
     void initTextMap();
 

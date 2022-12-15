@@ -6,10 +6,7 @@
 #include "System.h"
 
 #include "Spacial.h"
-#include <glm/glm.hpp>
-
 #include "Collision.h"
-#include "Spacial.h"
 
 class CollisionSystem : public System {
 public:

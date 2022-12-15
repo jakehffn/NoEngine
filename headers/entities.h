@@ -14,11 +14,14 @@
 #include "Spacial.h"
 #include "CameraController.h"
 #include "Animation.h"
-#include "Sprite.h"
+#include "Texture.h"
 #include "Velocity.h"
 #include "Collision.h"
 #include "Text.h"
 #include "Tile.h"
+
+#include "IdleAnimation.h"
+#include "MoveAnimation.h"
 
 namespace entities {
 

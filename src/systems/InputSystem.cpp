@@ -13,41 +13,56 @@ void InputSystem::playerControlUpdate() {
 
     DIRECTION direction;
 
-    bool newUp = inputManager.isAdded(SDLK_w);
-    bool newDown = inputManager.isAdded(SDLK_s);
-    bool newLeft = inputManager.isAdded(SDLK_a);
-    bool newRight = inputManager.isAdded(SDLK_d);
+    bool upAdded = inputManager.isAdded(SDLK_w);
+    bool downAdded = inputManager.isAdded(SDLK_s);
+    bool leftAdded = inputManager.isAdded(SDLK_a);
+    bool rightAdded = inputManager.isAdded(SDLK_d);
 
     bool up = inputManager.isActive(SDLK_w);
     bool down = inputManager.isActive(SDLK_s);
     bool left = inputManager.isActive(SDLK_a);
     bool right = inputManager.isActive(SDLK_d);
 
+    bool anyRemoved = inputManager.isRemoved(SDLK_w) || inputManager.isRemoved(SDLK_s) ||
+                      inputManager.isRemoved(SDLK_a) || inputManager.isRemoved(SDLK_d);
+
     if (!(up || down || left || right)) {
+
+        if (anyRemoved) {
+
+            auto playerControlledEntities = registry.view<PlayerControl, Velocity>();
+
+            for (auto entity : playerControlledEntities) {
+
+                this->registry.remove<Velocity>(entity);
+            }  
+        }
+
         return;
     }
 
-    if (newUp || newDown || newLeft || newRight) {
+    // Prioritize new inputs
+    if (upAdded || downAdded || leftAdded || rightAdded) {
 
-        if (newUp && !down) {
+        if (upAdded && !down) {
             direction = UP;
-        } else if (newDown && !up) {
+        } else if (downAdded && !up) {
             direction = DOWN;
-        } else if (newLeft && !right) {
+        } else if (leftAdded && !right) {
             direction = LEFT;
-        } else if (newRight && !left) {
+        } else if (rightAdded && !left) {
             direction = RIGHT;
         }
 
     } else {
 
-        if (previousDirection == UP && up && !down) {
+        if (this->previousPlayerDirection == UP && up && !down) {
             direction = UP;
-        } else if (previousDirection == DOWN && down && !up) {
+        } else if (this->previousPlayerDirection == DOWN && down && !up) {
             direction = DOWN;
-        } else if (previousDirection == LEFT && left && !right) {
+        } else if (this->previousPlayerDirection == LEFT && left && !right) {
             direction = LEFT;
-        } else if (previousDirection == RIGHT && right && !left) {
+        } else if (this->previousPlayerDirection == RIGHT && right && !left) {
             direction = RIGHT;
         } else if (up && !down) {
             direction = UP;
@@ -74,6 +89,17 @@ void InputSystem::playerControlUpdate() {
             break;
         case(RIGHT):
             velocityDirection = glm::vec3(1,0,0);
+            break;
+        default:
+
+            auto playerControlledEntities = registry.view<PlayerControl, Velocity>();
+            
+            for (auto entity : playerControlledEntities) {
+
+                this->registry.remove<Velocity>(entity);
+            }  
+
+            return;
     }
 
     auto playerControlledEntities = registry.view<PlayerControl,Spacial>();
@@ -88,5 +114,5 @@ void InputSystem::playerControlUpdate() {
         });
     }
 
-    this->previousDirection = direction;
+    this->previousPlayerDirection = direction;
 }

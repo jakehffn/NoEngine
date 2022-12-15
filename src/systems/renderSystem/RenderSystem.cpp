@@ -1,7 +1,7 @@
 #include "RenderSystem.h"
 
 RenderSystem::RenderSystem(entt::registry& registry) : System(registry), spriteShader{ new SpriteShader() },
-    tileShader{ new TileShader() }, screenShader{ new ScreenShader() }, tileAnimation{ std::vector<int>{ 0,1,2,3 }, 1.0/4.0 },
+    tileShader{ new TileShader() }, screenShader{ new ScreenShader() }, tileAnimation{ 1.0/4.0 },
     spacialObserver{ entt::observer(registry, entt::collector.update<Spacial>().where<Texture>()) },
     tileObserver{ entt::observer(registry, entt::collector.group<Tile, Spacial>()) },
     textSprite{ entities::createSprite("./src/assets/fonts/text.png") },
@@ -33,18 +33,6 @@ RenderSystem::RenderSystem(entt::registry& registry) : System(registry), spriteS
             1.0f, 1.0f, 1.0f, 1.0f,
             1.0f, 0.0f, 1.0f, 0.0f
         };
-
-        // // create quadVAO
-        // float quadVertexData[] = { 
-        //     // pos      // tex
-        //     -1.0f, 1.0f, -1.0f, 1.0f,
-        //     1.0f, -1.0f, 1.0f, -1.0f,
-        //     -1.0f, -1.0f, -1.0f, -1.0f, 
-        
-        //     -1.0f, 1.0f, -1.0f, 1.0f,
-        //     1.0f, 1.0f, 1.0f, 1.0f,
-        //     1.0f, -1.0f, 1.0f, -1.0f
-        // };
         
         glGenVertexArrays(1, &(this->quadVAO));
         glBindVertexArray(this->quadVAO);
@@ -98,7 +86,7 @@ RenderSystem::RenderSystem(entt::registry& registry) : System(registry), spriteS
         glBindFramebuffer(GL_FRAMEBUFFER, 0); 
         
         // Initialize group with empty registry for performance
-        auto init = registry.group<Texture>(entt::get<Model, Spacial, Animation>);
+        // auto init = registry.group<Texture>(entt::get<Model, Spacial, Animation>);
 }
 
 RenderSystem::~RenderSystem() {
@@ -139,16 +127,7 @@ void RenderSystem::update() {
 
 void RenderSystem::showEntities(entt::registry& registry) {
 
-    auto animations = registry.view<Animation, Texture>();
-
-    // Update all entities with animations
-    for (auto animatedEntity : animations) {
-
-        // printf("Animation update\n");
-        auto [animation, sprite] = animations.get(animatedEntity);
-
-        this->updateAnimation(animation, sprite, registry.ctx().at<Clock&>());
-    }
+    
 
     // Label which entities are on screen and should be rendered
     registry.view<Texture, Model, Spacial>(entt::exclude<Text>).each([this, &registry](const auto entity, auto& sprite, auto& model, auto& spacial) {  
@@ -188,7 +167,7 @@ void RenderSystem::showEntities(entt::registry& registry) {
 
 void RenderSystem::updateCamera(entt::registry& registry) {
 
-    auto controllers = registry.group<CameraController>(entt::get<Spacial, Texture>);
+    auto controllers = registry.view<CameraController, Spacial, Texture>();
 
     for (auto entity : controllers) {
 
@@ -254,19 +233,27 @@ void RenderSystem::renderSprite(Model model, Texture sprite, bool guiElement) {
 }
 
 void RenderSystem::updateTiles() {
+    
+    std::vector<glm::vec3> newTiles;
 
-    this->tiles.clear();
+    for (const auto entity : this->tileObserver) { 
 
-    registry.view<Tile, Spacial>().each([this](auto& tile, auto& spacial) {  
-        this->tiles.emplace_back(spacial.pos.x, spacial.pos.y, tile.id); // ID seems to be off by one for some reason. Not sure why.
-    });
+        auto [spacial, tile] = this->registry.get<Spacial, Tile>(entity); 
+        newTiles.emplace_back(spacial.pos.x, spacial.pos.y, tile.id);
+    }
 
-    glBindVertexArray(this->quadVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, this->tileVBO);
-    // glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * this->tiles.size(), this->tiles.data(), GL_STATIC_DRAW);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * this->tiles.size(), this->tiles.data(), GL_DYNAMIC_DRAW);
-    glBindVertexArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    this->tileObserver.clear();
+
+    if (newTiles.size() > 0) {
+
+        this->tiles = newTiles;
+
+        glBindVertexArray(this->quadVAO);
+        glBindBuffer(GL_ARRAY_BUFFER, this->tileVBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * this->tiles.size(), this->tiles.data(), GL_STATIC_DRAW);
+        glBindVertexArray(0);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+    }
 }
 
 void RenderSystem::renderTiles(Clock clock) {
@@ -286,7 +273,6 @@ void RenderSystem::renderTiles(Clock clock) {
     Spacial spacial{glm::vec3{0,0,0}, glm::vec3{0,0,0}, glm::vec3{1,1,1}, glm::vec2{16,16}};
 
     this->updateModel(model, spacial);
-    this->updateAnimation(this->tileAnimation, this->tileSheet, clock);
 
     this->tileShader->renderSetup(model.model, view, projection, this->tileSheet.texData);
 
@@ -339,21 +325,6 @@ void RenderSystem::updateModel(Model& model, Spacial spacial) {
     // glm::mat4 translate = glm::translate(glm::mat4(1), spacial.pos);
 
     model.model = translate * scale * rotate;
-}
-
-void RenderSystem::updateAnimation(Animation& animation, Texture& sprite, Clock clock) {
-
-    animation.deltaTime += clock.getDeltaTime();
-
-    if (animation.deltaTime > animation.frameSpeed) {
-        animation.currAnimFrame = (animation.currAnimFrame + 1) % animation.frameOrder.size();
-        animation.deltaTime = 0.0f;
-    }
-
-    float frameFraction = 1.0/sprite.numFrames;
-    float currFrame = animation.frameOrder.at(animation.currAnimFrame);;
-
-    sprite.texData = glm::vec2(currFrame * frameFraction, (currFrame + 1) * frameFraction);
 }
 
 void RenderSystem::initTextMap() {

@@ -19,5 +19,5 @@ struct Spacial {
     // dimensions of entity
     glm::vec2 dim;
     // direction will usually be the same as last velocity
-    DIRECTION direction;
+    DIRECTION direction = DOWN;
 };
