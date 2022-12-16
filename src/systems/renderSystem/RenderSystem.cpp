@@ -2,145 +2,156 @@
 
 RenderSystem::RenderSystem(entt::registry& registry) : System(registry), spriteShader{ new SpriteShader() },
     tileShader{ new TileShader() }, screenShader{ new ScreenShader() }, tileAnimation{ 1.0/4.0 },
+    tiles{ glm::vec3(0) },
     spacialObserver{ entt::observer(registry, entt::collector.update<Spacial>().where<Model, Texture>()) },
     tileObserver{ entt::observer(registry, entt::collector.group<Tile, Spacial>()) },
     textureObserver{ entt::observer(registry, entt::collector.group<Texture>()) },
     textSprite{ (struct Texture){"./src/assets/fonts/text.png"} },
     tileSheet{ (struct Texture){"./src/assets/tileSheets/TileSheetColorChange.png", 4} } {
     
-        this->initTextMap();
-
-        // glBindFramebuffer(GL_FRAMEBUFFER, 0); 
         glClearColor(0.0f, 0.4f, 0.4f, 0.0f);
-        // glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-
-        glEnable(GL_CULL_FACE);
-        // glEnable(GL_DEPTH_TEST);
-        // glDepthFunc(GL_LESS);
-
         glEnable(GL_BLEND); 
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-        // glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
-
-        // create quadVAO
-        float quadVertexData[] = { 
-            // pos      // tex
-            0.0f, 1.0f, 0.0f, 1.0f,
-            1.0f, 0.0f, 1.0f, 0.0f,
-            0.0f, 0.0f, 0.0f, 0.0f, 
-        
-            0.0f, 1.0f, 0.0f, 1.0f,
-            1.0f, 1.0f, 1.0f, 1.0f,
-            1.0f, 0.0f, 1.0f, 0.0f
-        };
-        
-        glGenVertexArrays(1, &(this->quadVAO));
-        glBindVertexArray(this->quadVAO);
-        
-        // The verticies will never change so the buffer ID is not saved
-        GLuint vertexBuffer;
-        glGenBuffers(1, &vertexBuffer);
-        glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertexData), quadVertexData, GL_STATIC_DRAW);
-        
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
-        
-        glGenBuffers(1, &(this->tileVBO));
-        glBindBuffer(GL_ARRAY_BUFFER, this->tileVBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * this->tiles.size(), this->tiles.data(), GL_STATIC_DRAW);
-
-        glEnableVertexAttribArray(1);
-        glBindBuffer(GL_ARRAY_BUFFER, this->tileVBO);
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-        glVertexAttribDivisor(1, 1); 
-
-        // Free bound buffers
-        glBindVertexArray(0);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);  
-
-
-        glGenFramebuffers(1, &(this->FBO));
-        glBindFramebuffer(GL_FRAMEBUFFER, this->FBO);
-
-        glGenTextures(1, &(this->renderTexture));
-        glBindTexture(GL_TEXTURE_2D, this->renderTexture);
-        
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, render_c::SCREEN_WIDTH, render_c::SCREEN_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);  
-
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, this->renderTexture, 0); 
-
-        // unsigned int rbo;
-        // glGenRenderbuffers(1, &rbo);
-        // glBindRenderbuffer(GL_RENDERBUFFER, rbo); 
-        // glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, 1920, 1080);  
-        // glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
-
-        if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-            std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
-        }
-        
-        glBindFramebuffer(GL_FRAMEBUFFER, 0); 
+        this->initTextMap();
+        this->initVAO();
+        this->initTileVBO();
+        this->initScreenFBO();
 
         this->registry.ctx().at<TextureManager&>().initTexture(this->textSprite);
         this->registry.ctx().at<TextureManager&>().initTexture(this->tileSheet);
-        
-        // Initialize group with empty registry for performance
-        // auto init = registry.group<Texture>(entt::get<Model, Spacial, Animation>);
 }
 
 RenderSystem::~RenderSystem() {
-    glDeleteFramebuffers(1, &(this->FBO));  
+    glDeleteFramebuffers(1, &(this->screenFBO));  
+}
+
+void RenderSystem::initVAO() {
+
+    // create VAO
+    float quadVertexData[] = { 
+        // pos      // tex
+        0.0f, 1.0f, 0.0f, 1.0f,
+        1.0f, 0.0f, 1.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 
+    
+        0.0f, 1.0f, 0.0f, 1.0f,
+        1.0f, 1.0f, 1.0f, 1.0f,
+        1.0f, 0.0f, 1.0f, 0.0f
+    };
+    
+    glGenVertexArrays(1, &(this->VAO));
+    glBindVertexArray(this->VAO);
+    
+    // The verticies will never change so the buffer ID is not saved
+    GLuint vertexBuffer;
+    glGenBuffers(1, &vertexBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertexData), quadVertexData, GL_STATIC_DRAW);
+    
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+    // Free bound buffers
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);  
+}
+
+void RenderSystem::initTileVBO() {
+
+    glBindVertexArray(this->VAO);
+
+    glGenBuffers(1, &(this->tileVBO));
+    glBindBuffer(GL_ARRAY_BUFFER, this->tileVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * this->tiles.size(), this->tiles.data(), GL_STATIC_DRAW);
+    
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glVertexAttribDivisor(1, 1); 
+
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0); 
+}
+
+void RenderSystem::initScreenFBO() {
+
+    glGenFramebuffers(1, &(this->screenFBO));
+    glBindFramebuffer(GL_FRAMEBUFFER, this->screenFBO);
+
+    glGenTextures(1, &(this->screenTexture));
+    glBindTexture(GL_TEXTURE_2D, this->screenTexture);
+    
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, render_c::SCREEN_WIDTH, render_c::SCREEN_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);  
+
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, this->screenTexture, 0); 
+
+    
+    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
+    }
+    
+    glBindFramebuffer(GL_FRAMEBUFFER, 0); 
 }
 
 void RenderSystem::update() {
 
-    this->updateTiles(); // Should not be done every frame
+    this->updateTiles();
     this->updateTextures();
-    this->updateModels(registry);
+    this->updateModels();
     
-
-    glBindFramebuffer(GL_FRAMEBUFFER, this->FBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, this->screenFBO);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
-    this->renderTiles(registry.ctx().at<Clock&>());
-    this->showEntities(registry);
+    this->renderTiles();
+    this->renderEntities();
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0); // back to default
     
     glDisable(GL_DEPTH_TEST);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    // Use the screen shader
-    // GLuint shaderProgram = this->screenShader->getOpenGLShaderProgramID();
-
-    // glUseProgram(shaderProgram);
     this->screenShader->useShader();
 
-    glBindVertexArray(quadVAO);
-    glBindTexture(GL_TEXTURE_2D, this->renderTexture);
+    glBindVertexArray(VAO);
+    glBindTexture(GL_TEXTURE_2D, this->screenTexture);
     glDrawArrays(GL_TRIANGLES, 0, 6);   
 
     glUseProgram(0);
 }
 
-void RenderSystem::updateTextures() {
+void RenderSystem::renderTiles() {
 
-    for (const auto entity : this->textureObserver) { 
+    glBindVertexArray(this->VAO);
 
-        auto& texture = this->registry.get<Texture>(entity); 
+    this->tileShader->useShader();
 
-        this->registry.ctx().at<TextureManager&>().initTexture(texture);
-    }
+    using namespace entt::literals;
+    Camera camera = this->registry.ctx().at<Camera&>("worldCamera"_hs);
 
-    this->textureObserver.clear();
+    glm::mat4 view = camera.getViewMatrix();
+    glm::mat4 projection = camera.getProjectionMatrix();
+
+    Model model{glm::mat4(1)};
+    Spacial spacial{glm::vec3{0,0,0}, glm::vec3{0,0,0}, glm::vec3{1,1,1}, glm::vec2{16,16}};
+
+    this->updateModel(model, spacial);
+
+    this->tileShader->renderSetup(model.model, view, projection, this->tileSheet.texData);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, this->tileSheet.glTextureID);
+
+    // Remove anti-aliasing
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+    glDrawArraysInstanced(GL_TRIANGLES, 0, 6, this->tiles.size()); 
+    glBindVertexArray(0);
 }
 
-void RenderSystem::showEntities(entt::registry& registry) {
+void RenderSystem::renderEntities() {
 
     using namespace entt::literals;
     Camera& camera = this->registry.ctx().at<Camera&>("worldCamera"_hs);
@@ -151,7 +162,6 @@ void RenderSystem::showEntities(entt::registry& registry) {
         glm::vec2 camDim = camera.getCameraDim();
         glm::vec2 camPos = camera.getPosition();
         glm::vec3 entPos = spacial.pos;
-        
 
         if (entPos.x < camPos.x + camDim.x/2 && entPos.y < camPos.y + camDim.y/2 && entPos.x > camPos.x - camDim.x/2 && entPos.y > camPos.y - camDim.y/2) {
             this->registry.emplace<ToRender>(entity);
@@ -165,7 +175,7 @@ void RenderSystem::showEntities(entt::registry& registry) {
 
     // Render all non-text entities labeled with ToRender; Ordered by the sorted spacial
     registry.view<Texture, Model, Spacial, ToRender>(entt::exclude<Text>).use<Spacial>().each([this](auto& texture, auto& model, auto& spacial) {  
-        this->renderSprite(model, texture);
+        this->renderTexture(model, texture);
     });
 
     registry.clear<ToRender>();    
@@ -198,13 +208,13 @@ void RenderSystem::renderText(Text text, Spacial spacial) {
 
         this->textSprite.texData = glm::vec2(charData.x/spacial.dim.x, (charData.y + charData.x)/spacial.dim.x);
 
-        this->renderSprite(cModel, textSprite, text.guiElement);
+        this->renderTexture(cModel, textSprite, text.guiElement);
 
         charOffset += charData.y + kerning;
     }
 }
 
-void RenderSystem::renderSprite(Model model, Texture texture, bool guiElement) {
+void RenderSystem::renderTexture(Model model, Texture texture, bool guiElement) {
 
     // Use the sprite shader
     // GLuint openGLShaderProgramID = this->spriteShader->getOpenGLShaderProgramID();
@@ -220,7 +230,7 @@ void RenderSystem::renderSprite(Model model, Texture texture, bool guiElement) {
 
     this->spriteShader->renderSetup(model.model, view, projection, texture.texData);
 
-    glBindVertexArray(this->quadVAO);
+    glBindVertexArray(this->VAO);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture.glTextureID);
 
@@ -248,7 +258,7 @@ void RenderSystem::updateTiles() {
 
         this->tiles = newTiles;
 
-        glBindVertexArray(this->quadVAO);
+        glBindVertexArray(this->VAO);
         glBindBuffer(GL_ARRAY_BUFFER, this->tileVBO);
         glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * this->tiles.size(), this->tiles.data(), GL_STATIC_DRAW);
         glBindVertexArray(0);
@@ -256,46 +266,12 @@ void RenderSystem::updateTiles() {
     }
 }
 
-void RenderSystem::renderTiles(Clock clock) {
-
-    glBindVertexArray(this->quadVAO);
-
-    // Use shader
-    // GLuint openGLShaderProgramID = this->tileShader->getOpenGLShaderProgramID();
-    // glUseProgram(openGLShaderProgramID);
-
-    this->tileShader->useShader();
-
-    using namespace entt::literals;
-    Camera camera = this->registry.ctx().at<Camera&>("worldCamera"_hs);
-
-    glm::mat4 view = camera.getViewMatrix();
-    glm::mat4 projection = camera.getProjectionMatrix();
-
-    Model model{glm::mat4(1)};
-    Spacial spacial{glm::vec3{0,0,0}, glm::vec3{0,0,0}, glm::vec3{1,1,1}, glm::vec2{16,16}};
-
-    this->updateModel(model, spacial);
-
-    this->tileShader->renderSetup(model.model, view, projection, this->tileSheet.texData);
-
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, this->tileSheet.glTextureID);
-
-    // Remove anti-aliasing
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-    glDrawArraysInstanced(GL_TRIANGLES, 0, 6, this->tiles.size()); 
-    glBindVertexArray(0);
-}
-
-void RenderSystem::updateModels(entt::registry& registry) {
+void RenderSystem::updateModels() {
 
     // Update the models of all the entities whose spacials have been changed
     for (const auto entity : this->spacialObserver) {
 
-        auto [model, spacial] = registry.get<Model, Spacial>(entity);
+        auto [model, spacial] = this->registry.get<Model, Spacial>(entity);
 
         // This offset allows drawing of sprites to be sorted by y-position
         glm::vec3 bottomUpOffset(0, spacial.dim.y, 0);
@@ -312,7 +288,7 @@ void RenderSystem::updateModels(entt::registry& registry) {
     for (const auto entity : this->registry.view<Texture, Spacial>(entt::exclude<Model>)) {
 
         this->registry.emplace<Model>(entity, glm::mat4(1));
-        auto [model, spacial] = registry.get<Model, Spacial>(entity);
+        auto [model, spacial] = this->registry.get<Model, Spacial>(entity);
 
         // This offset allows drawing of sprites to be sorted by y-position
         glm::vec3 bottomUpOffset(0, spacial.dim.y, 0);
@@ -343,6 +319,18 @@ void RenderSystem::updateModel(Model& model, Spacial spacial) {
     // glm::mat4 translate = glm::translate(glm::mat4(1), spacial.pos);
 
     model.model = translate * scale * rotate;
+}
+
+void RenderSystem::updateTextures() {
+
+    for (const auto entity : this->textureObserver) { 
+
+        auto& texture = this->registry.get<Texture>(entity); 
+
+        this->registry.ctx().at<TextureManager&>().initTexture(texture);
+    }
+
+    this->textureObserver.clear();
 }
 
 void RenderSystem::initTextMap() {

@@ -39,19 +39,20 @@ public:
     void updateTiles();
 
 private:
-    void showEntities(entt::registry& registry);
+    void initTextMap();
+    void initVAO();
+    void initTileVBO();
+    void initScreenFBO();
 
+    void renderTiles();
+    void renderEntities();
     void renderText(Text text, Spacial spacial);
-    void renderSprite(Model model, Texture sprite, bool guiElement=false);
+    void renderTexture(Model model, Texture sprite, bool guiElement=false);
     
-    void renderTiles(Clock clock);
-
-    void updateModels(entt::registry& registry);
+    void updateModels();
     void updateModel(Model& model, Spacial spacial);
 
     void updateTextures();
-
-    void initTextMap();
 
     ShaderProgram<glm::mat4, glm::mat4, glm::mat4, glm::vec2>* spriteShader;
     ShaderProgram<glm::mat4, glm::mat4, glm::mat4, glm::vec2>* tileShader;
@@ -59,16 +60,15 @@ private:
 
     Texture textSprite;
     Texture tileSheet;
-
     Animation tileAnimation;
 
     std::vector<glm::vec3> tiles; // Tile data for vbo
 
-    GLuint quadVAO;
+    GLuint VAO;
     GLuint tileVBO;
 
-    GLuint FBO;
-    GLuint renderTexture;
+    GLuint screenFBO;
+    GLuint screenTexture;
 
     entt::observer spacialObserver;
     entt::observer tileObserver;
