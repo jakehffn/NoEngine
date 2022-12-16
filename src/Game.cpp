@@ -2,14 +2,15 @@
 
 Game::Game(SDL_Window* window) : window{ window }{
 
+        this->registry.ctx().emplace<Clock&>(this->clock);
+        this->registry.ctx().emplace<InputManager&>(this->inputManager);
+        this->registry.ctx().emplace<TextureManager&>(this->textureManager);
+
         this->systems.push_back(new InputSystem(this->registry));
         this->systems.push_back(new CollisionSystem(this->registry));
         this->systems.push_back(new AnimationSystem(this->registry));
         this->systems.push_back(new MovementSystem(this->registry));
         this->systems.push_back(new RenderSystem(this->registry));
-
-        this->registry.ctx().emplace<Clock&>(this->clock);
-        this->registry.ctx().emplace<InputManager&>(this->inputManager);
 
         // Tiled map must be loaded after systems are created in order for observers to be able to
         //  monitor patches during creation of entities
@@ -18,7 +19,7 @@ Game::Game(SDL_Window* window) : window{ window }{
         // Enable text input
         SDL_StartTextInput();
 
-        entities::TextBox(this->registry, std::string("    Hello"), true);
+        entities::TextBox(this->registry, std::string("Hello"), true);
 }
 
 Game::~Game() {

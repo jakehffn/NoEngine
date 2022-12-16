@@ -41,8 +41,6 @@ namespace entities {
     void TileEntity(entt::registry& registry, std::tuple<int, int> pos, int id, std::vector<glm::vec4> collisions);
     void TileEntity(entt::registry& registry, std::tuple<int, int> pos, int id);
 
-    Texture createSprite(const char* spritesheetPath, int numFrames=1);
-
     // Tiled map name to entity create function map
     static std::unordered_map<std::string, void (*)(entt::registry&, glm::vec3)> create{
         {"Player", &Player},

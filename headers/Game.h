@@ -16,6 +16,7 @@
 
 #include "Clock.h"
 #include "InputManager.h"
+#include "TextureManager.h"
 
 #include "InputSystem.h"
 #include "RenderSystem.h"
@@ -44,6 +45,7 @@ private:
 
     Clock clock = Clock();
     InputManager inputManager = InputManager();
+    TextureManager textureManager = TextureManager();
 
     std::vector<System*> systems;
 

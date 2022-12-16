@@ -18,6 +18,7 @@
 
 #include "Camera.h"
 #include "Clock.h"
+#include "TextureManager.h"
 
 #include "consts.h"
 
@@ -49,6 +50,8 @@ private:
     void updateModels(entt::registry& registry);
     void updateModel(Model& model, Spacial spacial);
 
+    void updateTextures();
+
     void initTextMap();
 
     ShaderProgram<glm::mat4, glm::mat4, glm::mat4, glm::vec2>* spriteShader;
@@ -73,6 +76,7 @@ private:
 
     entt::observer spacialObserver;
     entt::observer tileObserver;
+    entt::observer textureObserver;
 
     std::unordered_map<char, glm::vec2> textMap;
 };

@@ -1,6 +1,8 @@
 #include "AnimationSystem.h"
 
-AnimationSystem::AnimationSystem(entt::registry& registry) : System(registry) {
+AnimationSystem::AnimationSystem(entt::registry& registry) : System(registry),
+    idleAnimationObserver{ entt::observer(registry, entt::collector.group<Texture, IdleAnimation>(entt::exclude<Velocity>)) }, 
+    moveAnimationObserver{ entt::observer(registry, entt::collector.group<Texture, MoveAnimation, Velocity>()) } {
 
     auto initAnimationGroup = registry.group<Animation, Texture>();
 }
@@ -21,7 +23,8 @@ void AnimationSystem::updateIdleAnimations() {
 
         auto [idleAnimation, spacial] = idleAnimationEntities.get<IdleAnimation, Spacial>(entity);
 
-        this->registry.replace<Texture>(entity, idleAnimation.animations.at(spacial.direction));
+        this->registry.remove<Texture>(entity); // Remove then emplace so that the texture observer catches it
+        this->registry.emplace<Texture>(entity, idleAnimation.animations.at(spacial.direction));
     }
 }
 
@@ -33,7 +36,8 @@ void AnimationSystem::updateMoveAnimations() {
 
         auto [moveAnimation, spacial] = moveAnimationEntities.get<MoveAnimation, Spacial>(entity);
         
-        this->registry.replace<Texture>(entity, moveAnimation.animations.at(spacial.direction));
+        this->registry.remove<Texture>(entity); // Remove then emplace so that the texture observer catches it
+        this->registry.emplace<Texture>(entity, moveAnimation.animations.at(spacial.direction));
     }
 }
 

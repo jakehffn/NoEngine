@@ -24,4 +24,7 @@ private:
     void updateMoveAnimations();
 
     void updateAnimations();
+
+    entt::observer idleAnimationObserver;
+    entt::observer moveAnimationObserver;
 };

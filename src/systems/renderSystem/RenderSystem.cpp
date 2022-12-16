@@ -2,10 +2,11 @@
 
 RenderSystem::RenderSystem(entt::registry& registry) : System(registry), spriteShader{ new SpriteShader() },
     tileShader{ new TileShader() }, screenShader{ new ScreenShader() }, tileAnimation{ 1.0/4.0 },
-    spacialObserver{ entt::observer(registry, entt::collector.update<Spacial>().where<Texture>()) },
+    spacialObserver{ entt::observer(registry, entt::collector.update<Spacial>().where<Model, Texture>()) },
     tileObserver{ entt::observer(registry, entt::collector.group<Tile, Spacial>()) },
-    textSprite{ entities::createSprite("./src/assets/fonts/text.png") },
-    tileSheet{ entities::createSprite("./src/assets/tileSheets/TileSheetColorChange.png", 4) } {
+    textureObserver{ entt::observer(registry, entt::collector.group<Texture>()) },
+    textSprite{ (struct Texture){"./src/assets/fonts/text.png"} },
+    tileSheet{ (struct Texture){"./src/assets/tileSheets/TileSheetColorChange.png", 4} } {
     
         this->initTextMap();
 
@@ -84,6 +85,9 @@ RenderSystem::RenderSystem(entt::registry& registry) : System(registry), spriteS
         }
         
         glBindFramebuffer(GL_FRAMEBUFFER, 0); 
+
+        this->registry.ctx().at<TextureManager&>().initTexture(this->textSprite);
+        this->registry.ctx().at<TextureManager&>().initTexture(this->tileSheet);
         
         // Initialize group with empty registry for performance
         // auto init = registry.group<Texture>(entt::get<Model, Spacial, Animation>);
@@ -96,10 +100,12 @@ RenderSystem::~RenderSystem() {
 void RenderSystem::update() {
 
     this->updateTiles(); // Should not be done every frame
+    this->updateTextures();
 
     // Camera update comes first as sprite rendering relies on camera
     this->updateCamera(registry);
     this->updateModels(registry);
+    
 
     glBindFramebuffer(GL_FRAMEBUFFER, this->FBO);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -125,9 +131,19 @@ void RenderSystem::update() {
     glUseProgram(0);
 }
 
-void RenderSystem::showEntities(entt::registry& registry) {
+void RenderSystem::updateTextures() {
 
-    
+    for (const auto entity : this->textureObserver) { 
+
+        auto& texture = this->registry.get<Texture>(entity); 
+
+        this->registry.ctx().at<TextureManager&>().initTexture(texture);
+    }
+
+    this->textureObserver.clear();
+}
+
+void RenderSystem::showEntities(entt::registry& registry) {
 
     // Label which entities are on screen and should be rendered
     registry.view<Texture, Model, Spacial>(entt::exclude<Text>).each([this, &registry](const auto entity, auto& sprite, auto& model, auto& spacial) {  
@@ -148,8 +164,8 @@ void RenderSystem::showEntities(entt::registry& registry) {
     }, entt::insertion_sort {}); // Insertion sort is much faster as the spacials will generally be "mostly sorted"
 
     // Render all non-text entities labeled with ToRender; Ordered by the sorted spacial
-    registry.view<Texture, Model, Spacial, ToRender>(entt::exclude<Text>).use<Spacial>().each([this](auto& sprite, auto& model, auto& spacial) {  
-        this->renderSprite(model, sprite);
+    registry.view<Texture, Model, Spacial, ToRender>(entt::exclude<Text>).use<Spacial>().each([this](auto& texture, auto& model, auto& spacial) {  
+        this->renderSprite(model, texture);
     });
 
     registry.clear<ToRender>();    
@@ -174,10 +190,10 @@ void RenderSystem::updateCamera(entt::registry& registry) {
         auto [cameraController, spacial, sprite] = controllers.get(entity);
 
         float xOffset = spacial.dim.x * spacial.scale.x / 2;
-        float yOffset = spacial.dim.y * spacial.scale.y / 2;
+        float yOffset = -spacial.dim.y * spacial.scale.y / 2;
 
         glm::vec3 offset(xOffset, yOffset, 0);
-        this->camera.setPosition(spacial.pos - offset);
+        this->camera.setPosition(spacial.pos + offset);
     }
 
     this->camera.update();
@@ -206,7 +222,7 @@ void RenderSystem::renderText(Text text, Spacial spacial) {
     }
 }
 
-void RenderSystem::renderSprite(Model model, Texture sprite, bool guiElement) {
+void RenderSystem::renderSprite(Model model, Texture texture, bool guiElement) {
 
     // Use the sprite shader
     // GLuint openGLShaderProgramID = this->spriteShader->getOpenGLShaderProgramID();
@@ -218,11 +234,11 @@ void RenderSystem::renderSprite(Model model, Texture sprite, bool guiElement) {
     glm::mat4 view = cam.getViewMatrix();
     glm::mat4 projection = cam.getProjectionMatrix();
 
-    this->spriteShader->renderSetup(model.model, view, projection, sprite.texData);
+    this->spriteShader->renderSetup(model.model, view, projection, texture.texData);
 
     glBindVertexArray(this->quadVAO);
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, sprite.glTextureID);
+    glBindTexture(GL_TEXTURE_2D, texture.glTextureID);
 
     // Remove anti-aliasing
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -304,6 +320,21 @@ void RenderSystem::updateModels(entt::registry& registry) {
     }
 
     this->spacialObserver.clear();
+
+    // Update the models of all the entities whose spacials have been changed
+    for (const auto entity : this->registry.view<Texture, Spacial>(entt::exclude<Model>)) {
+
+        this->registry.emplace<Model>(entity, glm::mat4(1));
+        auto [model, spacial] = registry.get<Model, Spacial>(entity);
+
+        // This offset allows drawing of sprites to be sorted by y-position
+        glm::vec3 bottomUpOffset(0, spacial.dim.y, 0);
+
+        Spacial offsetSpacial = spacial;
+        offsetSpacial.pos -= bottomUpOffset;
+
+        this->updateModel(model, offsetSpacial);
+    }
 }
 
 void RenderSystem::updateModel(Model& model, Spacial spacial) {

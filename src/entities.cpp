@@ -1,39 +1,36 @@
 #include "entities.h"
 
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
-
 void entities::Player(entt::registry& registry, glm::vec3 pos) {
 
     const auto player = registry.create();
-    registry.emplace<Model>(player, glm::mat4(1));
+    
     
     registry.emplace<Collision>(player, std::vector<glm::vec4>{glm::vec4(12, 8, 3, -8)});
     registry.emplace<PlayerControl>(player, 100.0f);
     registry.emplace<CameraController>(player, 650.0f);
 
-    Texture& sprite = registry.emplace<Texture>(player);
-    sprite = entities::createSprite("./src/assets/sprites/Kid/Kid_IdleDown.png", 2);
+    Texture& texture = registry.emplace<Texture>(player);
+    texture = {"./src/assets/sprites/Kid/Kid_IdleDown.png"};
 
     // Patch spacial in for render system to update on start
     registry.emplace<Spacial>(player);
     Spacial initSpacial{pos, glm::vec3(0, 0, 0), 
-        glm::vec3(1, 1, 1), glm::vec2(sprite.width, sprite.height)};
+        glm::vec3(1, 1, 1), glm::vec2(16, 24)};
 
     registry.patch<Spacial>(player, [initSpacial](auto &spacial) { 
                 spacial = initSpacial;
     });
 
-    registry.emplace<Animation>(player, 1.0f/10.0f); //solve necessity for animations longer than 1 frame        
+    registry.emplace<Animation>(player, 1.0f/10.0f);        
 
-    Texture idleUpSprite = entities::createSprite("./src/assets/sprites/Kid/Kid_IdleUp.png");
-    Texture moveUpSprite = entities::createSprite("./src/assets/sprites/Kid/Kid_MoveUp.png", 4);
-    Texture idleDownSprite = entities::createSprite("./src/assets/sprites/Kid/Kid_IdleDown.png");
-    Texture moveDownSprite = entities::createSprite("./src/assets/sprites/Kid/Kid_MoveDown.png", 4);
-    Texture idleLeftSprite = entities::createSprite("./src/assets/sprites/Kid/Kid_IdleLeft.png");
-    Texture moveLeftSprite = entities::createSprite("./src/assets/sprites/Kid/Kid_MoveLeft.png", 4);
-    Texture idleRightSprite = entities::createSprite("./src/assets/sprites/Kid/Kid_IdleRight.png");
-    Texture moveRightSprite = entities::createSprite("./src/assets/sprites/Kid/Kid_MoveRight.png", 4);
+    Texture idleUpSprite{"./src/assets/sprites/Kid/Kid_IdleUp.png"};
+    Texture moveUpSprite = {"./src/assets/sprites/Kid/Kid_MoveUp.png", 4};
+    Texture idleDownSprite = {"./src/assets/sprites/Kid/Kid_IdleDown.png"};
+    Texture moveDownSprite = {"./src/assets/sprites/Kid/Kid_MoveDown.png", 4};
+    Texture idleLeftSprite = {"./src/assets/sprites/Kid/Kid_IdleLeft.png"};
+    Texture moveLeftSprite = {"./src/assets/sprites/Kid/Kid_MoveLeft.png", 4};
+    Texture idleRightSprite = {"./src/assets/sprites/Kid/Kid_IdleRight.png"};
+    Texture moveRightSprite = {"./src/assets/sprites/Kid/Kid_MoveRight.png", 4};
 
     // IdleAnimation idleAnimation = IdleAnimation{};
     registry.emplace<IdleAnimation>(player, std::unordered_map<DIRECTION, Texture>{
@@ -55,16 +52,16 @@ void entities::Bag(entt::registry& registry, glm::vec3 pos) {
 
     const auto bag = registry.create();
 
-    Texture& sprite = registry.emplace<Texture>(bag);
+    Texture& texture = registry.emplace<Texture>(bag);
     int numFrames = 5;
-    sprite = entities::createSprite("./src/assets/sprites/Bag.png", numFrames);
+    texture = {"./src/assets/sprites/Bag.png", numFrames};
 
     registry.emplace<Model>(bag, glm::mat4(1));
 
     // Patch spacial in for render system to update on start
     registry.emplace<Spacial>(bag);
     Spacial initSpacial{pos, glm::vec3(0, 0, 0), 
-        glm::vec3(1, 1, 1), glm::vec2(sprite.width/numFrames, sprite.height)};
+        glm::vec3(1, 1, 1), glm::vec2(texture.width/numFrames, texture.height)};
 
     registry.patch<Spacial>(bag, [initSpacial](auto &spacial) { 
                 spacial = initSpacial;
@@ -86,15 +83,13 @@ void entities::Tree(entt::registry& registry, glm::vec3 pos) {
 
     const auto tree = registry.create();
 
-    Texture& sprite = registry.emplace<Texture>(tree);
-    sprite = entities::createSprite("./src/assets/sprites/Tree.png");
-
-    registry.emplace<Model>(tree, glm::mat4(1));
+    Texture& texture = registry.emplace<Texture>(tree);
+    texture = {"./src/assets/sprites/Tree.png"};
 
     // Patch spacial in for render system to update on start
     registry.emplace<Spacial>(tree);
     Spacial initSpacial{pos, glm::vec3(0, 0, 0), 
-        glm::vec3(1, 1, 1), glm::vec2(sprite.width, sprite.height)};
+        glm::vec3(1, 1, 1), glm::vec2(48, 48)};
 
     registry.patch<Spacial>(tree, [initSpacial](auto &spacial) { 
                 spacial = initSpacial;
@@ -104,11 +99,16 @@ void entities::Tree(entt::registry& registry, glm::vec3 pos) {
 void entities::TextBox(entt::registry& registry, std::string text, bool guiElement) {
 
     const auto textBox = registry.create();
-
     registry.emplace<Text>(textBox, text, guiElement);
-    registry.emplace<Spacial>(textBox, glm::vec3(0,220,0), glm::vec3(0, 0, 0), 
-        glm::vec3(1, 1, 1), glm::vec2(800, 10));
-    registry.emplace<Model>(textBox, glm::mat4(1));
+    // Patch spacial in for render system to update on start
+    registry.emplace<Spacial>(textBox);
+    Spacial initSpacial{glm::vec3(0,0,0), glm::vec3(0, 0, 0), 
+        glm::vec3(1, 1, 1), glm::vec2(800, 10)};
+
+    registry.patch<Spacial>(textBox, [initSpacial](auto &spacial) { 
+                spacial = initSpacial;
+    });
+    
 }
 
 void entities::TileEntity(entt::registry& registry, std::tuple<int, int> pos, int id, std::vector<glm::vec4> collisions) {
@@ -133,29 +133,4 @@ void entities::TileEntity(entt::registry& registry, std::tuple<int, int> pos, in
     registry.emplace<Tile>(tile, id);
     registry.emplace<Spacial>(tile, position, glm::vec3(0, 0, 0), 
         glm::vec3(1, 1, 1), glm::vec2(0, 0));
-}
-
-Texture entities::createSprite(const char* spritesheetPath, int numFrames) {
-
-    Texture sprite;
-
-    sprite.numFrames = numFrames;
-    sprite.texData = glm::vec2(0.0f, 1.0f/numFrames);
-
-    // create texture
-    unsigned char* textureData = stbi_load(spritesheetPath, &sprite.width, &sprite.height, &sprite.nColorChannels, STBI_rgb_alpha);
-
-    glGenTextures(1, &sprite.glTextureID);
-    glBindTexture(GL_TEXTURE_2D, sprite.glTextureID);
-
-    if (textureData) {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, sprite.width, sprite.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, textureData);
-        glGenerateMipmap(GL_TEXTURE_2D);
-    } else {
-        printf("Failed to load texture\n");
-    }
-
-    stbi_image_free(textureData);
-
-    return sprite;
 }
