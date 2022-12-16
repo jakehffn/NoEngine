@@ -40,7 +40,6 @@ public:
 
 private:
     void showEntities(entt::registry& registry);
-    void updateCamera(entt::registry& registry);
 
     void renderText(Text text, Spacial spacial);
     void renderSprite(Model model, Texture sprite, bool guiElement=false);
@@ -64,9 +63,6 @@ private:
     Animation tileAnimation;
 
     std::vector<glm::vec3> tiles; // Tile data for vbo
-
-    Camera camera;
-    Camera guiCamera;
 
     GLuint quadVAO;
     GLuint tileVBO;

@@ -2,7 +2,11 @@
 
 Game::Game(SDL_Window* window) : window{ window }{
 
+        using namespace entt::literals;
+
         this->registry.ctx().emplace<Clock&>(this->clock);
+        this->registry.ctx().emplace_hint<Camera&>("worldCamera"_hs, this->worldCamera);
+        this->registry.ctx().emplace_hint<Camera&>("guiCamera"_hs, this->guiCamera);
         this->registry.ctx().emplace<InputManager&>(this->inputManager);
         this->registry.ctx().emplace<TextureManager&>(this->textureManager);
 
@@ -10,6 +14,7 @@ Game::Game(SDL_Window* window) : window{ window }{
         this->systems.push_back(new CollisionSystem(this->registry));
         this->systems.push_back(new AnimationSystem(this->registry));
         this->systems.push_back(new MovementSystem(this->registry));
+        this->systems.push_back(new CameraSystem(this->registry));
         this->systems.push_back(new RenderSystem(this->registry));
 
         // Tiled map must be loaded after systems are created in order for observers to be able to

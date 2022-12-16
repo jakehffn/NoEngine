@@ -101,9 +101,6 @@ void RenderSystem::update() {
 
     this->updateTiles(); // Should not be done every frame
     this->updateTextures();
-
-    // Camera update comes first as sprite rendering relies on camera
-    this->updateCamera(registry);
     this->updateModels(registry);
     
 
@@ -145,16 +142,19 @@ void RenderSystem::updateTextures() {
 
 void RenderSystem::showEntities(entt::registry& registry) {
 
-    // Label which entities are on screen and should be rendered
-    registry.view<Texture, Model, Spacial>(entt::exclude<Text>).each([this, &registry](const auto entity, auto& sprite, auto& model, auto& spacial) {  
+    using namespace entt::literals;
+    Camera& camera = this->registry.ctx().at<Camera&>("worldCamera"_hs);
 
-        glm::vec2 camDim = this->camera.getCameraDim();
-        glm::vec2 camPos = this->camera.getPosition();
+    // Label which entities are on screen and should be rendered
+    registry.view<Texture, Model, Spacial>(entt::exclude<Text>).each([this, camera](const auto entity, auto& sprite, auto& model, auto& spacial) {  
+
+        glm::vec2 camDim = camera.getCameraDim();
+        glm::vec2 camPos = camera.getPosition();
         glm::vec3 entPos = spacial.pos;
         
 
         if (entPos.x < camPos.x + camDim.x/2 && entPos.y < camPos.y + camDim.y/2 && entPos.x > camPos.x - camDim.x/2 && entPos.y > camPos.y - camDim.y/2) {
-            registry.emplace<ToRender>(entity);
+            this->registry.emplace<ToRender>(entity);
         }
     });
 
@@ -179,24 +179,6 @@ void RenderSystem::showEntities(entt::registry& registry) {
 
         this->renderText(text, spacial);
     }
-}
-
-void RenderSystem::updateCamera(entt::registry& registry) {
-
-    auto controllers = registry.view<CameraController, Spacial, Texture>();
-
-    for (auto entity : controllers) {
-
-        auto [cameraController, spacial, sprite] = controllers.get(entity);
-
-        float xOffset = spacial.dim.x * spacial.scale.x / 2;
-        float yOffset = -spacial.dim.y * spacial.scale.y / 2;
-
-        glm::vec3 offset(xOffset, yOffset, 0);
-        this->camera.setPosition(spacial.pos + offset);
-    }
-
-    this->camera.update();
 }
 
 void RenderSystem::renderText(Text text, Spacial spacial) {
@@ -230,7 +212,9 @@ void RenderSystem::renderSprite(Model model, Texture texture, bool guiElement) {
 
     this->spriteShader->useShader();
 
-    Camera cam = guiElement ? this->guiCamera : this->camera;
+    using namespace entt::literals;
+
+    Camera cam = guiElement ? this->registry.ctx().at<Camera&>("guiCamera"_hs) : this->registry.ctx().at<Camera&>("worldCamera"_hs);
     glm::mat4 view = cam.getViewMatrix();
     glm::mat4 projection = cam.getProjectionMatrix();
 
@@ -282,8 +266,11 @@ void RenderSystem::renderTiles(Clock clock) {
 
     this->tileShader->useShader();
 
-    glm::mat4 view = this->camera.getViewMatrix();
-    glm::mat4 projection = this->camera.getProjectionMatrix();
+    using namespace entt::literals;
+    Camera camera = this->registry.ctx().at<Camera&>("worldCamera"_hs);
+
+    glm::mat4 view = camera.getViewMatrix();
+    glm::mat4 projection = camera.getProjectionMatrix();
 
     Model model{glm::mat4(1)};
     Spacial spacial{glm::vec3{0,0,0}, glm::vec3{0,0,0}, glm::vec3{1,1,1}, glm::vec2{16,16}};

@@ -15,6 +15,7 @@
 #include <entt\entt.hpp>
 
 #include "Clock.h"
+#include "Camera.h"
 #include "InputManager.h"
 #include "TextureManager.h"
 
@@ -23,6 +24,7 @@
 #include "CollisionSystem.h"
 #include "MovementSystem.h"
 #include "AnimationSystem.h"
+#include "CameraSystem.h"
 
 #include "entities.h"
 
@@ -44,6 +46,8 @@ private:
     SDL_Window* window;
 
     Clock clock = Clock();
+    Camera worldCamera = Camera();
+    Camera guiCamera = Camera();
     InputManager inputManager = InputManager();
     TextureManager textureManager = TextureManager();
 
