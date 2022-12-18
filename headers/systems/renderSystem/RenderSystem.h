@@ -62,6 +62,10 @@ private:
     Texture tileSheet;
     Animation tileAnimation;
 
+    // Tiledata should maybe be put into a tilesheet component, where
+    //  with an entity that has the tilesheet and then the texture for the 
+    //  associated tiles and also the animation. The tile system should also be
+    //  able to do the tile updates
     std::vector<glm::vec3> tiles; // Tile data for vbo
 
     GLuint VAO;

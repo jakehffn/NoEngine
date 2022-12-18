@@ -2,7 +2,6 @@
 
 RenderSystem::RenderSystem(entt::registry& registry) : System(registry), spriteShader{ new SpriteShader() },
     tileShader{ new TileShader() }, screenShader{ new ScreenShader() }, tileAnimation{ 1.0/4.0 },
-    tiles{ glm::vec3(0) },
     spacialObserver{ entt::observer(registry, entt::collector.update<Spacial>().where<Model, Texture>()) },
     tileObserver{ entt::observer(registry, entt::collector.group<Tile, Spacial>()) },
     textureObserver{ entt::observer(registry, entt::collector.group<Texture>()) },

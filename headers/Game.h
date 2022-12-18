@@ -25,6 +25,7 @@
 #include "MovementSystem.h"
 #include "AnimationSystem.h"
 #include "CameraSystem.h"
+#include "MapLoaderSystem.h"
 
 #include "entities.h"
 
@@ -36,12 +37,11 @@ public:
 
     void mainLoop();
 
-    void loadTiledMap(const char* mapPath);
-
 private:
     void addObjects(tson::Layer* objectLayer);
     void addTiles(tson::Layer* tileLayer);
 
+    
     GLuint programID = 0;
     SDL_Window* window;
 

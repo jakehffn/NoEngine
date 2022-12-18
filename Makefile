@@ -6,14 +6,14 @@ HEADER_DIR = headers
 OBJS := $(call rwildcard,$(SRC_DIR),*.cpp)
 
 #INCLUDE_PATHS specifies the additional include paths we'll need
-INCLUDE_PATHS = -I./$(HEADER_DIR) -I./$(HEADER_DIR)/libs -I./$(HEADER_DIR)/libs/entt -IC:\mingw_dev_lib\SDL2\include\SDL2 -IC:\mingw_dev_lib\glew-2.1.0\include
+INCLUDE_PATHS = -I./$(HEADER_DIR) -I./$(HEADER_DIR)/libs -I./$(HEADER_DIR)/libs/entt -IC:\mingw_dev_lib\SDL2\include\SDL2 -IC:\mingw_dev_lib\glew-2.1.0\include -IC:\mingw_dev_lib\tmxlite\include
 
 INCLUDE_SUB_PATHS = util components components/animation systems systems/renderSystem systems/renderSystem/shaderProgram
 # INCLUDE_SUB_PATHS += 
 INCLUDE_PATHS += $(foreach dir, $(INCLUDE_SUB_PATHS), -I./$(HEADER_DIR)/$(dir))
 
 #LIBRARY_PATHS specifies the additional library paths we'll need
-LIBRARY_PATHS = -LC:\mingw_dev_lib\SDL2\lib -LC:\mingw_dev_lib\glew-2.1.0\lib\Release\Win32
+LIBRARY_PATHS = -LC:\mingw_dev_lib\SDL2\lib -LC:\mingw_dev_lib\glew-2.1.0\lib\Release\Win32 -LC:\mingw_dev_lib\tmxlite\lib
 
 #COMPILER_FLAGS
 # -w suppresses all warnings
@@ -21,7 +21,7 @@ LIBRARY_PATHS = -LC:\mingw_dev_lib\SDL2\lib -LC:\mingw_dev_lib\glew-2.1.0\lib\Re
 COMPILER_FLAGS = -lstdc++fs -std=c++17 -g
 
 #LINKER_FLAGS specifies the libraries we're linking against
-LINKER_FLAGS = -lmingw32 -lSDL2main -lSDL2 -lglew32 -lglu32 -lopengl32 -lgdi32
+LINKER_FLAGS = -lmingw32 -lSDL2main -lSDL2 -lglew32 -lglu32 -lopengl32 -lgdi32 -ltmxlite
 
 #OBJ_NAME specifies the name of our exectuable
 OBJ_NAME = untitledRPG
