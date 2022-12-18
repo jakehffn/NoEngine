@@ -31,11 +31,6 @@ Game::Game(SDL_Window* window) : window{ window }{
         entities::TextBox(this->registry, std::string("Hello"), true);
 }
 
-Game::~Game() {
-    // Deallocate Program
-    glDeleteProgram(programID);
-}
-
 void Game::mainLoop() {
 
     while(!this->inputManager.isQuit()) {
