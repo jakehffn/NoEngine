@@ -13,6 +13,7 @@
 #include "Animation.h"
 #include "Text.h"
 #include "ToRender.h"
+#include "TileSet.h"
 
 #include "Camera.h"
 #include "Clock.h"
@@ -39,7 +40,7 @@ public:
 private:
     void initTextMap();
     void initVAO();
-    void initTileVBO();
+    void initTileVBO(TileSet& tileSet);
     void initScreenFBO();
 
     void renderTiles();
@@ -57,23 +58,18 @@ private:
     ShaderProgram<>* screenShader;
 
     Texture textSprite;
-    Texture tileSheet;
-    Animation tileAnimation;
 
     // Tiledata should maybe be put into a tilesheet component, where
     //  with an entity that has the tilesheet and then the texture for the 
     //  associated tiles and also the animation. The tile system should also be
     //  able to do the tile updates
-    std::vector<glm::vec3> tiles; // Tile data for vbo
 
     GLuint VAO;
-    GLuint tileVBO;
 
     GLuint screenFBO;
     GLuint screenTexture;
 
     entt::observer spacialObserver;
-    entt::observer tileObserver;
     entt::observer textureObserver;
 
     std::unordered_map<char, glm::vec2> textMap;

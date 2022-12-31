@@ -23,6 +23,7 @@
 #include "MovementSystem.h"
 #include "AnimationSystem.h"
 #include "CameraSystem.h"
+#include "GUISystem.h"
 #include "MapLoaderSystem.h"
 
 #include "entities.h"

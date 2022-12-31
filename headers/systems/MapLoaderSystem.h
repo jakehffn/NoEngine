@@ -4,10 +4,13 @@
 #include <glm/glm.hpp>
 
 #include <iostream>
+#include <filesystem>
 
 #include "System.h"
 
 #include "MapLoader.h"
+#include "TileSet.h"
+#include "Animation.h"
 
 #include <tmxlite/Map.hpp>
 #include <tmxlite/Layer.hpp>
@@ -26,5 +29,5 @@ private:
     void loadTiledMap(const char* mapPath);
 
     void addObjects(const tmx::ObjectGroup& objectGroup);
-    void addTiles(const tmx::TileLayer& tileLayer, tmx::Vector2u dimensions);
+    void addTilesets(tmx::Map& map, const tmx::TileLayer& tileLayer);
 };

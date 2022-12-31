@@ -19,6 +19,7 @@
 #include "Collision.h"
 #include "Text.h"
 #include "Tile.h"
+#include "FPSCounter.h"
 
 #include "IdleAnimation.h"
 #include "MoveAnimation.h"

@@ -1,24 +1,21 @@
 #include "RenderSystem.h"
 
 RenderSystem::RenderSystem(entt::registry& registry) : System(registry), spriteShader{ new SpriteShader() },
-    tileShader{ new TileShader() }, screenShader{ new ScreenShader() }, tileAnimation{ 1.0/4.0 },
+    tileShader{ new TileShader() }, screenShader{ new ScreenShader() },
     spacialObserver{ entt::observer(registry, entt::collector.update<Spacial>().where<Model, Texture>()) },
-    tileObserver{ entt::observer(registry, entt::collector.group<Tile, Spacial>()) },
     textureObserver{ entt::observer(registry, entt::collector.group<Texture>()) },
-    textSprite{ (struct Texture){"./src/assets/fonts/text.png"} },
-    tileSheet{ (struct Texture){"./src/assets/tileSheets/TileSheetColorChange.png", 4} } {
+    textSprite{ (struct Texture){"./src/assets/fonts/text.png"} } {
     
         glClearColor(0.0f, 0.4f, 0.4f, 0.0f);
         glEnable(GL_BLEND); 
+        glDisable(GL_DEPTH_TEST);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         this->initTextMap();
         this->initVAO();
-        this->initTileVBO();
         this->initScreenFBO();
 
         this->registry.ctx().at<TextureManager&>().initTexture(this->textSprite);
-        this->registry.ctx().at<TextureManager&>().initTexture(this->tileSheet);
 }
 
 RenderSystem::~RenderSystem() {
@@ -55,20 +52,24 @@ void RenderSystem::initVAO() {
     glBindBuffer(GL_ARRAY_BUFFER, 0);  
 }
 
-void RenderSystem::initTileVBO() {
+void RenderSystem::initTileVBO(TileSet& tileSet) {
 
-    glBindVertexArray(this->VAO);
+    // glBindVertexArray(this->VAO);
 
-    glGenBuffers(1, &(this->tileVBO));
-    glBindBuffer(GL_ARRAY_BUFFER, this->tileVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * this->tiles.size(), this->tiles.data(), GL_STATIC_DRAW);
+    // glGenBuffers(1, &(this->tileVBO));
+    // glBindBuffer(GL_ARRAY_BUFFER, this->tileVBO);
+    // glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * this->tiles.size(), this->tiles.data(), GL_STATIC_DRAW);
     
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-    glVertexAttribDivisor(1, 1); 
+    // glEnableVertexAttribArray(1);
+    // glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    // glVertexAttribDivisor(1, 1); 
 
-    glBindVertexArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0); 
+    // glBindVertexArray(0);
+    // glBindBuffer(GL_ARRAY_BUFFER, 0); 
+    
+    glGenBuffers(1, &(tileSet.tileVBO));
+    glBindBuffer(GL_ARRAY_BUFFER, tileSet.tileVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * tileSet.tileData.size(), tileSet.tileData.data(), GL_STATIC_DRAW);
 }
 
 void RenderSystem::initScreenFBO() {
@@ -95,8 +96,7 @@ void RenderSystem::initScreenFBO() {
 }
 
 void RenderSystem::update() {
-
-    this->updateTiles();
+    // this->updateTiles();
     this->updateTextures();
     this->updateModels();
     
@@ -108,7 +108,6 @@ void RenderSystem::update() {
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0); // back to default
     
-    glDisable(GL_DEPTH_TEST);
     glClear(GL_COLOR_BUFFER_BIT);
 
     this->screenShader->useShader();
@@ -137,17 +136,35 @@ void RenderSystem::renderTiles() {
 
     this->updateModel(model, spacial);
 
-    this->tileShader->renderSetup(model.model, view, projection, this->tileSheet.texData);
+    registry.view<TileSet, Texture>().each([this, model, view, projection](const auto entity, auto& tileSet, auto& texture) {
 
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, this->tileSheet.glTextureID);
+        this->tileShader->renderSetup(model.model, view, projection, texture.texData);
 
-    // Remove anti-aliasing
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        if (tileSet.tileVBO == -1) {
+            this->initTileVBO(tileSet);
+        }
+        glBindVertexArray(this->VAO);
+        // Set the data for this tileSet
+        glBindBuffer(GL_ARRAY_BUFFER, tileSet.tileVBO);
+        
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+        glVertexAttribDivisor(1, 1); 
 
-    glDrawArraysInstanced(GL_TRIANGLES, 0, 6, this->tiles.size()); 
-    glBindVertexArray(0);
+        glBindBuffer(GL_ARRAY_BUFFER, 0); 
+
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, texture.glTextureID);
+
+        // Remove anti-aliasing
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        // printf("%d\n", tileSet.tileData.size());
+        glBindVertexArray(this->VAO); // !!
+        glDrawArraysInstanced(GL_TRIANGLES, 0, 6, tileSet.tileData.size()); 
+        glBindVertexArray(0);
+    });
 }
 
 void RenderSystem::renderEntities() {
@@ -162,22 +179,37 @@ void RenderSystem::renderEntities() {
         glm::vec2 camPos = camera.getPosition();
         glm::vec3 entPos = spacial.pos;
 
-        if (entPos.x < camPos.x + camDim.x/2 && entPos.y < camPos.y + camDim.y/2 && entPos.x > camPos.x - camDim.x/2 && entPos.y > camPos.y - camDim.y/2) {
-            this->registry.emplace<ToRender>(entity);
+        if (entPos.x < camPos.x + camDim.x/2 && entPos.y - spacial.dim.y < camPos.y + camDim.y/2 && entPos.x + spacial.dim.x > camPos.x - camDim.x/2 && entPos.y > camPos.y - camDim.y/2) {
+            
+            // if (!this->registry.all_of<ToRender>(entity)) {
+                this->registry.emplace_or_replace<ToRender>(entity);
+            // }
+            
+        } else {
+            this->registry.remove<ToRender>(entity);
         }
     });
 
+    // double start = SDL_GetPerformanceCounter();
+
     // Sort sprites by Spacial y-pos before rendering
-    registry.sort<Spacial>([](const auto& lSpacial, const auto& rSpacial) {
-        return lSpacial.pos.y < rSpacial.pos.y;
+    registry.sort<ToRender>([this](const entt::entity lhs, const entt::entity rhs) {
+        return this->registry.get<Spacial>(lhs).pos.y < this->registry.get<Spacial>(rhs).pos.y;
     }, entt::insertion_sort {}); // Insertion sort is much faster as the spacials will generally be "mostly sorted"
 
+    // double sortTime = (SDL_GetPerformanceCounter() - start) / SDL_GetPerformanceFrequency() * 1000.0;
+    // start = SDL_GetPerformanceCounter();
+
     // Render all non-text entities labeled with ToRender; Ordered by the sorted spacial
-    registry.view<Texture, Model, Spacial, ToRender>(entt::exclude<Text>).use<Spacial>().each([this](auto& texture, auto& model, auto& spacial) {  
+    registry.view<Texture, Model, Spacial, ToRender>(entt::exclude<Text>).use<ToRender>().each([this](auto& texture, auto& model, auto& spacial) {  
         this->renderTexture(model, texture);
     });
 
-    registry.clear<ToRender>();    
+    // double renderTime = (SDL_GetPerformanceCounter() - start) / SDL_GetPerformanceFrequency() * 1000.0;
+
+    // std::cout << std::endl << "Sort time: " << sortTime << "\nRender time: " << renderTime << std::endl;
+
+    // registry.clear<ToRender>();    
 
     auto texts = registry.view<Text, Spacial>();
 
@@ -188,6 +220,7 @@ void RenderSystem::renderEntities() {
 
         this->renderText(text, spacial);
     }
+
 }
 
 void RenderSystem::renderText(Text text, Spacial spacial) {
@@ -243,26 +276,26 @@ void RenderSystem::renderTexture(Model model, Texture texture, bool guiElement) 
 
 void RenderSystem::updateTiles() {
     
-    std::vector<glm::vec3> newTiles;
+    // std::vector<glm::vec3> newTiles;
 
-    for (const auto entity : this->tileObserver) { 
+    // for (const auto entity : this->tileObserver) { 
 
-        auto [spacial, tile] = this->registry.get<Spacial, Tile>(entity); 
-        newTiles.emplace_back(spacial.pos.x, spacial.pos.y, tile.id);
-    }
+    //     auto [spacial, tile] = this->registry.get<Spacial, Tile>(entity); 
+    //     newTiles.emplace_back(spacial.pos.x, spacial.pos.y, tile.id);
+    // }
 
-    this->tileObserver.clear();
+    // this->tileObserver.clear();
 
-    if (newTiles.size() > 0) {
+    // if (newTiles.size() > 0) {
 
-        this->tiles = newTiles;
+    //     this->tiles = newTiles;
 
-        glBindVertexArray(this->VAO);
-        glBindBuffer(GL_ARRAY_BUFFER, this->tileVBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * this->tiles.size(), this->tiles.data(), GL_STATIC_DRAW);
-        glBindVertexArray(0);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-    }
+    //     glBindVertexArray(this->VAO);
+    //     glBindBuffer(GL_ARRAY_BUFFER, this->tileVBO);
+    //     glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * this->tiles.size(), this->tiles.data(), GL_STATIC_DRAW);
+    //     glBindVertexArray(0);
+    //     glBindBuffer(GL_ARRAY_BUFFER, 0);
+    // }
 }
 
 void RenderSystem::updateModels() {
@@ -283,7 +316,7 @@ void RenderSystem::updateModels() {
 
     this->spacialObserver.clear();
 
-    // Update the models of all the entities whose spacials have been changed
+    // Create models for any entity to render which does not already have a model
     for (const auto entity : this->registry.view<Texture, Spacial>(entt::exclude<Model>)) {
 
         this->registry.emplace<Model>(entity, glm::mat4(1));

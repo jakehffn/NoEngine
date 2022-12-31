@@ -3,6 +3,7 @@
 #include <glm/glm.hpp>
 
 enum DIRECTION {
+    NONE,
     UP,
     DOWN,
     LEFT,

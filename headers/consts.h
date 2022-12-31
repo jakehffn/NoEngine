@@ -23,19 +23,3 @@ namespace input_c {
     static const float MOUSE_SPEED = 0.003f;
     static const float KEY_SPEED = 300.0f;
 }
-
-namespace entity_c {
-
-    enum ENTITY_STATE {
-        IDLE,
-        MOVING
-    };
-
-    enum ENTITY_DIR {
-        NONE,
-        UP,
-        DOWN,
-        LEFT,
-        RIGHT
-    };
-}

@@ -102,35 +102,24 @@ void entities::TextBox(entt::registry& registry, std::string text, bool guiEleme
     registry.emplace<Text>(textBox, text, guiElement);
     // Patch spacial in for render system to update on start
     registry.emplace<Spacial>(textBox);
-    Spacial initSpacial{glm::vec3(0,0,0), glm::vec3(0, 0, 0), 
+    Spacial initSpacial{glm::vec3(-100,-100,0), glm::vec3(0, 0, 0), 
         glm::vec3(1, 1, 1), glm::vec2(800, 10)};
+
+    registry.emplace<FPSCounter>(textBox);
 
     registry.patch<Spacial>(textBox, [initSpacial](auto &spacial) { 
                 spacial = initSpacial;
     });
+
+    const auto textBox2 = registry.create();
+    registry.emplace<Text>(textBox2, "Some really long bit of text which shoyuld make the game lag a lot if this is the issueSome really long bit of text which shoyuld make the game lag a lot if this is the issue", guiElement);
+    // Patch spacial in for render system to update on start
+    registry.emplace<Spacial>(textBox2);
+    Spacial initSpacial2{glm::vec3(-150,-120,0), glm::vec3(0, 0, 0), 
+        glm::vec3(1, 1, 1), glm::vec2(800, 10)};
+
+    registry.patch<Spacial>(textBox2, [initSpacial2](auto &spacial) { 
+                spacial = initSpacial2;
+    });
     
-}
-
-void entities::TileEntity(entt::registry& registry, std::tuple<int, int> pos, int id, std::vector<glm::vec4> collisions) {
-
-    const auto tile = registry.create();
-
-    glm::vec3 position = glm::vec3(std::get<0>(pos), std::get<1>(pos), 0);
-
-    registry.emplace<Tile>(tile, id);
-    registry.emplace<Collision>(tile, collisions);
-    registry.emplace<Spacial>(tile, position, glm::vec3(0, 0, 0), 
-        glm::vec3(1, 1, 1), glm::vec2(0, 0));
-
-}
-
-void entities::TileEntity(entt::registry& registry, std::tuple<int, int> pos, int id) {
-
-    const auto tile = registry.create();
-
-    glm::vec3 position = glm::vec3(std::get<0>(pos), std::get<1>(pos), 0);
-
-    registry.emplace<Tile>(tile, id);
-    registry.emplace<Spacial>(tile, position, glm::vec3(0, 0, 0), 
-        glm::vec3(1, 1, 1), glm::vec2(0, 0));
 }

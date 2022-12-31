@@ -9,7 +9,7 @@ public:
     double getCumulativeTime();
     double tick();
     double getFPS();
-    double getAverageFPS();
+    double getSmoothedFPS();
 
 private:
     Uint64 currentFrame;
@@ -18,5 +18,5 @@ private:
     double deltaTime;
     double cumulativeTime;
     double FPS = 0;
-    double previousFPS = 0;
+    double smoothedFPS = 0;
 };
