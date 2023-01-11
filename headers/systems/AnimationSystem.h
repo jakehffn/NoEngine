@@ -6,9 +6,11 @@
 #include "System.h"
 #include "Clock.h"
 
+#include "Texture.h"
 #include "Animation.h"
 #include "IdleAnimation.h"
 #include "MoveAnimation.h"
+
 #include "Spacial.h"
 #include "Velocity.h"
 

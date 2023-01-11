@@ -1,6 +1,6 @@
 #include "Game.h"
 
-Game::Game(SDL_Window* window) : window{ window }{
+Game::Game(SDL_Window* window) : window{ window } {
 
         using namespace entt::literals;
 
@@ -8,7 +8,7 @@ Game::Game(SDL_Window* window) : window{ window }{
         this->registry.ctx().emplace_hint<Camera&>("worldCamera"_hs, this->worldCamera);
         this->registry.ctx().emplace_hint<Camera&>("guiCamera"_hs, this->guiCamera);
         this->registry.ctx().emplace<InputManager&>(this->inputManager);
-        this->registry.ctx().emplace<TextureManager&>(this->textureManager);
+        this->registry.ctx().emplace<TextureAtlas&>(this->textureAtlas);
 
         this->systems.push_back(new MapLoaderSystem(this->registry));
         this->systems.push_back(new InputSystem(this->registry));
@@ -28,8 +28,6 @@ Game::Game(SDL_Window* window) : window{ window }{
 
         const auto map = this->registry.create();
         this->registry.emplace<MapLoader>(map, "./src/assets/maps/Test/test.tmx");
-
-        entities::TextBox(this->registry, std::string("Hello"), true);
 }
 
 void Game::mainLoop() {

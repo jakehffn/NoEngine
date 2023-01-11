@@ -1,5 +1,7 @@
 #include "MapLoaderSystem.h"
 
+#include "ComponentFactory.h"
+
 MapLoaderSystem::MapLoaderSystem(entt::registry& registry) : System(registry) {}
 
 void MapLoaderSystem::update() {
@@ -14,6 +16,7 @@ void MapLoaderSystem::update() {
 
         this->registry.destroy(entity);
     }
+
 }
 
 void MapLoaderSystem::loadTiledMap(const char* mapPath) {
@@ -22,53 +25,64 @@ void MapLoaderSystem::loadTiledMap(const char* mapPath) {
 
     if (map.load(mapPath)) {
 
-        const auto& layers = map.getLayers();
+        this->addObjects(map);
+        this->addTilesets(map);
+    }
+}
 
-        for (const auto& layer : layers) {
+void MapLoaderSystem::addObjects(const tmx::Map& map) {
 
-            if (layer->getType() == tmx::Layer::Type::Object) {
+    TextureAtlas& textureAtlas = this->registry.ctx().at<TextureAtlas&>();
 
-                const auto& objectLayer = layer->getLayerAs<tmx::ObjectGroup>();
-                this->addObjects(objectLayer);
+    const auto& layers = map.getLayers();
 
-            } else if (layer->getType() == tmx::Layer::Type::Tile) {
+    // Layers -> Objects -> TileSets -> Tile
+    //            |-> Propterties        |-> Properties
+    for (const auto& layer : layers) {
 
-                const auto& tileLayer = layer->getLayerAs<tmx::TileLayer>();
-                this->addTilesets(map, tileLayer);
+        if (layer->getType() == tmx::Layer::Type::Object) {
+
+            const auto& objectLayer = layer->getLayerAs<tmx::ObjectGroup>();
+            
+            for (const auto& object : objectLayer.getObjects()) {
+
+                const auto& entity = this->registry.create();
+
+                std::string type = object.getType();
+                tmx::Vector2f position = object.getPosition();
+
+                for (const auto& property : object.getProperties()) {
+                    ComponentFactory::emplaceComponent(this->registry, entity, property.getName(), std::vector<std::string>());
+                }
+
+                int tileID = object.getTileID();
+
+                for (const auto& tileSet : map.getTilesets()) {
+
+                    if (tileSet.hasTile(tileID)) {
+
+                        const auto& tile = tileSet.getTile(tileID);
+
+                        std::string textureName = std::filesystem::path(tile->imagePath).stem().string(); 
+
+                        textureAtlas.initEntity(this->registry, entity, textureName);
+
+                        this->registry.emplace<Spacial>(entity, glm::vec3(position.x, position.y, 0), 
+                            glm::vec3(0, 0, 0), glm::vec3(1, 1, 1), glm::vec2(tile->imageSize.x, tile->imageSize.y));
+
+                        for (const auto& property : tile->properties) {
+                            ComponentFactory::emplaceComponent(this->registry, entity, property.getName(), std::vector<std::string>());
+                        }
+                    }
+                }
             }
         }
     }
 }
 
-void MapLoaderSystem::addObjects(const tmx::ObjectGroup& objectGroup) {
+void MapLoaderSystem::addTilesets(tmx::Map& map) {
 
-    for (const auto& object : objectGroup.getObjects()) {
-
-        std::string type = object.getType();
-        tmx::Vector2f pos = object.getPosition();
-        // tmx::FloatRect rect = object.getAABB();
-
-        std::string name = object.getName();
-
-        if (entities::create.find(name) != entities::create.end()) {
-            entities::create[name](this->registry, glm::vec3(pos.x, pos.y, 0));
-        } else {
-            std::cerr << "entities::create mapping does not exist for name \"" + name + "\"" << std::endl;
-        }
-    }
-}
-
-void MapLoaderSystem::addTilesets(tmx::Map& map, const tmx::TileLayer& tileLayer) {
-
-    // keep map of tilesetname to tiledata vector
-
-    // - Iterate tiles
-    // - For each tile, find which tileset it is a part of
-    // - add the data to the tiledata vector
-    //      at the end, the number of tiles for each tileset is now known
-    // - Create tileset entity, 
-    // - Iterate over the tiledata, using the tile id to get collisions then 
-    //      subtract the firstGID to get the real tile id for the texture
+    TextureAtlas& textureAtlas = this->registry.ctx().at<TextureAtlas&>();
 
     std::unordered_map<std::string, std::vector<glm::vec3>> tileDataMap;
 
@@ -77,46 +91,50 @@ void MapLoaderSystem::addTilesets(tmx::Map& map, const tmx::TileLayer& tileLayer
     tmx::Vector2u dimensions = map.getTileCount();
     const auto& tilesets = map.getTilesets();
 
-    // Initial iteration over the tiles in the layer to get the positions and place the data in the map
-    for (const auto& tile : tileLayer.getTiles()) {
+    const auto& layers = map.getLayers();
 
-        for(const auto& tileset : tilesets) {
+    for (const auto& layer : layers) {
 
-            if (tileset.hasTile(tile.ID)) {
-                tileDataMap[tileset.getName()].emplace_back(it%dimensions.x, (int)(it/dimensions.x), tile.ID);
+        if (layer->getType() == tmx::Layer::Type::Tile) {
+
+            const auto& tileLayer = layer->getLayerAs<tmx::TileLayer>();
+            // Initial iteration over the tiles in the layer to get the positions and place the data in the map
+            for (const auto& tile : tileLayer.getTiles()) {
+
+                for(const auto& tileset : tilesets) {
+
+                    if (tileset.hasTile(tile.ID)) {
+                        tileDataMap[tileset.getName()].emplace_back(it%dimensions.x, (int)(it/dimensions.x), tile.ID);
+                    }
+                }
+                it++;
             }
         }
-        it++;
     }
 
     for(const auto& tileset : tilesets) {
 
-        const auto tilesetEntity = this->registry.create();
-
-        std::filesystem::path tileSetPath;
+        const auto entity = this->registry.create();
 
         for (const auto& property : tileset.getProperties()) {
             
             if (property.getName() == "RealTileSet") {
 
-                tileSetPath = std::filesystem::path(map.getWorkingDirectory() + "/" + property.getFileValue());
+                std::string fileName = property.getFileValue();
+
+                size_t dotIndex = fileName.find_last_of("."); 
+                std::string textureName = fileName.substr(0, dotIndex); 
 
                 // std::cout << std::filesystem::canonical(tileSetPath);
 
-                this->registry.emplace<Texture>(tilesetEntity, std::filesystem::canonical(tileSetPath).string(), 4);
-                this->registry.emplace<Animation>(tilesetEntity);
-                auto& tilesetComponent = this->registry.emplace<TileSet>(tilesetEntity, std::vector<glm::vec3>(tileDataMap[tileset.getName()].size()));
+                textureAtlas.initEntity(this->registry, entity, textureName);
+                
+                auto& tileSetComponent = this->registry.emplace<TileSet>(entity, (int)dimensions.x, (int)dimensions.y, std::vector<glm::vec3>(tileDataMap[tileset.getName()]), (int)tileset.getFirstGID());
 
-                it = 0;
-
-                // Iterate over the tile data in the map for the current tileset, creating the bounding boxes and setting the pointers to the tile ID
                 for (auto tileDataVec : tileDataMap[tileset.getName()]) {
 
-                    tilesetComponent.tileData[it] = glm::vec3(tileDataVec.x, tileDataVec.y, tileDataVec.z - tileset.getFirstGID());
-                
                     const auto tileEntity = this->registry.create();
 
-                    this->registry.emplace<Tile>(tileEntity, &tilesetComponent.tileData[it].z);
                     this->registry.emplace<Spacial>(tileEntity, glm::vec3(tileDataVec.x, tileDataVec.y, 0) * 16.0f, 
                         glm::vec3(0, 0, 0), glm::vec3(1, 1, 1), glm::vec2(16, 16));
 
@@ -134,13 +152,11 @@ void MapLoaderSystem::addTilesets(tmx::Map& map, const tmx::TileLayer& tileLayer
                     if (boundingBoxes.size() != 0) {
                         this->registry.emplace<Collision>(tileEntity, boundingBoxes);
                     }
-
-                    it++;
                 }
             }
         }
 
         
-        // std::cout << tilesetComponent.tileData[5].x << " " <<  tilesetComponent.tileData[5].y << " " << tilesetComponent.tileData[5].z;
+        // std::cout << tileSetComponent.tileData[5].x << " " <<  tileSetComponent.tileData[5].y << " " << tileSetComponent.tileData[5].z;
     }
 }

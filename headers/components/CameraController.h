@@ -1,5 +1,9 @@
 #pragma once
 
 struct CameraController {
-    float buffer;
+    float buffer = 5;
+
+    CameraController() {}
+
+    CameraController(std::vector<std::string> args) {}
 };

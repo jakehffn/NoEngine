@@ -6,7 +6,7 @@ HEADER_DIR = headers
 OBJS := $(call rwildcard,$(SRC_DIR),*.cpp)
 
 #INCLUDE_PATHS specifies the additional include paths we'll need
-INCLUDE_PATHS = -I./$(HEADER_DIR) -I./$(HEADER_DIR)/libs -I./$(HEADER_DIR)/libs/entt -IC:\mingw_dev_lib\SDL2\include\SDL2 -IC:\mingw_dev_lib\glew-2.1.0\include -IC:\mingw_dev_lib\tmxlite\include
+INCLUDE_PATHS = -I./$(HEADER_DIR) -I./$(HEADER_DIR)/libs -I./$(HEADER_DIR)/libs/entt -I./$(HEADER_DIR)/libs/rapidjson -IC:\mingw_dev_lib\SDL2\include\SDL2 -IC:\mingw_dev_lib\glew-2.1.0\include -IC:\mingw_dev_lib\tmxlite\include
 
 INCLUDE_SUB_PATHS = util components components/animation components/gui systems systems/renderSystem systems/renderSystem/shaderProgram
 # INCLUDE_SUB_PATHS += 

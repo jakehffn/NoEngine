@@ -1,10 +1,11 @@
 #pragma once
 
 #include <unordered_map>
-
+#include "Animation.h"
 #include "Spacial.h"
-#include "Texture.h"
+
+#include "AnimationStructs.h"
 
 struct MoveAnimation {
-    std::unordered_map<DIRECTION, Texture> animations;
+    std::unordered_map<DIRECTION, AnimationData> animations;
 };

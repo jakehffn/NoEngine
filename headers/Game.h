@@ -15,7 +15,7 @@
 #include "Clock.h"
 #include "Camera.h"
 #include "InputManager.h"
-#include "TextureManager.h"
+#include "TextureAtlas.h"
 
 #include "InputSystem.h"
 #include "RenderSystem.h"
@@ -25,8 +25,6 @@
 #include "CameraSystem.h"
 #include "GUISystem.h"
 #include "MapLoaderSystem.h"
-
-#include "entities.h"
 
 class Game {
 public:
@@ -41,7 +39,8 @@ private:
     Camera worldCamera = Camera();
     Camera guiCamera = Camera();
     InputManager inputManager = InputManager();
-    TextureManager textureManager = TextureManager();
+    // This should be read from the map at some point
+    TextureAtlas textureAtlas = TextureAtlas("./src/assets/atlases/UntitledRPGAtlas/UntitledRPGAtlas");
 
     std::vector<System*> systems;
 

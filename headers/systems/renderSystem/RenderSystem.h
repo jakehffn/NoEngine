@@ -17,7 +17,7 @@
 
 #include "Camera.h"
 #include "Clock.h"
-#include "TextureManager.h"
+#include "TextureAtlas.h"
 
 #include "consts.h"
 
@@ -25,8 +25,7 @@
 #include "SpriteShader.h"
 #include "TileShader.h"
 #include "ScreenShader.h"
-
-#include "entities.h"
+#include "InstancedShader.h"
 
 class RenderSystem : public System {
 public:
@@ -35,26 +34,30 @@ public:
 
     void update() override;
 
-    void updateTiles();
-
 private:
     void initTextMap();
     void initVAO();
-    void initTileVBO(TileSet& tileSet);
+    void initVBOs();
     void initScreenFBO();
 
-    void renderTiles();
-    void renderEntities();
-    void renderText(Text text, Spacial spacial);
-    void renderTexture(Model model, Texture sprite, bool guiElement=false);
-    
-    void updateModels();
-    void updateModel(Model& model, Spacial spacial);
+    void fillBufferData();
+    void render();
 
-    void updateTextures();
+    void cullEntities();
+    void sortEntities();
+
+    void updateModels();
+    glm::mat4 getModel(Spacial spacial, Texture texture);
+
+    // void renderTiles();
+    // void renderEntities();
+    // void renderText(Text text, Spacial spacial);
+    // void renderTexture(Model model, Texture sprite, bool guiElement=false);
+    
 
     ShaderProgram<glm::mat4, glm::mat4, glm::mat4, glm::vec2>* spriteShader;
     ShaderProgram<glm::mat4, glm::mat4, glm::mat4, glm::vec2>* tileShader;
+    InstancedShader* instancedShader;
     ShaderProgram<>* screenShader;
 
     Texture textSprite;
@@ -73,4 +76,10 @@ private:
     entt::observer textureObserver;
 
     std::unordered_map<char, glm::vec2> textMap;
+
+    GLuint textureCoordinatesVBO;
+    std::vector<glm::vec4> textureCoordinatesBufferData; 
+
+    GLuint modelsVBO;
+    std::vector<glm::mat4> modelsBufferData; 
 };

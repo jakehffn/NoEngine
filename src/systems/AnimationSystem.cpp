@@ -9,35 +9,45 @@ AnimationSystem::AnimationSystem(entt::registry& registry) : System(registry),
 
 void AnimationSystem::update() {
 
+    this->updateAnimations();
+    
     this->updateIdleAnimations();
     this->updateMoveAnimations();
-
-    this->updateAnimations();
 }
 
 void AnimationSystem::updateIdleAnimations() {
 
-    auto idleAnimationEntities = this->registry.view<Texture, IdleAnimation, Spacial>(entt::exclude<Velocity>);
+    auto idleAnimationEntities = this->registry.view<Texture, Animation, IdleAnimation, Spacial>(entt::exclude<Velocity>);
 
     for (auto entity : idleAnimationEntities) {
 
-        auto [idleAnimation, spacial] = idleAnimationEntities.get<IdleAnimation, Spacial>(entity);
+        auto [animation, texture, idleAnimation, spacial] = idleAnimationEntities.get<Animation, Texture, IdleAnimation, Spacial>(entity);
 
-        this->registry.remove<Texture>(entity); // Remove then emplace so that the texture observer catches it
-        this->registry.emplace<Texture>(entity, idleAnimation.animations.at(spacial.direction));
+        if (animation.animationData.name != "idle" || animation.animationData.direction != spacial.direction) {
+            
+            animation.animationData = idleAnimation.animations[spacial.direction];
+            texture.frameData = animation.animationData.frames[0];
+            animation.currentFrame = 0;
+            animation.frameTime = 0;
+        }
     }
 }
 
 void AnimationSystem::updateMoveAnimations() {
 
-    auto moveAnimationEntities = this->registry.view<Texture, MoveAnimation, Spacial, Velocity>();
+    auto moveAnimationEntities = this->registry.view<Texture, Animation, MoveAnimation, Spacial, Velocity>();
 
     for (auto entity : moveAnimationEntities) {
 
-        auto [moveAnimation, spacial] = moveAnimationEntities.get<MoveAnimation, Spacial>(entity);
-        
-        this->registry.remove<Texture>(entity); // Remove then emplace so that the texture observer catches it
-        this->registry.emplace<Texture>(entity, moveAnimation.animations.at(spacial.direction));
+        auto [animation, texture, moveAnimation, spacial] = moveAnimationEntities.get<Animation, Texture, MoveAnimation, Spacial>(entity);
+
+        if (animation.animationData.name != "move" || animation.animationData.direction != spacial.direction) {
+
+            animation.animationData = moveAnimation.animations[spacial.direction];
+            texture.frameData = animation.animationData.frames[0];
+            animation.currentFrame = 0;
+            animation.frameTime = 0;
+        }
     }
 }
 
@@ -52,16 +62,14 @@ void AnimationSystem::updateAnimations() {
         // printf("Animation update\n");
         auto [animation, texture] = animatedEntities.get(animatedEntity);
 
-        animation.frameTime += clock.getDeltaTime();
+        if (animation.frameTime > texture.frameData.duration) {
 
-        if (animation.frameTime > animation.secondsPerFrame) {
+            animation.currentFrame = (animation.currentFrame + 1) % animation.animationData.numFrames;
+            animation.frameTime = 0;
 
-            animation.currentFrame = (animation.currentFrame + 1) % texture.numFrames;
-            animation.frameTime = animation.frameTime - animation.secondsPerFrame;
+            texture.frameData = animation.animationData.frames[animation.currentFrame];
         }
 
-        float frameFraction = 1.0/texture.numFrames;
-
-        texture.texData = glm::vec2(animation.currentFrame * frameFraction, (animation.currentFrame + 1) * frameFraction);
+        animation.frameTime += clock.getDeltaTime();
     }
 }

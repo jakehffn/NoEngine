@@ -108,7 +108,7 @@ void InputSystem::playerControlUpdate() {
 
         auto& playerControl = playerControlledEntities.get<PlayerControl>(entity);
         
-        this->registry.emplace_or_replace<Velocity>(entity, velocityDirection, playerControl.pps);
+        this->registry.emplace_or_replace<Velocity>(entity, velocityDirection, playerControl.pixelsPerMillisecond);
         this->registry.patch<Spacial>(entity, [direction](auto& spacial) {
             spacial.direction = direction;
         });

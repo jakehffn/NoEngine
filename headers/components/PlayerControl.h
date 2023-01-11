@@ -1,6 +1,10 @@
 #pragma once
 
 struct PlayerControl {
-    // Pixels per second
-    float pps;
+
+    float pixelsPerMillisecond = 80.0/1000.0;
+
+    PlayerControl() {}
+
+    PlayerControl(std::vector<std::string> args) {}
 };
