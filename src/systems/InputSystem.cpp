@@ -42,37 +42,32 @@ void InputSystem::playerControlUpdate() {
     }
 
     // Prioritize new inputs
-    if (upAdded || downAdded || leftAdded || rightAdded) {
-
-        if (upAdded && !down) {
-            direction = UP;
-        } else if (downAdded && !up) {
-            direction = DOWN;
-        } else if (leftAdded && !right) {
-            direction = LEFT;
-        } else if (rightAdded && !left) {
-            direction = RIGHT;
-        }
-
-    } else {
-
-        if (this->previousPlayerDirection == UP && up && !down) {
-            direction = UP;
-        } else if (this->previousPlayerDirection == DOWN && down && !up) {
-            direction = DOWN;
-        } else if (this->previousPlayerDirection == LEFT && left && !right) {
-            direction = LEFT;
-        } else if (this->previousPlayerDirection == RIGHT && right && !left) {
-            direction = RIGHT;
-        } else if (up && !down) {
-            direction = UP;
-        } else if (down && !up) {
-            direction = DOWN;
-        } else if (left && !right) {
-            direction = LEFT;
-        } else if (right && !left) {
-            direction = RIGHT;
-        }
+    if (upAdded && !down) {
+        direction = UP;
+    } else if (downAdded && !up) {
+        direction = DOWN;
+    } else if (leftAdded && !right) {
+        direction = LEFT;
+    } else if (rightAdded && !left) {
+        direction = RIGHT;
+    // Else, if no new inputs, prioritize the previous direction
+    } else if (this->previousPlayerDirection == UP && up && !down) {
+        direction = UP;
+    } else if (this->previousPlayerDirection == DOWN && down && !up) {
+        direction = DOWN;
+    } else if (this->previousPlayerDirection == LEFT && left && !right) {
+        direction = LEFT;
+    } else if (this->previousPlayerDirection == RIGHT && right && !left) {
+        direction = RIGHT;
+    // Else, if no previous direction, choose a remaining valid direction being pressed
+    } else if (up && !down) {
+        direction = UP;
+    } else if (down && !up) {
+        direction = DOWN;
+    } else if (left && !right) {
+        direction = LEFT;
+    } else if (right && !left) {
+        direction = RIGHT;
     }
 
     glm::vec3 velocityDirection = glm::vec3();

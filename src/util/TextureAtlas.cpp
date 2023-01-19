@@ -82,7 +82,7 @@ void TextureAtlas::initSpriteSheets() {
             std::string name = a["name"].GetString();
 
             if (name == "") {
-                name == "idle";
+                name = "idle";
             }
 
             std::string directionString = a["direction"].GetString();
@@ -125,19 +125,33 @@ void TextureAtlas::initEntity(entt::registry& registry, entt::entity entity, std
 
     SpriteSheet& spriteSheet = this->spriteSheets[spriteSheetName];
 
-    auto& texture = registry.emplace_or_replace<Texture>(entity, spriteSheetName, (int)spriteSheet.size.x, (int)spriteSheet.size.y, spriteSheet.animations["idle"][DOWN].frames[0]);
+    AnimationData defaultAnimation = spriteSheet.animations["idle"][DOWN];
+    auto& texture = registry.emplace_or_replace<Texture>(entity, spriteSheetName, (int)spriteSheet.size.x, (int)spriteSheet.size.y, defaultAnimation.frames[0]);
 
-    registry.emplace_or_replace<Animation>(entity);
+    registry.emplace_or_replace<Animation>(entity, 0.0,0, defaultAnimation);
 
     // TODO: Only entities with multiple frames need animations
 
     for (auto& [animationName, animationMap] : spriteSheet.animations) {
+            
+        assert(animationMap.find(DOWN) != animationMap.end() && "SpriteSheet animation does not include DOWN sprite");
+
+        // Fill any empty animations with the down animation
+        if (animationMap.find(UP) == animationMap.end()) {
+            animationMap[UP] = animationMap[DOWN];
+        }
+
+        if (animationMap.find(LEFT) == animationMap.end()) {
+            animationMap[LEFT] = animationMap[DOWN];
+        }
+
+        if (animationMap.find(RIGHT) == animationMap.end()) {
+            animationMap[RIGHT] = animationMap[DOWN];
+        }
 
         if (animationName == "idle") {
 
             registry.emplace_or_replace<IdleAnimation>(entity, animationMap);
-
-            assert(animationMap.find(DOWN) != animationMap.end() && "SpriteSheet idle animation does not include DOWN sprite");
 
             texture.frameData = animationMap[DOWN].frames[0];
 

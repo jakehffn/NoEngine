@@ -70,11 +70,88 @@ MessageCallback( GLenum source,
                  GLenum severity,
                  GLsizei length,
                  const GLchar* message,
-                 const void* userParam )
-{
-  fprintf( stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
-           ( type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : "" ),
-            type, severity, message );
+                 const void* userParam ) {
+
+	std::string sourceString;
+	std::string typeString;
+	std::string severityString;
+
+	switch(source) {
+		case GL_DEBUG_SOURCE_API:
+			sourceString = "GL_DEBUG_SOURCE_API";
+			break;
+		case GL_DEBUG_SOURCE_WINDOW_SYSTEM:
+			sourceString = "GL_DEBUG_SOURCE_WINDOW_SYSTEM";
+			break;
+		case GL_DEBUG_SOURCE_SHADER_COMPILER:
+			sourceString = "GL_DEBUG_SOURCE_SHADER_COMPILER";
+			break;
+		case GL_DEBUG_SOURCE_THIRD_PARTY:
+			sourceString = "GL_DEBUG_SOURCE_THIRD_PARTY";
+			break;
+		case GL_DEBUG_SOURCE_APPLICATION:
+			sourceString = "GL_DEBUG_SOURCE_APPLICATION";
+			break;
+		case GL_DEBUG_SOURCE_OTHER:
+			sourceString = "GL_DEBUG_SOURCE_OTHER";
+			break;
+		default:
+			sourceString = "OTHER";
+	};
+
+	switch(type) {
+		case GL_DEBUG_TYPE_ERROR:
+			typeString = "GL_DEBUG_TYPE_ERROR";
+			break;
+		case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
+			typeString = "GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR";
+			break;
+		case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
+			typeString = "GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR";
+			break;
+		case GL_DEBUG_TYPE_PORTABILITY:
+			typeString = "GL_DEBUG_TYPE_PORTABILITY";
+			break;
+		case GL_DEBUG_TYPE_PERFORMANCE:
+			typeString = "GL_DEBUG_TYPE_PERFORMANCE";
+			break;
+		case GL_DEBUG_TYPE_MARKER:
+			typeString = "GL_DEBUG_TYPE_MARKER";
+			break;
+		case GL_DEBUG_TYPE_PUSH_GROUP:
+			typeString = "GL_DEBUG_TYPE_PUSH_GROUP";
+			break;
+		case GL_DEBUG_TYPE_POP_GROUP:
+			typeString = "GL_DEBUG_TYPE_POP_GROUP";
+			break;
+		case GL_DEBUG_TYPE_OTHER:
+			typeString = "GL_DEBUG_TYPE_OTHER";
+			break;
+		default:
+			typeString = "OTHER";
+	};
+
+	switch(severity) {
+		case GL_DEBUG_SEVERITY_HIGH:
+			severityString = "GL_DEBUG_SEVERITY_HIGH";
+			break;
+		case GL_DEBUG_SEVERITY_MEDIUM:
+			severityString = "GL_DEBUG_SEVERITY_MEDIUM";
+			break;
+		case GL_DEBUG_SEVERITY_LOW:
+			severityString = "GL_DEBUG_SEVERITY_LOW";
+			break;
+		case GL_DEBUG_SEVERITY_NOTIFICATION:
+			severityString = "GL_DEBUG_SEVERITY_NOTIFICATION";
+			break;
+		default:
+			severityString = "OTHER";
+	};
+	
+  	fprintf( stderr, "GL CALLBACK: %s type = %s, source = %s, severity = %s, message = %s\n",
+        ( type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : "" ),
+        typeString.c_str(), sourceString.c_str(), severityString.c_str(), message 
+	);
 }
 
 void close() {
@@ -100,6 +177,14 @@ int main(int argv, char** args) {
 		// Enable debug output
 		glEnable( GL_DEBUG_OUTPUT );
 		glDebugMessageCallback( MessageCallback, 0 );
+		// disable all messages with source `GL_DEBUG_SEVERITY_NOTIFICATION`
+		glDebugMessageControl(
+			GL_DONT_CARE,
+			GL_DONT_CARE,
+			GL_DEBUG_SEVERITY_NOTIFICATION,
+			0, NULL,
+			GL_FALSE
+		); 
 
 		Game scene(window);
 		scene.mainLoop();

@@ -14,6 +14,8 @@
 #include "Text.h"
 #include "ToRender.h"
 #include "TileSet.h"
+#include "Tile.h"
+#include "Renderable.h"
 
 #include "Camera.h"
 #include "Clock.h"
@@ -41,6 +43,9 @@ private:
     void initScreenFBO();
 
     void fillBufferData();
+    void addTileBufferData();
+    void addEntityBufferData();
+
     void render();
 
     void cullEntities();
@@ -48,6 +53,7 @@ private:
 
     void updateModels();
     glm::mat4 getModel(Spacial spacial, Texture texture);
+    glm::mat4 getTileModel(Spacial spacial);
 
     // void renderTiles();
     // void renderEntities();

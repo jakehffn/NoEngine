@@ -13,7 +13,7 @@ double Clock::tick() {
     deltaTime = (double)((currentFrame - lastFrame) / (double)SDL_GetPerformanceFrequency() *1000);
     cumulativeTime += deltaTime;
 
-    this->FPS = 1.0/deltaTime;
+    this->FPS = 1.0/deltaTime * 1000;
 
     double smoothing = 0.99;
 

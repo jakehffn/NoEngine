@@ -23,8 +23,10 @@ void AnimationSystem::updateIdleAnimations() {
 
         auto [animation, texture, idleAnimation, spacial] = idleAnimationEntities.get<Animation, Texture, IdleAnimation, Spacial>(entity);
 
-        if (animation.animationData.name != "idle" || animation.animationData.direction != spacial.direction) {
-            
+        bool needsAnimationUpdate = animation.animationData.name != "idle" || animation.animationData.direction != spacial.direction;
+
+        if (needsAnimationUpdate) {
+
             animation.animationData = idleAnimation.animations[spacial.direction];
             texture.frameData = animation.animationData.frames[0];
             animation.currentFrame = 0;
@@ -41,12 +43,26 @@ void AnimationSystem::updateMoveAnimations() {
 
         auto [animation, texture, moveAnimation, spacial] = moveAnimationEntities.get<Animation, Texture, MoveAnimation, Spacial>(entity);
 
-        if (animation.animationData.name != "move" || animation.animationData.direction != spacial.direction) {
+        std::string previousAnimation = animation.animationData.name;
+
+        bool needsAnimationUpdate = animation.animationData.name != "move" || animation.animationData.direction != spacial.direction;
+
+        if (needsAnimationUpdate) {
 
             animation.animationData = moveAnimation.animations[spacial.direction];
-            texture.frameData = animation.animationData.frames[0];
-            animation.currentFrame = 0;
-            animation.frameTime = 0;
+
+            // You get smoother animations, especially walking, if the walk cycle can continue between direction changes
+            bool needsAnimationRestart = previousAnimation != "move" || animation.currentFrame >= animation.animationData.frames.size();
+
+            if (needsAnimationRestart) {
+
+                texture.frameData = animation.animationData.frames[0];
+                animation.currentFrame = 0;
+                animation.frameTime = 0;
+
+            } else {
+                texture.frameData = animation.animationData.frames[animation.currentFrame];
+            }
         }
     }
 }

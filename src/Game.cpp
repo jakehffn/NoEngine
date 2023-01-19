@@ -32,22 +32,30 @@ Game::Game(SDL_Window* window) : window{ window } {
 
 void Game::mainLoop() {
 
+    // int it = 0;
+
     while(!this->inputManager.isQuit()) {
 
-        // printf("\rFPS: %f", this->clock.getSmoothedFPS());
+        // it++;
+
+        // if (it > 200) {
+
+        //     printf("\rFPS: %f", this->clock.getSmoothedFPS());
+        //     it=0;
+        // }
 
         this->clock.tick();
         this->inputManager.update();
 
-        // std::vector<double> times;
+        std::vector<double> times;
 
         for (System* system : this->systems) {
 
-            // double start =  SDL_GetPerformanceCounter();
+            double start =  SDL_GetPerformanceCounter();
             system->update();
-            // double total =  (SDL_GetPerformanceCounter() - start)/SDL_GetPerformanceFrequency()*1000.0;
+            double total =  (SDL_GetPerformanceCounter() - start)/SDL_GetPerformanceFrequency()*1000.0;
 
-            // times.push_back(total);
+            times.push_back(total);
 
             // std::cout << times.size() - 1 << ": " << total << std::endl;
         }

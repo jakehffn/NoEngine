@@ -112,13 +112,33 @@ void RenderSystem::initScreenFBO() {
 
 void RenderSystem::update() {
 
+    std::vector<double> times;
+    double start =  SDL_GetPerformanceCounter();
     this->cullEntities();
+    double total =  (SDL_GetPerformanceCounter() - start)/SDL_GetPerformanceFrequency()*1000.0;
+    times.push_back(total);
+
+    start =  SDL_GetPerformanceCounter();
     this->sortEntities();
+    total =  (SDL_GetPerformanceCounter() - start)/SDL_GetPerformanceFrequency()*1000.0;
+    times.push_back(total);
 
+    start =  SDL_GetPerformanceCounter();
     this->updateModels();
+    total =  (SDL_GetPerformanceCounter() - start)/SDL_GetPerformanceFrequency()*1000.0;
+    times.push_back(total);
 
+    start =  SDL_GetPerformanceCounter();
     this->fillBufferData();
+    total =  (SDL_GetPerformanceCounter() - start)/SDL_GetPerformanceFrequency()*1000.0;
+    times.push_back(total);
+
+    start =  SDL_GetPerformanceCounter();
     this->render();
+    total =  (SDL_GetPerformanceCounter() - start)/SDL_GetPerformanceFrequency()*1000.0;
+    times.push_back(total);
+
+    int i = 0;
 }
 
 void RenderSystem::cullEntities() {
@@ -127,18 +147,14 @@ void RenderSystem::cullEntities() {
     Camera& camera = this->registry.ctx().at<Camera&>("worldCamera"_hs);
 
     // Label which entities are on screen and should be rendered
-    this->registry.view<Texture, Model, Spacial>(entt::exclude<Text>).each([this, camera](const auto entity, auto& sprite, auto& model, auto& spacial) {  
+    this->registry.view<Spacial, Renderable>().each([this, camera](auto entity, auto& spacial) {  
 
         glm::vec2 camDim = camera.getCameraDim();
         glm::vec2 camPos = camera.getPosition();
         glm::vec3 entPos = spacial.pos;
 
-        if (entPos.x < camPos.x + camDim.x/2 && entPos.y - spacial.dim.y < camPos.y + camDim.y/2 && entPos.x + spacial.dim.x > camPos.x - camDim.x/2 && entPos.y > camPos.y - camDim.y/2) {
-            
-            // if (!this->registry.all_of<ToRender>(entity)) {
-                this->registry.emplace_or_replace<ToRender>(entity);
-            // }
-            
+        if (entPos.x < camPos.x + camDim.x/2 && entPos.y < camPos.y + camDim.y/2 && entPos.x + spacial.dim.x > camPos.x - camDim.x/2 && entPos.y + spacial.dim.y > camPos.y - camDim.y/2) {
+            this->registry.emplace_or_replace<ToRender>(entity);
         } else {
             this->registry.remove<ToRender>(entity);
         }
@@ -154,7 +170,7 @@ void RenderSystem::sortEntities() {
         auto rhSpacial = this->registry.get<Spacial>(rhs);
         
         return lhSpacial.pos.y + lhSpacial.dim.y < rhSpacial.pos.y + rhSpacial.dim.y;
-        
+
     }, entt::insertion_sort {}); // Insertion sort is much faster as the spacials will generally be "mostly sorted"
 }
 
@@ -169,14 +185,8 @@ void RenderSystem::fillBufferData() {
     textureCoordinatesBufferData.clear();
     modelsBufferData.clear();
 
-    this->registry.view<Texture, Model, ToRender>(entt::exclude<Text>).use<ToRender>().each([this](auto& texture, auto& model) {  
-        
-        glm::vec4 textureData = glm::vec4(texture.frameData.position.x, texture.frameData.position.y, 
-            texture.frameData.size.x, texture.frameData.size.y);
-
-        this->textureCoordinatesBufferData.push_back(textureData);
-        this->modelsBufferData.push_back(model.model);
-    });
+    this->addTileBufferData();
+    this->addEntityBufferData();
 
     glBindBuffer(GL_ARRAY_BUFFER, this->textureCoordinatesVBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec4)*this->textureCoordinatesBufferData.size(), this->textureCoordinatesBufferData.data(), GL_STREAM_DRAW);
@@ -185,6 +195,41 @@ void RenderSystem::fillBufferData() {
     glBufferData(GL_ARRAY_BUFFER, sizeof(glm::mat4)*this->modelsBufferData.size(), this->modelsBufferData.data(), GL_STREAM_DRAW);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+void RenderSystem::addTileBufferData() {
+
+    auto tileSets = this->registry.view<TileSet, Texture>();
+
+    this->registry.view<Tile, Model, ToRender>().each([this, tileSets](auto& tile, auto& model) {  
+
+        for (auto&& [entity, tileSet, texture] : tileSets.each()) {
+
+            if (tile.GID >= tileSet.firstGID && tile.GID <= tileSet.lastGID) {
+
+                glm::vec4 textureData = glm::vec4(
+                    texture.frameData.position.x + tile.position.x, 
+                    texture.frameData.position.y  + tile.position.y, 
+                    16.0f, 16.0f
+                );
+
+                this->textureCoordinatesBufferData.push_back(textureData);
+                this->modelsBufferData.push_back(model.model);
+            }
+        }
+    });
+}
+
+void RenderSystem::addEntityBufferData() {
+    
+    this->registry.view<Texture, Model, ToRender>(entt::exclude<Text>).use<ToRender>().each([this](auto& texture, auto& model) {  
+        
+        glm::vec4 textureData = glm::vec4(texture.frameData.position.x, texture.frameData.position.y, 
+            texture.frameData.size.x, texture.frameData.size.y);
+
+        this->textureCoordinatesBufferData.push_back(textureData);
+        this->modelsBufferData.push_back(model.model);
+    });
 }
 
 void RenderSystem::render() {
@@ -249,12 +294,19 @@ void RenderSystem::updateModels() {
         auto [spacial, texture] = noModelEntities.get<Spacial, Texture>(entity);
         this->registry.emplace_or_replace<Model>(entity, this->getModel(spacial, texture));
     }
+
+    auto noModelTiles = this->registry.view<Spacial, Tile>(entt::exclude<Model>);
+    for (const auto entity : noModelTiles) {
+
+        auto spacial = noModelTiles.get<Spacial>(entity);
+        this->registry.emplace_or_replace<Model>(entity, this->getTileModel(spacial));
+    }
 }
 
 glm::mat4 RenderSystem::getModel(Spacial spacial, Texture texture) {
 
     // The model does not represent the physical location exactly, but the rendered location
-    //  Information form the texture is needed so that the sprite can be placed correctly
+    //  Information from the texture is needed so that the sprite can be placed correctly
     glm::mat4 model = glm::mat4(1.0f);
 
     glm::mat4 rotate = glm::mat4(1.0f);
@@ -275,6 +327,16 @@ glm::mat4 RenderSystem::getModel(Spacial spacial, Texture texture) {
 
     // Order matters
     return (translate * scale * rotate);
+}
+
+glm::mat4 RenderSystem::getTileModel(Spacial spacial) {
+
+    Texture texture;
+
+    texture.frameData.size = glm::vec2(16.0f, 16.0f);
+    texture.frameData.offset = glm::vec2();
+
+    return this->getModel(spacial, texture);
 }
 
 // void RenderSystem::renderTiles() {

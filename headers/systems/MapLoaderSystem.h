@@ -22,6 +22,8 @@
 #include "Collision.h"
 #include "TextureAtlas.h"
 #include "TileSet.h"
+#include "Tile.h"
+#include "Renderable.h"
 
 class MapLoaderSystem : public System {
 public:

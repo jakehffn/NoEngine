@@ -7,6 +7,6 @@ struct TileSet {
 
     int width;
     int height;
-    std::vector<glm::vec3> tiles;
     int firstGID;
+    int lastGID;
 };

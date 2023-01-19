@@ -61,6 +61,8 @@ void MapLoaderSystem::addObjects(const tmx::Map& map) {
 
                     if (tileSet.hasTile(tileID)) {
 
+                        this->registry.emplace<Renderable>(entity);
+
                         const auto& tile = tileSet.getTile(tileID);
 
                         std::string textureName = std::filesystem::path(tile->imagePath).stem().string(); 
@@ -114,49 +116,50 @@ void MapLoaderSystem::addTilesets(tmx::Map& map) {
 
     for(const auto& tileset : tilesets) {
 
-        const auto entity = this->registry.create();
-
-        for (const auto& property : tileset.getProperties()) {
-            
-            if (property.getName() == "RealTileSet") {
-
-                std::string fileName = property.getFileValue();
-
-                size_t dotIndex = fileName.find_last_of("."); 
-                std::string textureName = fileName.substr(0, dotIndex); 
-
-                // std::cout << std::filesystem::canonical(tileSetPath);
-
-                textureAtlas.initEntity(this->registry, entity, textureName);
-                
-                auto& tileSetComponent = this->registry.emplace<TileSet>(entity, (int)dimensions.x, (int)dimensions.y, std::vector<glm::vec3>(tileDataMap[tileset.getName()]), (int)tileset.getFirstGID());
-
-                for (auto tileDataVec : tileDataMap[tileset.getName()]) {
-
-                    const auto tileEntity = this->registry.create();
-
-                    this->registry.emplace<Spacial>(tileEntity, glm::vec3(tileDataVec.x, tileDataVec.y, 0) * 16.0f, 
-                        glm::vec3(0, 0, 0), glm::vec3(1, 1, 1), glm::vec2(16, 16));
-
-                    std::vector<glm::vec4> boundingBoxes;
-
-                    // Load the collisions boxes associated with the tile, which is located in the tmx::tileset
-                    for (auto collisionBox : tileset.getTile(tileDataVec.z)->objectGroup.getObjects()) {
-                        
-                        tmx::Vector2f position = collisionBox.getPosition();
-                        tmx::FloatRect rectangle = collisionBox.getAABB();
-
-                        boundingBoxes.emplace_back(rectangle.width, rectangle.height, position.x, position.y);
-                    }
-
-                    if (boundingBoxes.size() != 0) {
-                        this->registry.emplace<Collision>(tileEntity, boundingBoxes);
-                    }
-                }
-            }
+        // If the tileset is a collection of images, there will be no ImagePath
+        if (tileset.getImagePath() == "") {
+            continue;
         }
 
+        const auto& tileSetEntity = this->registry.create();
+
+        // for (const auto& property : tileset.getProperties()) {}
+
+        std::string textureName = std::filesystem::path(tileset.getImagePath()).stem().string(); 
+
+        // std::cout << std::filesystem::canonical(tileSetPath);
+
+        textureAtlas.initEntity(this->registry, tileSetEntity, textureName);
         
-        // std::cout << tileSetComponent.tileData[5].x << " " <<  tileSetComponent.tileData[5].y << " " << tileSetComponent.tileData[5].z;
+        this->registry.emplace<TileSet>(tileSetEntity, (int)dimensions.x, (int)dimensions.y, (int)tileset.getFirstGID(), (int)tileset.getLastGID());
+
+        for (auto tileDataVec : tileDataMap[tileset.getName()]) {
+
+            const tmx::Tileset::Tile* tile = tileset.getTile(tileDataVec.z);
+
+            const auto& tileEntity = this->registry.create();
+
+            glm::vec2 imagePosition = glm::vec2((float)tile->imagePosition.x, (float)tile->imagePosition.y);
+
+            this->registry.emplace<Tile>(tileEntity, (int)tileDataVec.z, imagePosition);
+            this->registry.emplace<Renderable>(tileEntity);
+            this->registry.emplace<Spacial>(tileEntity, glm::vec3(tileDataVec.x, tileDataVec.y, 0) * 16.0f, 
+                glm::vec3(0, 0, 0), glm::vec3(1, 1, 1), glm::vec2(16, 16));
+
+            std::vector<glm::vec4> boundingBoxes;
+
+            // Load the collisions boxes associated with the tile, which is located in the tmx::tileset
+            for (auto collisionBox : tile->objectGroup.getObjects()) {
+                
+                tmx::Vector2f position = collisionBox.getPosition();
+                tmx::FloatRect rectangle = collisionBox.getAABB();
+
+                boundingBoxes.emplace_back(rectangle.width, rectangle.height, position.x, position.y);
+            }
+
+            if (boundingBoxes.size() != 0) {
+                this->registry.emplace<Collision>(tileEntity, boundingBoxes);
+            }
+        }
     }
 }
