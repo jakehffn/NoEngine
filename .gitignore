@@ -1,5 +1,6 @@
 *.exe
 \.vscode
+\build
 \libs
 test.cpp
 todo
