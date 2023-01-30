@@ -64,7 +64,7 @@ private:
     ShaderProgram<glm::mat4, glm::mat4, glm::mat4, glm::vec2>* spriteShader;
     ShaderProgram<glm::mat4, glm::mat4, glm::mat4, glm::vec2>* tileShader;
     InstancedShader* instancedShader;
-    ShaderProgram<>* screenShader;
+    ShaderProgram<double>* screenShader;
 
     Texture textSprite;
 

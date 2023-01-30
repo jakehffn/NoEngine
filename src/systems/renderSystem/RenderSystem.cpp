@@ -241,6 +241,7 @@ void RenderSystem::render() {
     
     Camera camera = this->registry.ctx().at<Camera&>("worldCamera"_hs);
     TextureAtlas& textureAtlas = this->registry.ctx().at<TextureAtlas&>();
+    Clock clock = this->registry.ctx().at<Clock&>();
 
     glm::mat4 view = camera.getViewMatrix();
     glm::mat4 projection = camera.getProjectionMatrix();
@@ -264,6 +265,8 @@ void RenderSystem::render() {
 
 
     this->screenShader->useShader();
+
+    this->screenShader->renderSetup(clock.getCumulativeTime());
 
     // glBindVertexArray(this->VAO);
     glBindTexture(GL_TEXTURE_2D, this->screenTexture);

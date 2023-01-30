@@ -5,9 +5,12 @@
 #include <string>
 #include <iostream>
 
-class ScreenShader : public ShaderProgram<> {
+class ScreenShader : public ShaderProgram<double> {
 public:
     ScreenShader();
 
-    void renderSetup(){};
+    void renderSetup(double time);
+
+private:
+    GLint timeUniformID;
 };
