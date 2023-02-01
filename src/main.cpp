@@ -8,7 +8,9 @@
 #include <SDL.h>
 
 #include "consts.h"
-#include "Game.h"
+#include "game.h"
+
+#include "grid.h"
 
 bool init();
 void close();
@@ -166,6 +168,33 @@ void close() {
 
 // Parameters necessary for SDL_Main
 int main(int argv, char** args) {
+
+	// if (init()) {
+
+	// 	std::cout << "Grid Test\n";
+	// 	Grid<int> grid(10, 10, 2);
+
+	// 	int numTests = 10000000;
+
+	// 	double start =  SDL_GetPerformanceCounter();
+
+	// 	for (int xx = 0; xx < numTests; xx++) {
+
+	// 		int reference1 = grid.insert(5,1,2,5,6);
+	// 		int reference2 = grid.insert(42,4,4,3,3);
+
+	// 		std::vector<int> query = grid.query(3,3,3,3);
+
+	// 		grid.remove(reference1,1,2,5,6);
+	// 		grid.remove(reference2,4,4,3,3);
+	// 	}
+
+	// 	double total =  (SDL_GetPerformanceCounter() - start)/SDL_GetPerformanceFrequency();
+
+	// 	double average = (total/numTests)*1000;
+
+	// 	std::cout << "Num Tests: " << numTests << "\nTotal Time: " << total << "s\nAverage Time: " << average << "ms\n";
+	// };
 
 	if(!init()) {
 		

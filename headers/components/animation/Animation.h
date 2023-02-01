@@ -1,9 +1,10 @@
 #pragma once
 
-#include <glm/glm.hpp>
 #include <vector>
 
-#include "AnimationStructs.h"
+#include <glm/glm.hpp>
+
+#include "animation_structs.h"
 
 struct Animation {
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+
 #include <glm\glm.hpp>
 
 // GLEW must come before OpenGL
@@ -8,7 +9,7 @@
 #include <SDL.h>
 #include <SDL_opengl.h>
 
-#include "AnimationStructs.h"
+#include "animation_structs.h"
 
 struct Texture {
 

@@ -1,0 +1,39 @@
+#pragma once
+
+#include <iostream>
+#include <unordered_set>
+#include <cassert>
+
+#include <entt/entt.hpp>
+#include <SDL.h>
+
+#include "system.h"
+#include "clock.h"
+
+#include "consts.h"
+
+class Input {
+public:
+    Input();
+    void update();
+
+    bool isActive(SDL_Keycode key);
+    bool isAdded(SDL_Keycode key);
+    bool isRemoved(SDL_Keycode key);
+    bool isQuit();
+
+    int getMouseX();
+    int getMouseY();
+
+private:
+
+    int mouseX;
+    int mouseY;
+
+    SDL_Event e;
+    bool quit;
+
+    std::unordered_set<SDL_Keycode> active; 
+    std::unordered_set<SDL_Keycode> added; 
+    std::unordered_set<SDL_Keycode> removed; 
+};

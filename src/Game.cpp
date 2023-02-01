@@ -1,4 +1,4 @@
-#include "Game.h"
+#include "game.h"
 
 Game::Game(SDL_Window* window) : window{ window } {
 
@@ -7,8 +7,10 @@ Game::Game(SDL_Window* window) : window{ window } {
         this->registry.ctx().emplace<Clock&>(this->clock);
         this->registry.ctx().emplace_hint<Camera&>("worldCamera"_hs, this->worldCamera);
         this->registry.ctx().emplace_hint<Camera&>("guiCamera"_hs, this->guiCamera);
-        this->registry.ctx().emplace<InputManager&>(this->inputManager);
+        this->registry.ctx().emplace<Input&>(this->inputManager);
         this->registry.ctx().emplace<TextureAtlas&>(this->textureAtlas);
+        this->registry.ctx().emplace_hint<Grid<entt::entity>&>("renderGrid"_hs, this->renderGrid);
+        this->registry.ctx().emplace_hint<Grid<entt::entity>&>("collisionGrid"_hs, this->collisionGrid);
 
         this->systems.push_back(new MapLoaderSystem(this->registry));
         this->systems.push_back(new InputSystem(this->registry));

@@ -4,4 +4,3 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 
 add_subdirectory(components)
 add_subdirectory(systems)
-add_subdirectory(util)

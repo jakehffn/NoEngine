@@ -12,19 +12,20 @@
 
 #include <entt\entt.hpp>
 
-#include "Clock.h"
-#include "Camera.h"
-#include "InputManager.h"
-#include "TextureAtlas.h"
+#include "clock.h"
+#include "camera.h"
+#include "input.h"
+#include "texture_atlas.h"
+#include "grid.h"
 
-#include "InputSystem.h"
-#include "RenderSystem.h"
-#include "CollisionSystem.h"
-#include "MovementSystem.h"
-#include "AnimationSystem.h"
-#include "CameraSystem.h"
-#include "GUISystem.h"
-#include "MapLoaderSystem.h"
+#include "input_system.h"
+#include "render_system.h"
+#include "collision_system.h"
+#include "movement_system.h"
+#include "animation_system.h"
+#include "camera_system.h"
+#include "gui_system.h"
+#include "map_loader_system.h"
 
 class Game {
 public:
@@ -34,15 +35,16 @@ public:
 
 private:
     SDL_Window* window;
+    entt::registry registry;
+    std::vector<System*> systems;
 
     Clock clock = Clock();
     Camera worldCamera = Camera();
     Camera guiCamera = Camera();
-    InputManager inputManager = InputManager();
+    Input inputManager = Input();
     // This should be read from the map at some point
     TextureAtlas textureAtlas = TextureAtlas("./src/assets/atlases/UntitledRPGAtlas/UntitledRPGAtlas");
 
-    std::vector<System*> systems;
-
-    entt::registry registry;
+    Grid<entt::entity> renderGrid;
+    Grid<entt::entity> collisionGrid;
 };

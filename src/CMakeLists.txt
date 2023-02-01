@@ -1,7 +1,8 @@
 target_sources(${PROJECT_NAME} PUBLIC
-    Game.cpp
+    game.cpp
+    input.cpp
+    clock.cpp
     main.cpp
 )
 
 add_subdirectory(systems)
-add_subdirectory(util)
