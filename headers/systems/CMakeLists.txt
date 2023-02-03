@@ -3,6 +3,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     animation
     camera
     map_loader
+    movement
     render
     render/shaders
 )

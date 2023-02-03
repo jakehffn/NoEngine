@@ -25,15 +25,9 @@ void MapLoaderSystem::loadTiledMap(const char* mapPath) {
 
     if (map.load(mapPath)) {
 
-        using namespace entt::literals;
-    
-        Grid<entt::entity>& renderGrid = this->registry.ctx().at<Grid<entt::entity>&>("renderGrid"_hs);
-        Grid<entt::entity>& collisionGrid = this->registry.ctx().at<Grid<entt::entity>&>("collisionGrid"_hs);
-
         tmx::FloatRect mapBounds = map.getBounds();
 
-        renderGrid.init(mapBounds.width, mapBounds.height, 128);
-        collisionGrid.init(mapBounds.width, mapBounds.height, 128);
+        // renderGrid.init(mapBounds.width, mapBounds.height, 128);
 
         this->addObjects(map);
         this->addTilesets(map);
@@ -71,8 +65,6 @@ void MapLoaderSystem::addObjects(const tmx::Map& map) {
 
                     if (tileSet.hasTile(tileID)) {
 
-                        this->registry.emplace<Renderable>(entity);
-
                         const auto& tile = tileSet.getTile(tileID);
 
                         std::string textureName = std::filesystem::path(tile->imagePath).stem().string(); 
@@ -81,6 +73,7 @@ void MapLoaderSystem::addObjects(const tmx::Map& map) {
 
                         this->registry.emplace<Spacial>(entity, glm::vec3(position.x, position.y, 0), 
                             glm::vec3(0, 0, 0), glm::vec3(1, 1, 1), glm::vec2(tile->imageSize.x, tile->imageSize.y));
+                        this->registry.emplace<Renderable>(entity);
 
                         for (const auto& property : tile->properties) {
                             ComponentFactory::emplaceComponent(this->registry, entity, property.getName(), std::vector<std::string>());
@@ -152,9 +145,9 @@ void MapLoaderSystem::addTilesets(tmx::Map& map) {
             glm::vec2 imagePosition = glm::vec2((float)tile->imagePosition.x, (float)tile->imagePosition.y);
 
             this->registry.emplace<Tile>(tileEntity, (int)tileDataVec.z, imagePosition);
-            this->registry.emplace<Renderable>(tileEntity);
             this->registry.emplace<Spacial>(tileEntity, glm::vec3(tileDataVec.x, tileDataVec.y, 0) * 16.0f, 
                 glm::vec3(0, 0, 0), glm::vec3(1, 1, 1), glm::vec2(16, 16));
+            this->registry.emplace<Renderable>(tileEntity);
 
             std::vector<glm::vec4> boundingBoxes;
 

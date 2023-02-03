@@ -9,6 +9,7 @@
 #include "spacial.h"
 
 #include "clock.h"
+#include "grid.h"
 
 class MovementSystem : public System {
 public:

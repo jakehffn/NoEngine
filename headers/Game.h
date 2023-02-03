@@ -17,6 +17,8 @@
 #include "input.h"
 #include "texture_atlas.h"
 #include "grid.h"
+#include "renderable.h"
+#include "collision.h"
 
 #include "input_system.h"
 #include "render_system.h"
@@ -45,6 +47,5 @@ private:
     // This should be read from the map at some point
     TextureAtlas textureAtlas = TextureAtlas("./src/assets/atlases/UntitledRPGAtlas/UntitledRPGAtlas");
 
-    Grid<entt::entity> renderGrid;
-    Grid<entt::entity> collisionGrid;
+    ComponentGrid<Renderable, Collision> componentGrid = ComponentGrid<Renderable, Collision>(this->registry);
 };
