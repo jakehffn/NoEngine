@@ -1,5 +1,7 @@
 #pragma once 
 
+#include <algorithm>
+
 #include <entt\entt.hpp>
 
 #include <glm/glm.hpp>
@@ -16,10 +18,12 @@
 #include "tile_set.h"
 #include "tile.h"
 #include "renderable.h"
+#include "collision.h"
 
 #include "camera.h"
 #include "clock.h"
 #include "texture_atlas.h"
+#include "grid.h"
 
 #include "consts.h"
 
@@ -88,4 +92,7 @@ private:
 
     GLuint modelsVBO;
     std::vector<glm::mat4> modelsBufferData; 
+
+    std::set<entt::entity> renderQuery;
+    std::set<entt::entity> lastRenderQuery;
 };

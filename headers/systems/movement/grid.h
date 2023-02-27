@@ -3,13 +3,18 @@
 #include <cassert>
 #include <vector>
 #include <set>
-#include <type_traits>
+#include <algorithm>
 
 #include <iostream>
 
 #include <entt/entt.hpp>
 
 #include "spacial.h"
+
+template<typename T, typename T2>
+concept Insertable = requires(T& t, T2 t2) {
+    {t.insert(t.end(), std::forward<T2>(t2))};
+};
 
 struct Bounds {
     int x,y,w,h;
@@ -34,8 +39,10 @@ public:
     int insert(T element, Bounds bounds);
     void remove(int elementNode, Bounds bounds);
     void update(int elementNode, Bounds oldBounds, Bounds newBounds);
-    std::vector<T> query(Bounds bounds);
 
+    template<template<typename Rtype> typename R, typename Rtype=T> 
+    requires Insertable<R<Rtype>, Rtype>
+    R<Rtype>& query(Bounds bounds, R<T>& results);
 private:
     int elementInsert(T element);
     void elementRemove(int elementNode);
@@ -112,19 +119,20 @@ void Grid<T>::update(int elementNode, Bounds oldBounds, Bounds newBounds) {
 }
 
 template<class T>
-std::vector<T> Grid<T>::query(Bounds bounds) {
+template<template<typename Rtype> typename R, typename Rtype> 
+requires Insertable<R<Rtype>, Rtype>
+R<Rtype>& Grid<T>::query(Bounds bounds, R<T>& results) {
 
     assert(this->cellNodes.size() > 0 && "Query attempted on uninitialized Grid");
 
     this->lastQuery.clear();
     this->iterateBounds(-1, bounds, &(this->cellQuery));
-
-    std::vector<T> results;
-    results.reserve(this->lastQuery.size());
     
-    for (auto element : this->lastQuery) {
-        results.push_back(this->elements[this->elementNodes[element].element]);
-    }
+    std::transform(lastQuery.begin(), lastQuery.end(), std::inserter(results, results.end()), 
+        ([this](const auto& element) {
+            return this->elements[this->elementNodes[element].element];
+        })
+    );
 
     return results;
 }
@@ -219,20 +227,36 @@ void Grid<T>::cellQuery(int cellNode, int unused) {
 template<class T>
 void Grid<T>::iterateBounds(int node, Bounds bounds, void (Grid::*function)(int, int)) {
 
-    bounds.w++; // Add one to avoid entities close to border being missed because of conversion to int
-    bounds.h++;
+    // bounds.w++; // Add one to avoid entities close to border being missed because of conversion to int
+    // bounds.h++;
 
-    assert((bounds.x >= 0 && bounds.y >= 0 && bounds.x+bounds.w <= this->width && bounds.y+bounds.h <= this->height) 
-        && "Attempted out of bounds operation");
+    if (!(bounds.x >= 0)) {
+        printf("Attempted out of bounds operation\n");
+    }
+    if (!(bounds.y >= 0)) {
+        printf("Attempted out of bounds operation\n");
+    }
+    if (!(bounds.x+bounds.w <= this->width)) {
+        printf("Attempted out of bounds operation\n");
+    }
+    if (!(bounds.y+bounds.h <= this->height)) {
+        printf("Attempted out of bounds operation\n");
+    }
+
+    // assert((bounds.x >= 0 && bounds.y >= 0 && bounds.x+bounds.w <= this->width && bounds.y+bounds.h <= this->height) 
+    //     && "Attempted out of bounds operation");
 
     int xCellStart = bounds.x/this->cellSize;
     int yCellStart = bounds.y/this->cellSize;
-
     int xCellEnd = (bounds.w+this->cellSize-1)/this->cellSize + xCellStart;
     int yCellEnd = (bounds.h+this->cellSize-1)/this->cellSize + yCellStart;
 
-    for (int xx{xCellStart}; xx < xCellEnd; xx++) {
+    // xCellStart = (xCellStart >= 0) ? xCellStart : 0; 
+    // yCellStart = (yCellStart >= 0) ? yCellStart : 0; 
+    // xCellEnd = (xCellEnd <= this->width) ? xCellEnd : this->width;
+    // yCellEnd = (yCellEnd <= this->height) ? yCellEnd : this->height;
 
+    for (int xx{xCellStart}; xx < xCellEnd; xx++) {
         for (int yy{yCellStart}; yy < yCellEnd; yy++) {
 
             (this->*function)(yy*this->cellRowLength + xx, node);           
@@ -272,12 +296,18 @@ template<typename... Components>
 class ComponentGrid {
 public:
     ComponentGrid(entt::registry& registry);
+    ComponentGrid(ComponentGrid&& componentGrid) = default;
+    ComponentGrid& operator=(ComponentGrid&& componentGrid) = default;
+
     void init(int width, int height, int cellSize);
     template<typename Component>
     void update(entt::registry& registry);
     void update(entt::registry& registry);
-    template<typename Component>
-    std::vector<entt::entity> query(Bounds bounds);
+
+    template<typename Component, template<typename Rtype> typename R, typename Rtype=entt::entity> 
+    requires Insertable<R<Rtype>, Rtype>
+    R<Rtype>& query(Bounds bounds, R<entt::entity>& results);
+
     template<typename Component>
     void clear();
 
@@ -334,12 +364,13 @@ void ComponentGrid<Components...>::update(entt::registry& registry) {
 }
 
 template<typename... Components>
-template<typename Component>
-std::vector<entt::entity> ComponentGrid<Components...>::query(Bounds bounds) {
+template<typename Component, template<typename Rtype> typename R, typename Rtype> 
+requires Insertable<R<Rtype>, Rtype>
+R<Rtype>& ComponentGrid<Components...>::query(Bounds bounds, R<entt::entity>& results) {
 
-    assert((std::is_same_v<Component, Components> || ...));
+        assert((std::is_same_v<Component, Components> || ...));
 
-    return this->grids[Index_v<Component, Components...>].query(bounds);
+        return this->grids[Index_v<Component, Components...>].query(bounds, results);
 }
 
 template<typename... Components>

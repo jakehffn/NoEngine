@@ -144,21 +144,43 @@ void RenderSystem::update() {
 void RenderSystem::cullEntities() {
 
     using namespace entt::literals;
-    Camera& camera = this->registry.ctx().at<Camera&>("worldCamera"_hs);
+    auto& camera = this->registry.ctx().at<Camera&>("worldCamera"_hs);
+    auto& componentGrid = this->registry.ctx().at<ComponentGrid<Renderable, Collision>&>();
 
-    // Label which entities are on screen and should be rendered
-    this->registry.view<Spacial, Renderable>().each([this, camera](auto entity, auto& spacial) {  
+    glm::vec2 camDim = camera.getCameraDim();
+    glm::vec2 camPos = camera.getPosition();
 
-        glm::vec2 camDim = camera.getCameraDim();
-        glm::vec2 camPos = camera.getPosition();
-        glm::vec3 entPos = spacial.pos;
+    int x = camPos.x - camDim.x/2;
+    int y = camPos.y - camDim.y/2;
+    int w = camDim.x + 16;
+    int h = camDim.y + 16;
+  
+    componentGrid.query<Renderable>((struct Bounds) {x,y,w,h}, this->renderQuery);
 
-        if (entPos.x < camPos.x + camDim.x/2 && entPos.y < camPos.y + camDim.y/2 && entPos.x + spacial.dim.x > camPos.x - camDim.x/2 && entPos.y + spacial.dim.y > camPos.y - camDim.y/2) {
-            this->registry.emplace_or_replace<ToRender>(entity);
-        } else {
-            this->registry.remove<ToRender>(entity);
-        }
-    });
+    std::vector<entt::entity> diff;
+
+    // Get the entities which were in the new query but not in the last query
+    std::set_difference(this->renderQuery.begin(), this->renderQuery.end(),
+        this->lastRenderQuery.begin(), this->lastRenderQuery.end(),
+        std::back_inserter(diff));
+
+    for (auto entity : diff) {
+        this->registry.emplace<ToRender>(entity);
+    }
+
+    diff.clear();
+    // Get the entities which were in the last query but not in the new query
+    std::set_difference(this->lastRenderQuery.begin(), this->lastRenderQuery.end(),
+        this->renderQuery.begin(), this->renderQuery.end(),
+        std::back_inserter(diff));
+
+    for (auto entity : diff) {
+        this->registry.remove<ToRender>(entity);
+        
+    }
+
+    this->lastRenderQuery = std::move(this->renderQuery);
+    renderQuery.clear();
 }
 
 void RenderSystem::sortEntities() {

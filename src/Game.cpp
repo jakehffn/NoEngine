@@ -9,8 +9,8 @@ Game::Game(SDL_Window* window) : window{ window } {
         this->registry.ctx().emplace_hint<Camera&>("guiCamera"_hs, this->guiCamera);
         this->registry.ctx().emplace<Input&>(this->inputManager);
         this->registry.ctx().emplace<TextureAtlas&>(this->textureAtlas);
-        // this->registry.ctx().emplace<ComponentGrid<Renderable, Collision>&>(this->componentGrid);
-        this->componentGrid.init(20000,20000,128);
+        this->registry.ctx().emplace<ComponentGrid<Renderable, Collision>&>(this->componentGrid);
+        // this->componentGrid.init(20000,20000,128);
 
         this->systems.push_back(new MapLoaderSystem(this->registry));
         this->systems.push_back(new InputSystem(this->registry));

@@ -27,7 +27,11 @@ void MapLoaderSystem::loadTiledMap(const char* mapPath) {
 
         tmx::FloatRect mapBounds = map.getBounds();
 
-        // renderGrid.init(mapBounds.width, mapBounds.height, 128);
+        auto& renderGrid = this->registry.ctx().at<ComponentGrid<Renderable, Collision>&>();
+
+        // printf("Map Hidth:%f, Map Height:%f\n", mapBounds.width, mapbounds.height);
+
+        renderGrid.init(mapBounds.width, mapBounds.height, 16);
 
         this->addObjects(map);
         this->addTilesets(map);
