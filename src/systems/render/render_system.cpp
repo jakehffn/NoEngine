@@ -1,113 +1,10 @@
 #include "render_system.h"
 
-RenderSystem::RenderSystem(entt::registry& registry) : System(registry), spriteShader{ new SpriteShader() },
-    tileShader{ new TileShader() }, screenShader{ new ScreenShader() }, instancedShader{ new InstancedShader() },
+RenderSystem::RenderSystem(entt::registry& registry) : System(registry), 
     spacialObserver{ entt::observer(registry, entt::collector.update<Spacial>().where<Texture>()) },
-    textureObserver{ entt::observer(registry, entt::collector.group<Texture>()) },
-    textSprite{ (struct Texture){"./src/assets/fonts/text.png"} } {
+    textureObserver{ entt::observer(registry, entt::collector.group<Texture>()) } {
     
-        glClearColor(0.0f, 0.4f, 0.4f, 0.0f);
-        glEnable(GL_BLEND); 
-        glDisable(GL_DEPTH_TEST);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-        this->initTextMap();
-        this->initVAO();
-        this->initScreenFBO();
-
-        this->initVBOs();
-}
-
-RenderSystem::~RenderSystem() {
-    glDeleteFramebuffers(1, &(this->screenFBO));  
-}
-
-void RenderSystem::initVAO() {
-
-    // create VAO
-    float quadVertexData[] = { 
-        // pos      // tex
-        0.0f, 1.0f, 0.0f, 1.0f,
-        1.0f, 0.0f, 1.0f, 0.0f,
-        0.0f, 0.0f, 0.0f, 0.0f, 
-    
-        0.0f, 1.0f, 0.0f, 1.0f,
-        1.0f, 1.0f, 1.0f, 1.0f,
-        1.0f, 0.0f, 1.0f, 0.0f
-    };
-    
-    glGenVertexArrays(1, &(this->VAO));
-    glBindVertexArray(this->VAO);
-    
-    // The verticies will never change so the buffer ID is not saved
-    GLuint vertexBuffer;
-    glGenBuffers(1, &vertexBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertexData), quadVertexData, GL_STATIC_DRAW);
-    
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
-    // Free bound buffers
-    glBindVertexArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);  
-}
-
-void RenderSystem::initVBOs() {
-
-    glGenBuffers(1, &(this->textureCoordinatesVBO));
-    glGenBuffers(1, &(this->modelsVBO));
-
-    glBindVertexArray(this->VAO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, this->textureCoordinatesVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec4) * this->textureCoordinatesBufferData.size(), this->textureCoordinatesBufferData.data(), GL_STREAM_DRAW);
-    
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(glm::vec4), (void*)0);
-    glVertexAttribDivisor(1, 1); 
-
-    glBindBuffer(GL_ARRAY_BUFFER, this->modelsVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(glm::mat4) * this->modelsBufferData.size(), this->textureCoordinatesBufferData.data(), GL_STREAM_DRAW);
-
-    glEnableVertexAttribArray(3); 
-    glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(glm::vec4), (void*)0);
-    glEnableVertexAttribArray(4); 
-    glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(glm::vec4), (void*)(1 * sizeof(glm::vec4)));
-    glEnableVertexAttribArray(5); 
-    glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(glm::vec4), (void*)(2 * sizeof(glm::vec4)));
-    glEnableVertexAttribArray(6); 
-    glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(glm::vec4), (void*)(3 * sizeof(glm::vec4)));
-
-    glVertexAttribDivisor(3, 1);
-    glVertexAttribDivisor(4, 1);
-    glVertexAttribDivisor(5, 1);
-    glVertexAttribDivisor(6, 1);
-
-    glBindVertexArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0); 
-}
-
-void RenderSystem::initScreenFBO() {
-
-    glGenFramebuffers(1, &(this->screenFBO));
-    glBindFramebuffer(GL_FRAMEBUFFER, this->screenFBO);
-
-    glGenTextures(1, &(this->screenTexture));
-    glBindTexture(GL_TEXTURE_2D, this->screenTexture);
-    
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, render_c::SCREEN_WIDTH, render_c::SCREEN_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);  
-
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, this->screenTexture, 0); 
-
-    
-    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-        std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
-    }
-    
-    glBindFramebuffer(GL_FRAMEBUFFER, 0); 
+        // this->initTextMap();
 }
 
 void RenderSystem::update() {
@@ -129,7 +26,9 @@ void RenderSystem::update() {
     times.push_back(total);
 
     start =  SDL_GetPerformanceCounter();
-    this->fillBufferData();
+    // Tiles go behind entities, so it should be buffered first
+    this->bufferTileData();
+    this->bufferEntityData();
     total =  (SDL_GetPerformanceCounter() - start)/SDL_GetPerformanceFrequency()*1000.0;
     times.push_back(total);
 
@@ -194,108 +93,6 @@ void RenderSystem::sortEntities() {
         return lhSpacial.pos.y + lhSpacial.dim.y < rhSpacial.pos.y + rhSpacial.dim.y;
 
     }, entt::insertion_sort {}); // Insertion sort is much faster as the spacials will generally be "mostly sorted"
-}
-
-void RenderSystem::fillBufferData() {
-
-    glBindBuffer(GL_ARRAY_BUFFER, this->textureCoordinatesVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec4)*this->textureCoordinatesBufferData.size(), NULL, GL_STREAM_DRAW);
-
-    glBindBuffer(GL_ARRAY_BUFFER, this->modelsVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(glm::mat4)*this->modelsBufferData.size(), NULL, GL_STREAM_DRAW);
-
-    textureCoordinatesBufferData.clear();
-    modelsBufferData.clear();
-
-    this->addTileBufferData();
-    this->addEntityBufferData();
-
-    glBindBuffer(GL_ARRAY_BUFFER, this->textureCoordinatesVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec4)*this->textureCoordinatesBufferData.size(), this->textureCoordinatesBufferData.data(), GL_STREAM_DRAW);
-
-    glBindBuffer(GL_ARRAY_BUFFER, this->modelsVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(glm::mat4)*this->modelsBufferData.size(), this->modelsBufferData.data(), GL_STREAM_DRAW);
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-}
-
-void RenderSystem::addTileBufferData() {
-
-    auto tileSets = this->registry.view<TileSet, Texture>();
-
-    this->registry.view<Tile, Model, ToRender>().each([this, tileSets](auto& tile, auto& model) {  
-
-        for (auto&& [entity, tileSet, texture] : tileSets.each()) {
-
-            if (tile.GID >= tileSet.firstGID && tile.GID <= tileSet.lastGID) {
-
-                glm::vec4 textureData = glm::vec4(
-                    texture.frameData.position.x + tile.position.x, 
-                    texture.frameData.position.y  + tile.position.y, 
-                    16.0f, 16.0f
-                );
-
-                this->textureCoordinatesBufferData.push_back(textureData);
-                this->modelsBufferData.push_back(model.model);
-            }
-        }
-    });
-}
-
-void RenderSystem::addEntityBufferData() {
-    
-    this->registry.view<Texture, Model, ToRender>(entt::exclude<Text>).use<ToRender>().each([this](auto& texture, auto& model) {  
-        
-        glm::vec4 textureData = glm::vec4(texture.frameData.position.x, texture.frameData.position.y, 
-            texture.frameData.size.x, texture.frameData.size.y);
-
-        this->textureCoordinatesBufferData.push_back(textureData);
-        this->modelsBufferData.push_back(model.model);
-    });
-}
-
-void RenderSystem::render() {
-
-    glBindFramebuffer(GL_FRAMEBUFFER, this->screenFBO);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    
-    using namespace entt::literals;
-    
-    Camera camera = this->registry.ctx().at<Camera&>("worldCamera"_hs);
-    TextureAtlas& textureAtlas = this->registry.ctx().at<TextureAtlas&>();
-    Clock clock = this->registry.ctx().at<Clock&>();
-
-    glm::mat4 view = camera.getViewMatrix();
-    glm::mat4 projection = camera.getProjectionMatrix();
-
-    this->instancedShader->useShader();
-    this->instancedShader->renderSetup(view, projection, glm::vec2(textureAtlas.width, textureAtlas.height));
-
-    glBindTexture(GL_TEXTURE_2D, textureAtlas.glTextureID);
-
-    glBindVertexArray(this->VAO);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    
-    glDrawArraysInstanced(GL_TRIANGLES, 0, 6, this->textureCoordinatesBufferData.size()); 
-
-    glBindFramebuffer(GL_FRAMEBUFFER, 0); // back to default
-    
-    glClear(GL_COLOR_BUFFER_BIT);
-
-
-
-    this->screenShader->useShader();
-
-    this->screenShader->renderSetup(clock.getCumulativeTime());
-
-    // glBindVertexArray(this->VAO);
-    glBindTexture(GL_TEXTURE_2D, this->screenTexture);
-    glDrawArrays(GL_TRIANGLES, 0, 6);   
-
-    glUseProgram(0);
-    glBindVertexArray(0);
 }
 
 void RenderSystem::updateModels() {
@@ -364,6 +161,51 @@ glm::mat4 RenderSystem::getTileModel(Spacial spacial) {
     return this->getModel(spacial, texture);
 }
 
+void RenderSystem::bufferEntityData() {
+    
+    this->registry.view<Texture, Model, ToRender>(entt::exclude<Text>).use<ToRender>().each([this](auto& texture, auto& model) {  
+        
+        glm::vec4 textureData = glm::vec4(texture.frameData.position.x, texture.frameData.position.y, 
+            texture.frameData.size.x, texture.frameData.size.y);
+
+        this->renderer.addBufferData(textureData, model.model);
+    });
+}
+
+void RenderSystem::bufferTileData() {
+
+    auto tileSets = this->registry.view<TileSet, Texture>();
+
+    this->registry.view<Tile, Model, ToRender>().each([this, tileSets](auto& tile, auto& model) {  
+
+        for (auto&& [entity, tileSet, texture] : tileSets.each()) {
+
+            if (tile.GID >= tileSet.firstGID && tile.GID <= tileSet.lastGID) {
+
+                glm::vec4 textureData = glm::vec4(
+                    texture.frameData.position.x + tile.position.x, 
+                    texture.frameData.position.y  + tile.position.y, 
+                    16.0f, 16.0f
+                );
+
+                this->renderer.addBufferData(textureData, model.model);
+            }
+        }
+    });
+}
+
+void RenderSystem::render() {
+
+    using namespace entt::literals;
+    
+    Camera camera = this->registry.ctx().at<Camera&>("worldCamera"_hs);
+    TextureAtlas& textureAtlas = this->registry.ctx().at<TextureAtlas&>();
+    Clock clock = this->registry.ctx().at<Clock&>();
+
+    this->renderer.render(camera.getViewMatrix(), camera.getProjectionMatrix(),
+        glm::vec2(textureAtlas.width, textureAtlas.height), 
+        textureAtlas.glTextureID, clock.getCumulativeTime());
+}
 
 void RenderSystem::initTextMap() {
 

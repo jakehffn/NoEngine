@@ -11,6 +11,7 @@ target_sources(${PROJECT_NAME} PUBLIC
 
     render/render_system.cpp
     render/shader_loader.cpp
+    render/renderer.cpp
 
     collision_system.cpp
     gui_system.cpp
