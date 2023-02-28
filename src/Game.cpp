@@ -30,6 +30,11 @@ Game::Game(SDL_Window* window) : window{ window } {
 
         const auto map = this->registry.create();
         this->registry.emplace<MapLoader>(map, "./src/assets/maps/Test/test.tmx");
+
+        const auto fps_counter = this->registry.create();
+        this->registry.emplace<Text>(fps_counter, "", true);
+        this->registry.emplace<FPSCounter>(fps_counter);
+        this->registry.emplace<Spacial>(fps_counter, glm::vec3(10), glm::vec3(0), glm::vec3(1), glm::vec2(100, 100));
 }
 
 void Game::mainLoop() {
@@ -48,6 +53,7 @@ void Game::mainLoop() {
 
         this->clock.tick();
         this->inputManager.update();
+        this->componentGrid.update();
 
         std::vector<double> times;
 

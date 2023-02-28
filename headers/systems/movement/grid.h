@@ -66,6 +66,7 @@ private:
     int height;
     int cellSize;
     int cellRowLength;
+    int numCells;
 };
 
 template<class T>
@@ -86,7 +87,7 @@ void Grid<T>::clear() {
     this->elementNodes.clear();
     this->cellNodes.clear();
 
-    int numCells = this->cellRowLength * ((this->height+this->cellSize-1)/this->cellSize);
+    this->numCells = this->cellRowLength * ((this->height+this->cellSize-1)/this->cellSize);
     this->cellNodes.resize(numCells);
 
     std::cout << "Initialized with " << cellNodes.size() << " elements" << "\n";
@@ -227,39 +228,32 @@ void Grid<T>::cellQuery(int cellNode, int unused) {
 template<class T>
 void Grid<T>::iterateBounds(int node, Bounds bounds, void (Grid::*function)(int, int)) {
 
-    // bounds.w++; // Add one to avoid entities close to border being missed because of conversion to int
-    // bounds.h++;
-
-    if (!(bounds.x >= 0)) {
-        printf("Attempted out of bounds operation\n");
-    }
-    if (!(bounds.y >= 0)) {
-        printf("Attempted out of bounds operation\n");
-    }
-    if (!(bounds.x+bounds.w <= this->width)) {
-        printf("Attempted out of bounds operation\n");
-    }
-    if (!(bounds.y+bounds.h <= this->height)) {
-        printf("Attempted out of bounds operation\n");
-    }
-
     // assert((bounds.x >= 0 && bounds.y >= 0 && bounds.x+bounds.w <= this->width && bounds.y+bounds.h <= this->height) 
     //     && "Attempted out of bounds operation");
+
+    // Snap to the edge if extending past the boundaries
+    bounds.x = (bounds.x >= 0) ? bounds.x : 0;
+    bounds.y = (bounds.y >= 0) ? bounds.y : 0;
+
+    bounds.x = (bounds.x < this->width) ? bounds.x : this->width - 1;
+    bounds.y = (bounds.y < this->height) ? bounds.y : this->height - 1;
+
+    bounds.w = (bounds.x + bounds.w < this->width) ? bounds.w : std::max(this->width - bounds.x, 0);
+    bounds.h = (bounds.y + bounds.h < this->height) ? bounds.h : std::max(this->height - bounds.y, 0);;
 
     int xCellStart = bounds.x/this->cellSize;
     int yCellStart = bounds.y/this->cellSize;
     int xCellEnd = (bounds.w+this->cellSize-1)/this->cellSize + xCellStart;
     int yCellEnd = (bounds.h+this->cellSize-1)/this->cellSize + yCellStart;
 
-    // xCellStart = (xCellStart >= 0) ? xCellStart : 0; 
-    // yCellStart = (yCellStart >= 0) ? yCellStart : 0; 
-    // xCellEnd = (xCellEnd <= this->width) ? xCellEnd : this->width;
-    // yCellEnd = (yCellEnd <= this->height) ? yCellEnd : this->height;
-
     for (int xx{xCellStart}; xx < xCellEnd; xx++) {
         for (int yy{yCellStart}; yy < yCellEnd; yy++) {
 
-            (this->*function)(yy*this->cellRowLength + xx, node);           
+            if (yy*this->cellRowLength + xx >= this->numCells) {
+                std::cout << "Big Error - width: " << this->width << " height: " << this-> height << " ";
+            } else {
+                (this->*function)(yy*this->cellRowLength + xx, node);           
+            }
         }
     }
 }
@@ -301,8 +295,8 @@ public:
 
     void init(int width, int height, int cellSize);
     template<typename Component>
-    void update(entt::registry& registry);
-    void update(entt::registry& registry);
+    void update();
+    void update();
 
     template<typename Component, template<typename Rtype> typename R, typename Rtype=entt::entity> 
     requires Insertable<R<Rtype>, Rtype>
@@ -319,12 +313,14 @@ private:
 
     std::vector<Grid<entt::entity>> grids;
     std::vector<entt::observer> observers;
+    entt::registry& registry;
 };
 
 template<typename... Components>
 ComponentGrid<Components...>::ComponentGrid(entt::registry& registry) : 
     observers{ std::vector<entt::observer>(sizeof...(Components)) },
-    grids{ std::vector<Grid<entt::entity>>(sizeof...(Components)) } {
+    grids{ std::vector<Grid<entt::entity>>(sizeof...(Components)) }, 
+    registry{ registry } {
         
         (this->observers[Index_v<Components,Components...>].connect(registry, entt::collector.update<Spacial>().where<Components>()),...);
         ((registry.on_construct<Components>().template connect<&ComponentGrid<Components...>::observeConstruct<Components>>(this)),...);
@@ -341,26 +337,31 @@ void ComponentGrid<Components...>::init(int width, int height, int cellSize) {
 
 template<typename... Components>
 template<typename Component>
-void ComponentGrid<Components...>::update(entt::registry& registry) {
+void ComponentGrid<Components...>::update() {
 
-    assert((std::is_same_v<Component, Components> || ...));
-    this->observers[Index_v<Component, Components...>].each([&, registry, this](auto entity){
+    assert((std::is_same_v<Component, Components> || ...) && "Component not in Components");
 
-        assert((registry.all_of<Spacial, GridData<Component>>(entity) && "Entity missing Spacial or GridData<T> component"));
+    // Update the grid for the related component
+    this->observers[Index_v<Component, Components...>].each([&, this](auto entity){
 
-        auto& gridData = registry.get<GridData<Component>>(entity);
-        this->grid.remove(gridData.node, gridData.bounds);
+        assert((this->registry.all_of<Spacial, GridData<Component>>(entity) && "Entity missing Spacial or GridData<T> component"));
 
-        auto& spacial = registry.get<Spacial>(entity);
-        gridData.elementNode = this->grid.insert(entity, gridData.bounds);
+        // Remove the old data from the component grid
+        auto& gridData = this->registry.get<GridData<Component>>(entity);
+        this->grids[Index_v<Component, Components...>].remove(gridData.node, gridData.bounds);
+
+        // Add the new data
+        auto& spacial = this->registry.get<Spacial>(entity);
+        gridData.bounds = (struct Bounds) {spacial.pos.x, spacial.pos.y, spacial.dim.x, spacial.dim.y};
+        gridData.node = this->grids[Index_v<Component, Components...>].insert(entity, gridData.bounds);
     });
     
 }
 
 template<typename... Components>
-void ComponentGrid<Components...>::update(entt::registry& registry) {
+void ComponentGrid<Components...>::update() {
 
-    (this->update<Components>(registry),...);
+    (this->update<Components>(),...);
 }
 
 template<typename... Components>
@@ -368,9 +369,9 @@ template<typename Component, template<typename Rtype> typename R, typename Rtype
 requires Insertable<R<Rtype>, Rtype>
 R<Rtype>& ComponentGrid<Components...>::query(Bounds bounds, R<entt::entity>& results) {
 
-        assert((std::is_same_v<Component, Components> || ...));
+    assert((std::is_same_v<Component, Components> || ...));
 
-        return this->grids[Index_v<Component, Components...>].query(bounds, results);
+    return this->grids[Index_v<Component, Components...>].query(bounds, results);
 }
 
 template<typename... Components>
