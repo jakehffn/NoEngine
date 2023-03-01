@@ -11,9 +11,9 @@
 
 #include "spacial.h"
 
-template<typename T, typename T2>
-concept Insertable = requires(T& t, T2 t2) {
-    {t.insert(t.end(), std::forward<T2>(t2))};
+template<typename C, typename T>
+concept Insertable = requires(C& c, T t) {
+    {c.insert(c.end(), std::forward<T>(t))};
 };
 
 struct Bounds {
@@ -352,7 +352,9 @@ void ComponentGrid<Components...>::update() {
 
         // Add the new data
         auto& spacial = this->registry.get<Spacial>(entity);
-        gridData.bounds = (struct Bounds) {spacial.pos.x, spacial.pos.y, spacial.dim.x, spacial.dim.y};
+        gridData.bounds = (struct Bounds) {
+            static_cast<int>(spacial.pos.x), static_cast<int>(spacial.pos.y), 
+            static_cast<int>(spacial.dim.x), static_cast<int>(spacial.dim.y) };
         gridData.node = this->grids[Index_v<Component, Components...>].insert(entity, gridData.bounds);
     });
     
@@ -391,7 +393,10 @@ void ComponentGrid<Components...>::observeConstruct(entt::registry& registry, en
     assert((registry.all_of<Spacial>(entity) && "Entity missing Spacial component"));
 
     auto& spacial = registry.get<Spacial>(entity);
-    Bounds bounds{spacial.pos.x, spacial.pos.y, spacial.dim.x, spacial.dim.y};
+    Bounds bounds{
+        static_cast<int>(spacial.pos.x), static_cast<int>(spacial.pos.y), 
+        static_cast<int>(spacial.dim.x), static_cast<int>(spacial.dim.y) };
+
     int elementNode = this->grids[Index_v<Component, Components...>].insert(entity, bounds);
 
     registry.emplace<GridData<Component>>(entity, bounds, elementNode);
