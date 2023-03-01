@@ -1,7 +1,8 @@
 *.exe
-\.vscode
-\build
-\libs
+/.vscode
+/build
+/libs/*
+!/libs/CMakeLists.txt
 test.cpp
 todo
-*\assets
+*/assets
