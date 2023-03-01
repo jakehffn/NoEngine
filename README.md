@@ -9,5 +9,3 @@ Libraries:
 + SDL2
 + GLM
 + [EnTT](https://github.com/skypjack/entt)
-
-Any other dependencies can be seen in the included Makefile.
