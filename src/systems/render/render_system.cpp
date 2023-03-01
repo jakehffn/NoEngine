@@ -125,7 +125,7 @@ void RenderSystem::updateModels() {
     }
 }
 
-glm::mat4 RenderSystem::getModel(Spacial spacial, Texture texture) {
+glm::mat4 RenderSystem::getModel(const Spacial& spacial, const Texture& texture) {
 
     // The model does not represent the physical location exactly, but the rendered location
     //  Information from the texture is needed so that the sprite can be placed correctly
@@ -151,7 +151,7 @@ glm::mat4 RenderSystem::getModel(Spacial spacial, Texture texture) {
     return (translate * scale * rotate);
 }
 
-glm::mat4 RenderSystem::getTileModel(Spacial spacial) {
+glm::mat4 RenderSystem::getTileModel(const Spacial& spacial) {
 
     Texture texture;
 

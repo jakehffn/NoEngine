@@ -105,7 +105,7 @@ void Renderer::initScreenFBO() {
     glBindFramebuffer(GL_FRAMEBUFFER, 0); 
 }
 
-void Renderer::addBufferData(glm::vec4 textureData, glm::mat4 modelData) {
+void Renderer::addBufferData(const glm::vec4& textureData, const glm::mat4& modelData) {
 
     this->textureCoordinatesBufferData.push_back(textureData);
     this->modelsBufferData.push_back(modelData);
@@ -129,7 +129,7 @@ void Renderer::bufferData() {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void Renderer::render(glm::mat4 view, glm::mat4 projection, glm::vec2 atlasDim, GLuint atlasTexture, double time) {
+void Renderer::render(const glm::mat4& view, const glm::mat4& projection, const glm::vec2& atlasDim, GLuint atlasTexture, double time) {
 
     this->bufferData();
 

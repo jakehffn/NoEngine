@@ -41,8 +41,8 @@ private:
     void sortEntities();
 
     void updateModels();
-    glm::mat4 getModel(Spacial spacial, Texture texture);
-    glm::mat4 getTileModel(Spacial spacial);
+    glm::mat4 getModel(const Spacial& spacial, const Texture& texture);
+    glm::mat4 getTileModel(const Spacial& spacial);
 
     void bufferEntityData();
     void bufferTileData();

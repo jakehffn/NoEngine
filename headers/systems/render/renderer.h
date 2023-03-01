@@ -12,8 +12,8 @@ public:
     Renderer();
     ~Renderer();
 
-    void addBufferData(glm::vec4 textureData, glm::mat4 modelData);
-    void render(glm::mat4 view, glm::mat4 projection, glm::vec2 atlasDim, GLuint atlasTexture, double time);
+    void addBufferData(const glm::vec4& textureData, const glm::mat4& modelData);
+    void render(const glm::mat4& view, const glm::mat4& projection, const glm::vec2& atlasDim, GLuint atlasTexture, double time);
 
 private:
     void initVAO();
