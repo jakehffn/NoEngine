@@ -40,52 +40,64 @@ void MapLoaderSystem::loadTiledMap(const char* mapPath) {
 
 void MapLoaderSystem::addObjects(const tmx::Map& map) {
 
-    TextureAtlas& textureAtlas = this->registry.ctx().at<TextureAtlas&>();
-
     const auto& layers = map.getLayers();
 
-    // Layers -> Objects -> TileSets -> Tile
-    //            |-> Properties        |-> Properties
     for (const auto& layer : layers) {
 
-        if (layer->getType() == tmx::Layer::Type::Object) {
+        // Skip if not an object layer
+        if (layer->getType() != tmx::Layer::Type::Object) {
+            continue;
+        }  
 
-            const auto& objectLayer = layer->getLayerAs<tmx::ObjectGroup>();
-            
-            for (const auto& object : objectLayer.getObjects()) {
+        const auto& objectLayer = layer->getLayerAs<tmx::ObjectGroup>();
 
-                const auto& entity = this->registry.create();
+        for (const auto& object : objectLayer.getObjects()) {
 
-                std::string type = object.getType();
-                tmx::Vector2f position = object.getPosition();
+            this->addObject(map, object);
+        }  
+    }
+}
 
-                for (const auto& property : object.getProperties()) {
-                    ComponentFactory::emplaceComponent(this->registry, entity, property.getName(), std::vector<std::string>());
-                }
+void MapLoaderSystem::addObject(const tmx::Map& map, const tmx::Object& object) {
+        
+    const auto& entity = this->registry.create();
+    TextureAtlas& textureAtlas = this->registry.ctx().at<TextureAtlas&>();
 
-                int tileID = object.getTileID();
+    std::string type = object.getType();
+    tmx::Vector2f position = object.getPosition();
 
-                for (const auto& tileSet : map.getTilesets()) {
+    // These are the properties that were added to the specific tile instance
+    for (const auto& property : object.getProperties()) {
+        ComponentFactory::emplaceComponent(this->registry, entity, property.getName(), std::vector<std::string>());
+    }
 
-                    if (tileSet.hasTile(tileID)) {
+    int tileID = object.getTileID();
 
-                        const auto& tile = tileSet.getTile(tileID);
+    for (const auto& tileSet : map.getTilesets()) {
 
-                        std::string textureName = std::filesystem::path(tile->imagePath).stem().string(); 
-
-                        textureAtlas.initEntity(this->registry, entity, textureName);
-
-                        this->registry.emplace<Spacial>(entity, glm::vec3(position.x, position.y, 0), 
-                            glm::vec3(0, 0, 0), glm::vec3(1, 1, 1), glm::vec2(tile->imageSize.x, tile->imageSize.y));
-                        this->registry.emplace<Renderable>(entity);
-
-                        for (const auto& property : tile->properties) {
-                            ComponentFactory::emplaceComponent(this->registry, entity, property.getName(), std::vector<std::string>());
-                        }
-                    }
-                }
-            }
+        if (!tileSet.hasTile(tileID)) {
+            continue;
         }
+
+        const auto& tile = tileSet.getTile(tileID);
+
+        std::string textureName = std::filesystem::path(tile->imagePath).stem().string(); 
+
+        textureAtlas.initEntity(this->registry, entity, textureName);
+
+        this->registry.emplace<Spacial>(entity, glm::vec3(position.x, position.y, 0), 
+            glm::vec3(0, 0, 0), glm::vec3(1, 1, 1), glm::vec2(tile->imageSize.x, tile->imageSize.y));
+        this->registry.emplace<Renderable>(entity);
+
+        // These are the properties that were added the all instances of that tile
+        for (const auto& property : tile->properties) {
+            ComponentFactory::emplaceComponent(this->registry, entity, property.getName(), std::vector<std::string>());
+        }
+
+        this->addCollision(entity, tile);
+
+        // No need to search anymore if the tile has been found in a tileset
+        break;
     }
 }
 
@@ -130,12 +142,13 @@ void MapLoaderSystem::addTilesets(tmx::Map& map) {
 
         const auto& tileSetEntity = this->registry.create();
 
-        // for (const auto& property : tileset.getProperties()) {}
-
         std::string textureName = std::filesystem::path(tileset.getImagePath()).stem().string(); 
 
-        // std::cout << std::filesystem::canonical(tileSetPath);
-
+        // Animations and textures for tiles are handled by the tileset. 
+        //      Animations for all tiles in the tileset can then be done at once
+        //      The drawback for this is that the textures coordinates are calculated every frame
+        //      Another drawback is that adding the buffer data for tiles and other entities ends 
+        //      up being different.
         textureAtlas.initEntity(this->registry, tileSetEntity, textureName);
         
         this->registry.emplace<TileSet>(tileSetEntity, (int)dimensions.x, (int)dimensions.y, (int)tileset.getFirstGID(), (int)tileset.getLastGID());
@@ -153,20 +166,25 @@ void MapLoaderSystem::addTilesets(tmx::Map& map) {
                 glm::vec3(0, 0, 0), glm::vec3(1, 1, 1), glm::vec2(16, 16));
             this->registry.emplace<Renderable>(tileEntity);
 
-            std::vector<glm::vec4> boundingBoxes;
-
-            // Load the collisions boxes associated with the tile, which is located in the tmx::tileset
-            for (auto collisionBox : tile->objectGroup.getObjects()) {
-                
-                tmx::Vector2f position = collisionBox.getPosition();
-                tmx::FloatRect rectangle = collisionBox.getAABB();
-
-                boundingBoxes.emplace_back(rectangle.width, rectangle.height, position.x, position.y);
-            }
-
-            if (boundingBoxes.size() != 0) {
-                this->registry.emplace<Collision>(tileEntity, boundingBoxes);
-            }
+            this->addCollision(tileEntity, tile);
         }
+    }
+}
+
+void MapLoaderSystem::addCollision(entt::entity entity, const tmx::Tileset::Tile* tile) {
+
+    std::vector<glm::vec4> boundingBoxes;
+
+    // Load the collisions boxes associated with the tile, which is located in the tmx::tileset
+    for (auto collisionBox : tile->objectGroup.getObjects()) {
+        
+        tmx::Vector2f position = collisionBox.getPosition();
+        tmx::FloatRect rectangle = collisionBox.getAABB();
+
+        boundingBoxes.emplace_back(rectangle.width, rectangle.height, position.x, position.y);
+    }
+
+    if (boundingBoxes.size() != 0) {
+        this->registry.emplace<Collision>(entity, std::move(boundingBoxes));
     }
 }

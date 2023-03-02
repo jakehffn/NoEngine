@@ -14,9 +14,9 @@ Game::Game(SDL_Window* window) : window{ window } {
 
         this->systems.push_back(new MapLoaderSystem(this->registry));
         this->systems.push_back(new InputSystem(this->registry));
-        this->systems.push_back(new CollisionSystem(this->registry));
         this->systems.push_back(new AnimationSystem(this->registry));
         this->systems.push_back(new MovementSystem(this->registry));
+        this->systems.push_back(new CollisionSystem(this->registry));
         this->systems.push_back(new CameraSystem(this->registry));
         this->systems.push_back(new GUISystem(this->registry));
         this->systems.push_back(new RenderSystem(this->registry));

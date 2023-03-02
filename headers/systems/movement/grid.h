@@ -46,6 +46,7 @@ public:
     template<template<typename Rtype> typename R, typename Rtype=T> 
     requires Insertable<R<Rtype>, Rtype>
     R<Rtype>& query(const Bounds& bounds, R<T>& results);
+    
 private:
     int elementInsert(T element);
     void elementRemove(int element_node);
@@ -231,9 +232,6 @@ void Grid<T>::cellQuery(int cell_node, int unused) {
 
 template<class T>
 void Grid<T>::iterateBounds(int node, const Bounds& bounds, void (Grid::*function)(int, int)) {
-
-    // assert((bounds.x >= 0 && bounds.y >= 0 && bounds.x+bounds.w <= this->width && bounds.y+bounds.h <= this->height) 
-    //     && "Attempted out of bounds operation");
 
     // Snap to the edge if extending past the boundaries
     int x = (bounds.x >= 0) ? bounds.x : 0;

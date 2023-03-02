@@ -37,5 +37,9 @@ private:
     void loadTiledMap(const char* mapPath);
 
     void addObjects(const tmx::Map& map);
+    void addObject(const tmx::Map& map, const tmx::Object& object);
+
     void addTilesets(tmx::Map& map);
+
+    void addCollision(entt::entity entity, const tmx::Tileset::Tile* tile);
 };

@@ -30,34 +30,37 @@ void CollisionSystem::update() {
     this->collisionObserver.clear();
 }
 
-void CollisionSystem::resolveCollision(glm::vec4 collision, Spacial& spacial, glm::vec4 entityCol, Spacial entitySpac) {
+void CollisionSystem::resolveCollision(glm::vec4 collision1, Spacial& spacial1, glm::vec4 collision2, Spacial spacial2) {
 
-    glm::vec3 offset1(collision.z, collision.w, 0);
-    glm::vec3 offset2(entityCol.z, entityCol.w, 0);
+    glm::vec3 pos1 = spacial1.pos;
 
-    // Collision is based on top left corner while rendered obejcts are based on bottom left
-    //  This might need to be a temporary solution, as this will not work for two rendered objects colliding
-    glm::vec3 collisionOffset(0, spacial.dim.y, 0);
+    float t1 = pos1.y + collision1.w;
+    float b1 = pos1.y + collision1.w + collision1.y;
+    float l1 = pos1.x + collision1.z;
+    float r1 = pos1.x + collision1.z + collision1.x;
 
-    glm::vec3 pos1 = spacial.pos + offset1;
-    glm::vec2 dim1{collision};
+    glm::vec3 pos2 = spacial2.pos;
 
-    glm::vec3 pos2 = entitySpac.pos + offset2;
-    glm::vec2 dim2{entityCol};
+    float t2 = pos2.y + collision2.w;
+    float b2 = pos2.y + collision2.w + collision2.y;
+    float l2 = pos2.x + collision2.z;
+    float r2 = pos2.x + collision2.z + collision2.x;
 
-    if (pos1.y < pos2.y + dim2.y && pos1.y + dim1.y > pos2.y && pos1.x < pos2.x + dim2.x && pos1.x + dim1.x > pos2.x) {
-        switch (spacial.direction) {
+    // float epsilon = 0.005;
+
+    if (b1 > t2 && b2 > t1 && r1 > l2 && r2 > l1) {
+        switch (spacial1.direction) {
             case UP:
-                spacial.pos.y = (pos2.y + dim2.y) - offset1.y;
+                spacial1.pos.y = b2 - collision1.w;
                 break;
             case DOWN:
-                spacial.pos.y = (pos2.y - dim1.y) - offset1.y;
+                spacial1.pos.y = t2 - collision1.y - collision1.w;
                 break;
             case LEFT:
-                spacial.pos.x = (pos2.x + dim2.x) - offset1.x;
+                spacial1.pos.x = r2 - collision1.z;
                 break;
             case RIGHT:
-                spacial.pos.x = (pos2.x - dim1.x) - offset1.x;
+                spacial1.pos.x = l2 - collision1.x - collision1.z;
                 break;
         }
     }

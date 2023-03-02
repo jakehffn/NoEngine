@@ -27,6 +27,7 @@ public:
     TextureAtlas(std::string textureAtlasBasePath);
 
     void initEntity(entt::registry& registry, entt::entity entity, std::string spriteSheetName);
+    // void initTile
 
     int nColorChannels;
     GLuint glTextureID;
