@@ -2,8 +2,6 @@
 
 #include "consts.h"
 #include "shader_program.h"
-#include "sprite_shader.h"
-#include "tile_shader.h"
 #include "screen_shader.h"
 #include "instanced_shader.h"
 
