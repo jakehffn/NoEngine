@@ -1,67 +1,94 @@
 #include "collision_system.h"
 
 CollisionSystem::CollisionSystem(entt::registry& registry) : System(registry),
-    collisionObserver{ entt::observer(registry, entt::collector.update<Spacial>().where<Collision>()) } {}
+    collision_observer{ entt::observer(registry, entt::collector.update<Spacial>().where<Collision>()) } {}
 
 void CollisionSystem::update() {
 
+    auto entities = registry.view<Collision, Spacial>();
+    auto& component_grid = this->registry.ctx().at<ComponentGrid<Renderable, Collision>&>();
+
     // Iterate over all entities were moved in the last frame and have Collision
-    for (const auto observedEntity : this->collisionObserver) {
+    for (const auto observed_entity : this->collision_observer) {
 
-        
-        auto entities = registry.view<Collision, Spacial>();
+        auto [observed_collision, observed_spacial] = entities.get<Collision, Spacial>(observed_entity);
 
-        auto [observedCollision, spacial] = entities.get<Collision, Spacial>(observedEntity);
+        // Iterate over the bounding boxes in the observed entity
+        for (const auto& observed_bounding_box : observed_collision.boundingBoxes) {
 
-        for (auto colEntity : entities) {
+            this->collision_query.clear();
 
-            if (colEntity != observedEntity) {
+            component_grid.query<Collision>((struct Bounds) {
+                observed_spacial.pos.x + observed_bounding_box.z,
+                observed_spacial.pos.y + observed_bounding_box.w,
+                observed_bounding_box.x, observed_bounding_box.y}, this->collision_query);
+            
+            // Iterate over the entities which could be colliding with the observed entity
+            for (auto other_entity : this->collision_query) {
 
-                auto [entityCollision, entitySpacial] = entities.get(colEntity);
+                if (other_entity == observed_entity) {
+                    continue;
+                }
 
-                for (auto boundingBox : entityCollision.boundingBoxes) {
+                auto [other_collision, other_spacial] = entities.get<Collision, Spacial>(other_entity);
 
-                    resolveCollision(observedCollision.boundingBoxes.at(0), spacial, boundingBox, entitySpacial);
+                for (auto other_bounding_box : other_collision.boundingBoxes) {
+
+                    if (this->isColliding(observed_bounding_box, observed_spacial, other_bounding_box, other_spacial)) {
+
+                        this->resolveCollision(observed_bounding_box, observed_spacial, other_bounding_box, other_spacial);
+                    }
                 }
             }
-        }  
+        }
+        
+
+        // for (auto colEntity : entities) {
+
+        //     if (colEntity != observed_entity) {
+
+        //         auto [entity_collision, entity_spacial] = entities.get(colEntity);
+
+        //         for (auto bounding_box : entity_collision.boundingBoxes) {
+
+        //             resolveCollision(observed_collision.boundingBoxes.at(0), observed_spacial, bounding_box, entity_spacial);
+        //         }
+        //     }
+        // }  
     }
 
-    this->collisionObserver.clear();
+    this->collision_observer.clear();
 }
 
-void CollisionSystem::resolveCollision(glm::vec4 collision1, Spacial& spacial1, glm::vec4 collision2, Spacial spacial2) {
+void CollisionSystem::resolveCollision(const glm::vec4& collision_1, Spacial& spacial_1, const glm::vec4& collision_2, const Spacial& spacial_2) {
 
-    glm::vec3 pos1 = spacial1.pos;
-
-    float t1 = pos1.y + collision1.w;
-    float b1 = pos1.y + collision1.w + collision1.y;
-    float l1 = pos1.x + collision1.z;
-    float r1 = pos1.x + collision1.z + collision1.x;
-
-    glm::vec3 pos2 = spacial2.pos;
-
-    float t2 = pos2.y + collision2.w;
-    float b2 = pos2.y + collision2.w + collision2.y;
-    float l2 = pos2.x + collision2.z;
-    float r2 = pos2.x + collision2.z + collision2.x;
-
-    // float epsilon = 0.005;
-
-    if (b1 > t2 && b2 > t1 && r1 > l2 && r2 > l1) {
-        switch (spacial1.direction) {
-            case UP:
-                spacial1.pos.y = b2 - collision1.w;
-                break;
-            case DOWN:
-                spacial1.pos.y = t2 - collision1.y - collision1.w;
-                break;
-            case LEFT:
-                spacial1.pos.x = r2 - collision1.z;
-                break;
-            case RIGHT:
-                spacial1.pos.x = l2 - collision1.x - collision1.z;
-                break;
-        }
+    switch (spacial_1.direction) {
+        case UP:
+            spacial_1.pos.y = spacial_2.pos.y + collision_2.w + collision_2.y - collision_1.w;
+            break;
+        case DOWN:
+            spacial_1.pos.y = spacial_2.pos.y + collision_2.w - collision_1.y - collision_1.w;
+            break;
+        case LEFT:
+            spacial_1.pos.x = spacial_2.pos.x + collision_2.z + collision_2.x - collision_1.z;
+            break;
+        case RIGHT:
+            spacial_1.pos.x = spacial_2.pos.x + collision_2.z - collision_1.x - collision_1.z;
+            break;
     }
+}
+
+bool CollisionSystem::isColliding(const glm::vec4& collision_1, const Spacial& spacial_1, const glm::vec4& collision_2, const Spacial& spacial_2) {
+
+    float top_1 = spacial_1.pos.y + collision_1.w;
+    float bottom_1 = spacial_1.pos.y + collision_1.w + collision_1.y;
+    float left_1 = spacial_1.pos.x + collision_1.z;
+    float right_1 = spacial_1.pos.x + collision_1.z + collision_1.x;
+
+    float top_2 = spacial_2.pos.y + collision_2.w;
+    float bottom_2 = spacial_2.pos.y + collision_2.w + collision_2.y;
+    float left_2 = spacial_2.pos.x + collision_2.z;
+    float right_2 = spacial_2.pos.x + collision_2.z + collision_2.x;
+
+    return (bottom_1 > top_2 && bottom_2 > top_1 && right_1 > left_2 && right_2 > left_1);
 }

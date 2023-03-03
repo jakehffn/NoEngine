@@ -69,7 +69,8 @@ private:
     int width;
     int height;
     int cell_size;
-    int cell_row_length;
+    int cell_row_size;
+    int cell_column_size;
     int num_cells;
 };
 
@@ -79,7 +80,8 @@ void Grid<T>::init(int width, int height, int cell_size) {
     this->width = width;
     this->height = height;
     this->cell_size = cell_size;
-    this->cell_row_length = (width+cell_size-1)/cell_size;
+    this->cell_row_size = (width+cell_size-1)/cell_size;
+    this->cell_column_size = (height+cell_size-1)/cell_size;
 
     this->clear();
 }
@@ -91,7 +93,7 @@ void Grid<T>::clear() {
     this->element_nodes.clear();
     this->cell_nodes.clear();
 
-    this->num_cells = this->cell_row_length * ((this->height+this->cell_size-1)/this->cell_size);
+    this->num_cells = this->cell_row_size * ((this->height+this->cell_size-1)/this->cell_size);
     this->cell_nodes.resize(num_cells);
 
     std::cout << "Initialized with " << cell_nodes.size() << " elements" << "\n";
@@ -202,8 +204,8 @@ void Grid<T>::cellInsert(int cell_node, int element_node) {
 template<class T>
 void Grid<T>::cellRemove(int cell_node, int element_node) {
 
-    int previous_node = cell_node;
-    int current_node = this->cell_nodes[cell_node].next;
+    int previous_node{cell_node};
+    int current_node{this->cell_nodes[cell_node].next};
 
     // Find the element_node in the cell_node's list
     while (this->cell_nodes[current_node].element != element_node) {
@@ -221,7 +223,7 @@ void Grid<T>::cellRemove(int cell_node, int element_node) {
 template<class T>
 void Grid<T>::cellQuery(int cell_node, int unused) {
 
-    int current_node = this->cell_nodes[cell_node].next;
+    int current_node{this->cell_nodes[cell_node].next};
 
     while (current_node != -1) {
         assert(current_node < this->cell_nodes.size() && "current_node out of bounds");
@@ -233,25 +235,26 @@ void Grid<T>::cellQuery(int cell_node, int unused) {
 template<class T>
 void Grid<T>::iterateBounds(int node, const Bounds& bounds, void (Grid::*function)(int, int)) {
 
-    // Snap to the edge if extending past the boundaries
-    int x = std::clamp(bounds.x, 0, this->width);
-    int y = std::clamp(bounds.y, 0, this->height);
-
-    int w = (x + bounds.w < this->width) ? bounds.w : std::max(this->width - x, 0);
-    int h = (y + bounds.h < this->height) ? bounds.h : std::max(this->height - y, 0);
-
-    int x_cell_start = x/this->cell_size;
-    int y_cell_start = y/this->cell_size;
-    int x_cell_end = (w+this->cell_size-1)/this->cell_size + x_cell_start;
-    int y_cell_end = (h+this->cell_size-1)/this->cell_size + y_cell_start;
+    // Snap to the edge if extending past the map boundaries
+    // Expanded boundaries allow for issues with cell boundaries to be avoided
+    const int expanded_bound{1};
+    
+    int x_cell_start = std::clamp(bounds.x/this->cell_size - expanded_bound, 
+        0, this->cell_row_size);
+    int y_cell_start = std::clamp(bounds.y/this->cell_size - expanded_bound, 
+        0, this->cell_column_size);
+    int x_cell_end = std::clamp(bounds.w/this->cell_size + x_cell_start + expanded_bound,
+        0, this->cell_row_size);
+    int y_cell_end = std::clamp(bounds.h/this->cell_size + y_cell_start + expanded_bound,
+        0, this->cell_column_size);
 
     for (int xx{x_cell_start}; xx < x_cell_end; xx++) {
         for (int yy{y_cell_start}; yy < y_cell_end; yy++) {
 
-            if (yy*this->cell_row_length + xx >= this->num_cells) {
+            if (yy*this->cell_row_size + xx >= this->num_cells) {
                 std::cout << "Big Error - width: " << this->width << " height: " << this-> height << " ";
             } else {
-                (this->*function)(yy*this->cell_row_length + xx, node);           
+                (this->*function)(yy*this->cell_row_size + xx, node);           
             }
         }
     }

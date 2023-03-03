@@ -7,6 +7,8 @@
 
 #include "spacial.h"
 #include "collision.h"
+#include "Renderable.h"
+#include "grid.h"
 
 class CollisionSystem : public System {
 public:
@@ -15,7 +17,9 @@ public:
     void update() override;
 
 private:
-    void resolveCollision(glm::vec4 collision, Spacial& spacial, glm::vec4 entityCol, Spacial entitySpac);
-
-    entt::observer collisionObserver;
+    void resolveCollision(const glm::vec4& collision, Spacial& spacial, const glm::vec4& entityCol, const Spacial& entitySpac);
+    bool isColliding(const glm::vec4& collision_1, const Spacial& spacial_1, const glm::vec4& collision_2, const Spacial& spacial_2);
+    
+    entt::observer collision_observer;
+    std::vector<entt::entity> collision_query;
 };
