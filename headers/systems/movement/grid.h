@@ -234,14 +234,11 @@ template<class T>
 void Grid<T>::iterateBounds(int node, const Bounds& bounds, void (Grid::*function)(int, int)) {
 
     // Snap to the edge if extending past the boundaries
-    int x = (bounds.x >= 0) ? bounds.x : 0;
-    int y = (bounds.y >= 0) ? bounds.y : 0;
-
-    x = (x < this->width) ? x : this->width - 1;
-    y = (y < this->height) ? y : this->height - 1;
+    int x = std::clamp(bounds.x, 0, this->width);
+    int y = std::clamp(bounds.y, 0, this->height);
 
     int w = (x + bounds.w < this->width) ? bounds.w : std::max(this->width - x, 0);
-    int h = (y + bounds.h < this->height) ? bounds.h : std::max(this->height - y, 0);;
+    int h = (y + bounds.h < this->height) ? bounds.h : std::max(this->height - y, 0);
 
     int x_cell_start = x/this->cell_size;
     int y_cell_start = y/this->cell_size;
