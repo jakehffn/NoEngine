@@ -173,7 +173,7 @@ void MapLoaderSystem::addTilesets(tmx::Map& map) {
 
 void MapLoaderSystem::addCollision(entt::entity entity, const tmx::Tileset::Tile* tile) {
 
-    std::vector<glm::vec4> boundingBoxes;
+    std::vector<glm::vec4> bounding_boxes;
 
     // Load the collisions boxes associated with the tile, which is located in the tmx::tileset
     for (auto collisionBox : tile->objectGroup.getObjects()) {
@@ -181,10 +181,10 @@ void MapLoaderSystem::addCollision(entt::entity entity, const tmx::Tileset::Tile
         tmx::Vector2f position = collisionBox.getPosition();
         tmx::FloatRect rectangle = collisionBox.getAABB();
 
-        boundingBoxes.emplace_back(rectangle.width, rectangle.height, position.x, position.y);
+        bounding_boxes.emplace_back(rectangle.width, rectangle.height, position.x, position.y);
     }
 
-    if (boundingBoxes.size() != 0) {
-        this->registry.emplace<Collision>(entity, std::move(boundingBoxes));
+    if (bounding_boxes.size() != 0) {
+        this->registry.emplace<Collision>(entity, std::move(bounding_boxes));
     }
 }

@@ -55,7 +55,7 @@ private:
     void cellRemove(int cell_node, int element_node);
     void cellQuery(int cell_node, int unused);
 
-    void iterateBounds(int node, const Bounds& bounds, void (Grid::*function)(int, int));
+    void iterateBounds(int node, const Bounds& bounds, void (Grid::*func)(int, int));
 
     std::vector<T> elements;
     std::vector<Node> element_nodes;
@@ -233,7 +233,7 @@ void Grid<T>::cellQuery(int cell_node, int unused) {
 }
 
 template<class T>
-void Grid<T>::iterateBounds(int node, const Bounds& bounds, void (Grid::*function)(int, int)) {
+void Grid<T>::iterateBounds(int node, const Bounds& bounds, void (Grid::*func)(int, int)) {
 
     // Snap to the edge if extending past the map boundaries
     // Expanded boundaries allow for issues with cell boundaries to be avoided
@@ -254,7 +254,7 @@ void Grid<T>::iterateBounds(int node, const Bounds& bounds, void (Grid::*functio
             if (yy*this->cell_row_size + xx >= this->num_cells) {
                 std::cout << "Big Error - width: " << this->width << " height: " << this-> height << " ";
             } else {
-                (this->*function)(yy*this->cell_row_size + xx, node);           
+                (this->*func)(yy*this->cell_row_size + xx, node);           
             }
         }
     }
@@ -280,6 +280,9 @@ struct GridData {
     int node;
 };
 
+// Grid wrapper for EnTT to insert, update, and remove components as their spacials update
+// Note: the bounds used for the grid are the spacial bounds. 
+// Bounding boxes of the collision component are not considered.
 template<typename... Components>
 class ComponentGrid {
 public:

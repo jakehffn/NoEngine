@@ -8,6 +8,8 @@
 
 #include "player_control.h"
 #include "camera_controller.h"
+#include "collider.h"
+#include "collidable.h"
 
 namespace ComponentFactory {
 
@@ -17,6 +19,10 @@ namespace ComponentFactory {
             registry.emplace_or_replace<PlayerControl>(entity, args);
         } else if (component == "CameraController") {
             registry.emplace_or_replace<CameraController>(entity, args);
+        } else if (component == "Collider") {
+            registry.emplace_or_replace<Collider>(entity);
+        } else if (component == "Collidable") {
+            registry.emplace_or_replace<Collidable>(entity);
         } else {
             std::cout << "No component of type '" << component << "' exists." << std::endl;
         }

@@ -1,67 +1,95 @@
 #include "collision_system.h"
 
 CollisionSystem::CollisionSystem(entt::registry& registry) : System(registry),
-    collision_observer{ entt::observer(registry, entt::collector.update<Spacial>().where<Collision>()) } {}
+    collision_observer{ entt::observer(registry, entt::collector.update<Spacial>().where<Collision>()) },
+    collider_observer{ entt::observer(registry, entt::collector.update<Spacial>().where<Collision, Collider>()) },
+    collidable_observer{ entt::observer(registry, entt::collector.update<Spacial>().where<Collision, Collidable>()) },
+    interacter_observer{ entt::observer(registry, entt::collector.update<Spacial>().where<Collision, Interacter>()) },
+    interactable_observer{ entt::observer(registry, entt::collector.update<Spacial>().where<Collision, Interactable>()) } {}
 
 void CollisionSystem::update() {
 
-    auto entities = registry.view<Collision, Spacial>();
-    auto& component_grid = this->registry.ctx().at<ComponentGrid<Renderable, Collision>&>();
+    this->fillAllQueries();
 
-    // Iterate over all entities were moved in the last frame and have Collision
-    for (const auto observed_entity : this->collision_observer) {
+    this->iterateObserverInto<Collidable>(collider_observer, this->resolveCollider);
+}
 
-        auto [observed_collision, observed_spacial] = entities.get<Collision, Spacial>(observed_entity);
+template<typename Component>
+void CollisionSystem::iterateObserverInto(entt::observer& observer, 
+    void (CollisionSystem::*func)(entt::entity, const glm::vec4&, Spacial&, const glm::vec4&, const Spacial&)) {
 
-        // Iterate over the bounding boxes in the observed entity
-        for (const auto& observed_bounding_box : observed_collision.boundingBoxes) {
+        auto entities = registry.view<Collision, Spacial>();
 
-            this->collision_query.clear();
+        // Iterate over all entities were moved in the last frame and have Collision
+        observer.each([this, entities, func](const auto observed_entity) {
 
-            component_grid.query<Collision>(
-                observed_spacial.pos.x + observed_bounding_box.z,
-                observed_spacial.pos.y + observed_bounding_box.w,
-                observed_bounding_box.x, observed_bounding_box.y, this->collision_query);
-            
-            // Iterate over the entities which could be colliding with the observed entity
-            for (auto other_entity : this->collision_query) {
+            auto [observed_collision, observed_spacial] = entities.get<Collision, Spacial>(observed_entity);
 
-                if (other_entity == observed_entity) {
-                    continue;
-                }
+            // Iterate over the bounding boxes in the observed entity
+            for (const auto& observed_bounding_box : observed_collision.bounding_boxes) {
+                
+                // Iterate over the entities which could be colliding with the observed entity
+                for (auto other_entity : observed_collision.current_grid_query) {
 
-                auto [other_collision, other_spacial] = entities.get<Collision, Spacial>(other_entity);
+                    if (other_entity == observed_entity) {
+                        continue;
+                    }
 
-                for (auto other_bounding_box : other_collision.boundingBoxes) {
+                    auto [other_collision, other_spacial] = entities.get<Collision, Spacial>(other_entity);
 
-                    if (this->isColliding(observed_bounding_box, observed_spacial, other_bounding_box, other_spacial)) {
+                    for (auto other_bounding_box : other_collision.bounding_boxes) {
 
-                        this->resolveCollision(observed_bounding_box, observed_spacial, other_bounding_box, other_spacial);
+                        if (this->registry.all_of<Component>(other_entity) && 
+                            this->isColliding(observed_bounding_box, observed_spacial, other_bounding_box, other_spacial)) {
+
+                            (this->*func)(observed_entity, observed_bounding_box, observed_spacial, 
+                                other_bounding_box, other_spacial);
+                        }
                     }
                 }
             }
-        }
-    }
-
-    this->collision_observer.clear();
+        });
 }
 
-void CollisionSystem::resolveCollision(const glm::vec4& collision_1, Spacial& spacial_1, const glm::vec4& collision_2, const Spacial& spacial_2) {
+// Fill the queries of all entities with collision that have moved
+void CollisionSystem::fillAllQueries() {
 
-    switch (spacial_1.direction) {
-        case UP:
-            spacial_1.pos.y = spacial_2.pos.y + collision_2.w + collision_2.y - collision_1.w;
-            break;
-        case DOWN:
-            spacial_1.pos.y = spacial_2.pos.y + collision_2.w - collision_1.y - collision_1.w;
-            break;
-        case LEFT:
-            spacial_1.pos.x = spacial_2.pos.x + collision_2.z + collision_2.x - collision_1.z;
-            break;
-        case RIGHT:
-            spacial_1.pos.x = spacial_2.pos.x + collision_2.z - collision_1.x - collision_1.z;
-            break;
-    }
+    auto& component_grid = this->registry.ctx().at<ComponentGrid<Renderable, Collision>&>();
+
+    this->collision_observer.each([this, &component_grid](const auto entity) {
+        this->registry.patch<Collision>(entity, [this, entity, &component_grid](auto& collision) {
+
+            auto& observed_spacial = this->registry.get<Spacial>(entity);
+            
+            collision.current_grid_query.clear();
+
+            component_grid.query<Collision>(
+                observed_spacial.pos.x, observed_spacial.pos.y,
+                observed_spacial.dim.x, observed_spacial.dim.y, collision.current_grid_query);
+        });
+    });
+}
+
+void CollisionSystem::resolveCollider(entt::entity entity, const glm::vec4& collision, Spacial& spacial, 
+    const glm::vec4& other_collision, const Spacial& other_spacial) {
+
+        switch (spacial.direction) {
+            case UP:
+                spacial.pos.y = other_spacial.pos.y + other_collision.w + other_collision.y - collision.w;
+                break;
+            case DOWN:
+                spacial.pos.y = other_spacial.pos.y + other_collision.w - collision.y - collision.w;
+                break;
+            case LEFT:
+                spacial.pos.x = other_spacial.pos.x + other_collision.z + other_collision.x - collision.z;
+                break;
+            case RIGHT:
+                spacial.pos.x = other_spacial.pos.x + other_collision.z - collision.x - collision.z;
+                break;
+        }
+
+        // Patch ensures the componentGrid gets the update
+        this->registry.patch<Spacial>(entity, [](auto& spacial) {});
 }
 
 bool CollisionSystem::isColliding(const glm::vec4& collision_1, const Spacial& spacial_1, const glm::vec4& collision_2, const Spacial& spacial_2) {
