@@ -1,0 +1,135 @@
+{
+	"version": "2.0.0",
+	"options": {
+		"env": {
+		  "CXX": "C:/msys64/mingw32/bin/g++"
+		}
+	 },
+	"tasks": [
+		{
+			"type": "shell",
+			"label": "Execute Makefile (debug)",
+			"command": "mingw32-make",
+			"options": {
+				"cwd": "${workspaceFolder}/build/debug"
+			},
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": true,
+				"panel": "dedicated",
+				"showReuseMessage": true,
+				"clear": false
+			}
+		},
+		{
+			"type": "shell",
+			"label": "Run CMake (debug)",
+			"command": "cmake",
+			"args": [
+				"-DCMAKE_BUILD_TYPE=Debug",
+				"../..",
+				"-G",
+				"MinGW Makefiles"
+			],
+			"options": {
+				"cwd": "${workspaceFolder}/build/debug"
+			},
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": true,
+				"panel": "dedicated",
+				"showReuseMessage": true,
+				"clear": false
+			}
+		},
+		{
+			"type": "shell",
+			"label": "Execute Makefile (release)",
+			"command": "mingw32-make",
+			"options": {
+				"cwd": "${workspaceFolder}/build/release"
+			},
+			"group": {
+				"kind": "build",
+				"isDefault": false
+			},
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": true,
+				"panel": "dedicated",
+				"showReuseMessage": true,
+				"clear": false
+			}
+		},
+		{
+			"type": "shell",
+			"label": "Run CMake (release)",
+			"command": "cmake",
+			"args": [
+				"-DCMAKE_BUILD_TYPE=Release",
+				"../..",
+				"-G",
+				"MinGW Makefiles"
+			],
+			"options": {
+				"cwd": "${workspaceFolder}/build/release"
+			},
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": true,
+				"panel": "dedicated",
+				"showReuseMessage": true,
+				"clear": false
+			}
+		},
+		{
+			"type": "process",
+			"options": {
+                "shell": {
+                    "executable": "powershell.exe"
+                }
+            },
+			"label": "Run with gdbserver",
+			"command": "C:\\msys64\\mingw32\\bin\\gdbserver.exe",
+			"args": [
+				"localhost:2000",
+				"${workspaceFolder}\\build\\debug\\untitledRPG.exe"
+			], 
+			"isBackground": true,
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": true,
+				"panel": "new",
+				"showReuseMessage": true,
+				"clear": false,
+				"close": false
+			},//Start-Process -FilePath "C:\msys64\mingw32\bin\gdbserver.exe" -ArgumentList "localhost:2000 C:\Users\Jaket\Documents\Programming\UntitledRPG/build/debug/untitledRPG.exe" -NoNewWindow
+			"problemMatcher": [
+				{
+				  "pattern": [
+					{
+					  "regexp": ".",
+					  "file": 1,
+					  "location": 2,
+					  "message": 3
+					}
+				  ],
+				  "background": {
+					"activeOnStart": true,
+					"beginsPattern": ".*Listening on port.*",
+					"endsPattern": ".*",
+				  }
+				}
+			  ]
+		}
+	]
+}

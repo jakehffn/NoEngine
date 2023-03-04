@@ -1,5 +1,4 @@
 *.exe
-/.vscode
 /build
 /libs/*
 !/libs/CMakeLists.txt
