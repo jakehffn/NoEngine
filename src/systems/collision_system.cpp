@@ -31,7 +31,7 @@ void CollisionSystem::iterateObserverInto(entt::observer& observer,
                 // Iterate over the entities which could be colliding with the observed entity
                 for (auto other_entity : observed_collision.current_grid_query) {
 
-                    if (other_entity == observed_entity) {
+                    if (other_entity == observed_entity || !this->registry.all_of<Component>(other_entity)) {
                         continue;
                     }
 
@@ -39,8 +39,7 @@ void CollisionSystem::iterateObserverInto(entt::observer& observer,
 
                     for (auto other_bounding_box : other_collision.bounding_boxes) {
 
-                        if (this->registry.all_of<Component>(other_entity) && 
-                            this->isColliding(observed_bounding_box, observed_spacial, other_bounding_box, other_spacial)) {
+                        if (this->isColliding(observed_bounding_box, observed_spacial, other_bounding_box, other_spacial)) {
 
                             (this->*func)(observed_entity, observed_bounding_box, observed_spacial, 
                                 other_bounding_box, other_spacial);
