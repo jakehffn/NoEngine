@@ -57,7 +57,7 @@ void Game::mainLoop() {
 
         std::vector<double> times;
 
-        for (System* system : this->systems) {
+        for (auto system : this->systems) {
 
             double start =  SDL_GetPerformanceCounter();
             system->update();

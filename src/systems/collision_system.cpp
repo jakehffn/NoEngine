@@ -18,10 +18,10 @@ void CollisionSystem::update() {
 
             this->collision_query.clear();
 
-            component_grid.query<Collision>((struct Bounds) {
+            component_grid.query<Collision>(
                 observed_spacial.pos.x + observed_bounding_box.z,
                 observed_spacial.pos.y + observed_bounding_box.w,
-                observed_bounding_box.x, observed_bounding_box.y}, this->collision_query);
+                observed_bounding_box.x, observed_bounding_box.y, this->collision_query);
             
             // Iterate over the entities which could be colliding with the observed entity
             for (auto other_entity : this->collision_query) {
@@ -41,20 +41,6 @@ void CollisionSystem::update() {
                 }
             }
         }
-        
-
-        // for (auto colEntity : entities) {
-
-        //     if (colEntity != observed_entity) {
-
-        //         auto [entity_collision, entity_spacial] = entities.get(colEntity);
-
-        //         for (auto bounding_box : entity_collision.boundingBoxes) {
-
-        //             resolveCollision(observed_collision.boundingBoxes.at(0), observed_spacial, bounding_box, entity_spacial);
-        //         }
-        //     }
-        // }  
     }
 
     this->collision_observer.clear();

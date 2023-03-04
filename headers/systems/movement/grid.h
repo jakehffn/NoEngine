@@ -296,6 +296,11 @@ public:
     requires Insertable<R<Rtype>, Rtype>
     R<Rtype>& query(const Bounds& bounds, R<entt::entity>& results);
 
+    template<typename Component, template<typename Rtype> typename R, typename Rtype=entt::entity> 
+    requires Insertable<R<Rtype>, Rtype>
+    R<Rtype>& query(const float x, const float y, const float w, const float h, R<entt::entity>& results);
+
+
     template<typename Component>
     void clear();
 
@@ -368,6 +373,21 @@ R<Rtype>& ComponentGrid<Components...>::query(const Bounds& bounds, R<entt::enti
     assert((std::is_same_v<Component, Components> || ...));
 
     return this->grids[Index_v<Component, Components...>].query(bounds, results);
+}
+
+template<typename... Components>
+template<typename Component, template<typename Rtype> typename R, typename Rtype> 
+requires Insertable<R<Rtype>, Rtype>
+R<Rtype>& ComponentGrid<Components...>::query(float x, float y, float w, float h, R<entt::entity>& results) {
+
+    assert((std::is_same_v<Component, Components> || ...));
+
+    return this->query<Component>({
+        static_cast<int>(x),
+        static_cast<int>(y),
+        static_cast<int>(w),
+        static_cast<int>(h)
+    }, results);
 }
 
 template<typename... Components>
