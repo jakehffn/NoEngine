@@ -72,18 +72,24 @@ void CollisionSystem::fillAllQueries() {
 void CollisionSystem::resolveCollider(entt::entity entity, const glm::vec4& collision, Spacial& spacial, 
     const glm::vec4& other_collision, const Spacial& other_spacial) {
 
+        // The epsilon prevent the collision condition from still being true after resolution becuase of 
+        //      floating-point error
+        // As long as the value resolves to something less than a pixel on the end-user's monitor, 
+        //      there will appear to be no bouncing
+        float epsilon = 0.005;
+
         switch (spacial.direction) {
             case UP:
-                spacial.pos.y = other_spacial.pos.y + other_collision.w + other_collision.y - collision.w;
+                spacial.pos.y = other_spacial.pos.y + other_collision.w + other_collision.y - collision.w + epsilon;
                 break;
             case DOWN:
-                spacial.pos.y = other_spacial.pos.y + other_collision.w - collision.y - collision.w;
+                spacial.pos.y = other_spacial.pos.y + other_collision.w - collision.y - collision.w - epsilon;
                 break;
             case LEFT:
-                spacial.pos.x = other_spacial.pos.x + other_collision.z + other_collision.x - collision.z;
+                spacial.pos.x = other_spacial.pos.x + other_collision.z + other_collision.x - collision.z + epsilon;
                 break;
             case RIGHT:
-                spacial.pos.x = other_spacial.pos.x + other_collision.z - collision.x - collision.z;
+                spacial.pos.x = other_spacial.pos.x + other_collision.z - collision.x - collision.z - epsilon;
                 break;
         }
 
