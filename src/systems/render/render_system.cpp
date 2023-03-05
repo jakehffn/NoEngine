@@ -142,16 +142,6 @@ glm::mat4 RenderSystem::getModel(const Spacial& spacial, const Texture& texture)
     return (translate * scale * rotate);
 }
 
-glm::mat4 RenderSystem::getTileModel(const Spacial& spacial) {
-
-    Texture texture;
-
-    texture.frameData->size = glm::vec2(16.0f, 16.0f);
-    texture.frameData->offset = glm::vec2();
-
-    return this->getModel(spacial, texture);
-}
-
 void RenderSystem::bufferEntityData() {
     
     this->registry.view<Texture, Model, Tile, ToRender>().each([this](auto& texture, auto& model, auto& tile) {  
