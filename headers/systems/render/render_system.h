@@ -15,7 +15,6 @@
 #include "animation.h"
 #include "text.h"
 #include "to_render.h"
-#include "tile_set.h"
 #include "tile.h"
 #include "renderable.h"
 #include "collision.h"
@@ -45,7 +44,6 @@ private:
     glm::mat4 getTileModel(const Spacial& spacial);
 
     void bufferEntityData();
-    void bufferTileData();
 
     void render();
 

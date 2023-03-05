@@ -85,7 +85,7 @@ void MapLoaderSystem::addObject(const tmx::Map& map, const tmx::Object& object) 
 
         textureAtlas.initEntity(this->registry, entity, textureName);
 
-        this->registry.emplace<Spacial>(entity, glm::vec3(position.x, position.y, 0), 
+        this->registry.emplace<Spacial>(entity, glm::vec3(position.x, position.y, 1), 
             glm::vec3(0, 0, 0), glm::vec3(1, 1, 1), glm::vec2(tile->imageSize.x, tile->imageSize.y));
         this->registry.emplace<Renderable>(entity);
 
@@ -149,7 +149,7 @@ void MapLoaderSystem::addTilesets(tmx::Map& map) {
         //      The drawback for this is that the textures coordinates are calculated every frame
         //      Another drawback is that adding the buffer data for tiles and other entities ends 
         //      up being different.
-        textureAtlas.initEntity(this->registry, tileSetEntity, textureName);
+        textureAtlas.initTileSet(this->registry, tileSetEntity, textureName);
         
         this->registry.emplace<TileSet>(tileSetEntity, (int)dimensions.x, (int)dimensions.y, (int)tileset.getFirstGID(), (int)tileset.getLastGID());
 
@@ -159,9 +159,12 @@ void MapLoaderSystem::addTilesets(tmx::Map& map) {
 
             const auto& tileEntity = this->registry.create();
 
+            // The position of the tile texture in the tileset image.
             glm::vec2 imagePosition = glm::vec2((float)tile->imagePosition.x, (float)tile->imagePosition.y);
 
-            this->registry.emplace<Tile>(tileEntity, (int)tileDataVec.z, imagePosition);
+            textureAtlas.initTile(this->registry, tileEntity, tileSetEntity, imagePosition, (int)tileDataVec.z);
+
+            this->registry.emplace<Tile>(tileEntity, (int)tileDataVec.z);
             this->registry.emplace<Spacial>(tileEntity, glm::vec3(tileDataVec.x, tileDataVec.y, 0) * 16.0f, 
                 glm::vec3(0, 0, 0), glm::vec3(1, 1, 1), glm::vec2(16, 16));
             this->registry.emplace<Renderable>(tileEntity);

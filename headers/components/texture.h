@@ -18,5 +18,5 @@ struct Texture {
     int width;
     int height;
 
-    FrameData frameData;
+    FrameData* frameData;
 };

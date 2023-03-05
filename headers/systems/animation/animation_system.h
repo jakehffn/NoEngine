@@ -8,6 +8,7 @@
 
 #include "texture.h"
 #include "animation.h"
+#include "animator.h"
 #include "idle_animation.h"
 #include "move_animation.h"
 
@@ -21,12 +22,12 @@ public:
     void update() override;
 
 private:
+    void updateAnimators();
+    void updateTextures();
 
     void updateIdleAnimations();
     void updateMoveAnimations();
 
-    void updateAnimations();
-
-    entt::observer idleAnimationObserver;
-    entt::observer moveAnimationObserver;
+    entt::observer idle_animation_observer;
+    entt::observer move_animation_observer;
 };

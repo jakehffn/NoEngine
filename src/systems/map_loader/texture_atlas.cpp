@@ -3,7 +3,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-TextureAtlas::TextureAtlas(std::string textureAtlasBasePath) : textureAtlasBasePath{ textureAtlasBasePath } {
+TextureAtlas::TextureAtlas(std::string texture_atlas_base_path) : texture_atlas_base_path{ texture_atlas_base_path } {
 
     this->initTexture();
     this->initSpriteSheets();
@@ -11,73 +11,75 @@ TextureAtlas::TextureAtlas(std::string textureAtlasBasePath) : textureAtlasBaseP
 
 void TextureAtlas::initTexture() {
 
-    std::string texturePath = textureAtlasBasePath + ".png";
+    std::string texture_path = texture_atlas_base_path + ".png";
     // create texture
-    unsigned char* textureData = stbi_load(texturePath.c_str(), &(this->width), &(this->height), &(this->nColorChannels), STBI_rgb_alpha);
+    unsigned char* texture_data = stbi_load(texture_path.c_str(), &(this->width), &(this->height), &(this->num_color_channels), STBI_rgb_alpha);
 
-    glGenTextures(1, &(this->glTextureID));
-    glBindTexture(GL_TEXTURE_2D, this->glTextureID);
+    glGenTextures(1, &(this->gl_texture_id));
+    glBindTexture(GL_TEXTURE_2D, this->gl_texture_id);
 
-    if (textureData) {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, this->width, this->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, textureData);
+    if (texture_data) {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, this->width, this->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, texture_data);
         glGenerateMipmap(GL_TEXTURE_2D);
     } else {
         printf("Failed to load texture\n");
     }
 
-    stbi_image_free(textureData);
+    stbi_image_free(texture_data);
 }
 
 void TextureAtlas::initSpriteSheets() {
 
     std::string json;
-	std::ifstream jsonStream(textureAtlasBasePath + ".json", std::ios::in);
+	std::ifstream json_stream(texture_atlas_base_path + ".json", std::ios::in);
 
-	if(jsonStream.is_open()){
+	if(json_stream.is_open()){
 
 		std::stringstream sstr;
-		sstr << jsonStream.rdbuf();
+		sstr << json_stream.rdbuf();
 		json = sstr.str();
-		jsonStream.close();
+		json_stream.close();
 
-	}else{
-		std::cout << "Unable to open " << textureAtlasBasePath + ".json" << std::endl;
+	} else {
+		std::cout << "Unable to open " << texture_atlas_base_path + ".json" << std::endl;
 	}
 
     rapidjson::Document document;
     document.Parse(json.c_str());
 
-    static const char* kTypeNames[] = 
-    { "Null", "False", "True", "Object", "Array", "String", "Number" };
+    static const char* type_names[] = { "Null", "False", "True", "Object", "Array", "String", "Number" };
  
     for (rapidjson::Value::ConstMemberIterator itr = document.MemberBegin();
-        itr != document.MemberEnd(); ++itr)
-    {
+        itr != document.MemberEnd(); ++itr) {
         printf("Type of member %s is %s\n",
-            itr->name.GetString(), kTypeNames[itr->value.GetType()]);
+            itr->name.GetString(), type_names[itr->value.GetType()]);
     }
 
-    const rapidjson::Value& jsonSpriteSheets = document["spritesheets"];
-    assert(jsonSpriteSheets.IsArray() && "'spritesheets' in json is not an array.");
+    const rapidjson::Value& json_sprite_sheets = document["spritesheets"];
+    assert(json_sprite_sheets.IsArray() && "'spritesheets' in json is not an array.");
 
-    for (rapidjson::SizeType x = 0; x < jsonSpriteSheets.Size(); x++) {
+    for (rapidjson::SizeType x = 0; x < json_sprite_sheets.Size(); x++) {
 
-        const rapidjson::Value& s = jsonSpriteSheets[x];
+        const rapidjson::Value& s = json_sprite_sheets[x];
 
-        SpriteSheet newSheet = {
+        std::string sprite_sheet_name = s["name"].GetString();
+
+        std::unordered_map<std::string, std::unordered_map<DIRECTION, AnimationData>> new_animations;
+        SpriteSheet new_sprite_sheet{
+            sprite_sheet_name,
             glm::vec2(s["size"]["w"].GetInt(),s["size"]["h"].GetInt()),
-            glm::vec2(s["spriteSize"]["w"].GetInt(),s["spriteSize"]["h"].GetInt())
+            glm::vec2(s["spriteSize"]["w"].GetInt(),s["spriteSize"]["h"].GetInt()),
         };
 
-        const rapidjson::Value& jsonAnimations = s["animations"];
-        assert(jsonAnimations.IsArray() && "'animations' in json is not an array.");
+        const rapidjson::Value& json_animations = s["animations"];
+        assert(json_animations.IsArray() && "'animations' in json is not an array.");
 
-        for (rapidjson::SizeType y = 0; y < jsonAnimations.Size(); y++) {
+        for (rapidjson::SizeType y = 0; y < json_animations.Size(); y++) {
             
-            const rapidjson::Value& a = jsonAnimations[y];
+            const rapidjson::Value& a = json_animations[y];
 
-            const rapidjson::Value& jsonFrames = a["frames"];
-            assert(jsonAnimations.IsArray() && "'frames' in json is not an array.");
+            const rapidjson::Value& json_frames = a["frames"];
+            assert(json_animations.IsArray() && "'frames' in json is not an array.");
 
             std::string name = a["name"].GetString();
 
@@ -85,78 +87,142 @@ void TextureAtlas::initSpriteSheets() {
                 name = "idle";
             }
 
-            std::string directionString = a["direction"].GetString();
+            std::string direction_string = a["direction"].GetString();
             DIRECTION direction;
 
-            if (directionString == "up") {
+            if (direction_string == "up") {
                 direction = UP;
-            } else if (directionString == "down") {
+            } else if (direction_string == "down") {
                 direction = DOWN;
-            } else if (directionString == "left") {
+            } else if (direction_string == "left") {
                 direction = LEFT;
-            } else if (directionString == "right") {
+            } else if (direction_string == "right") {
                 direction = RIGHT;
             } else {
                 direction = DOWN;
             }
 
-            AnimationData newAnimation = {name, direction, a["numFrames"].GetInt()};
+            AnimationData new_animation_data{name, direction, a["numFrames"].GetInt()};
 
-            for (rapidjson::SizeType z = 0; z < jsonFrames.Size(); z++) {
+            // std::vector<FrameData> new_animation_frames;
+            // std::vector<float> new_animation_frame_durations;
 
-                const rapidjson::Value& f = jsonFrames[z];
+            for (rapidjson::SizeType z = 0; z < json_frames.Size(); z++) {
 
-                newAnimation.frames.push_back((FrameData) {
-                    f["duration"].GetFloat(),
+                const rapidjson::Value& f = json_frames[z];
+
+                new_animation_data.frames.push_back((FrameData) {
                     glm::vec2(f["position"]["x"].GetFloat(), f["position"]["y"].GetFloat()),
                     glm::vec2(f["size"]["w"].GetFloat(), f["size"]["h"].GetFloat()),
                     glm::vec2(f["offset"]["x"].GetFloat(), f["offset"]["y"].GetFloat())
                 });
+
+                new_animation_data.frame_durations.push_back(f["duration"].GetFloat());
             }
 
-            newSheet.animations[name][direction] = newAnimation;
+            new_animations[name][direction] = std::move(new_animation_data);
         }
 
-        this->spriteSheets[s["name"].GetString()] = newSheet;
+        new_sprite_sheet.animations = std::move(new_animations);
+        this->sprite_sheets[sprite_sheet_name] = std::move(new_sprite_sheet);
     }
 }
 
-void TextureAtlas::initEntity(entt::registry& registry, entt::entity entity, std::string spriteSheetName) {
+void TextureAtlas::initEntity(entt::registry& registry, entt::entity entity, std::string sprite_sheet_name) {
 
-    SpriteSheet& spriteSheet = this->spriteSheets[spriteSheetName];
+    SpriteSheet& sprite_sheet = this->sprite_sheets[sprite_sheet_name];
 
-    AnimationData defaultAnimation = spriteSheet.animations["idle"][DOWN];
-    auto& texture = registry.emplace_or_replace<Texture>(entity, spriteSheetName, (int)spriteSheet.size.x, (int)spriteSheet.size.y, defaultAnimation.frames[0]);
+    AnimationData& default_animation = sprite_sheet.animations["idle"][DOWN];
+    auto& texture = registry.emplace_or_replace<Texture>(entity, sprite_sheet_name, 
+        (int)sprite_sheet.size.x, (int)sprite_sheet.size.y, &(default_animation.frames[0])
+    );
 
-    registry.emplace_or_replace<Animation>(entity, 0.0,0, defaultAnimation);
+    auto& animator = registry.emplace<Animator>(entity, &(default_animation.frame_durations), default_animation.numFrames);
+    registry.emplace_or_replace<Animation>(entity, &animator, &default_animation);
 
     // TODO: Only entities with multiple frames need animations
 
-    for (auto& [animationName, animationMap] : spriteSheet.animations) {
+    this->addAnimationComponents(registry, entity, sprite_sheet.animations);
+}
+
+void TextureAtlas::initTileSet(entt::registry& registry, entt::entity tile_set_entity, std::string tile_set_name) {
+    
+    SpriteSheet& sprite_sheet = this->sprite_sheets[tile_set_name];
+
+    AnimationData& default_animation = sprite_sheet.animations["idle"][DOWN];
+    auto& texture = registry.emplace_or_replace<Texture>(tile_set_entity, tile_set_name, 
+        (int)sprite_sheet.size.x, (int)sprite_sheet.size.y, &(default_animation.frames[0])
+    );
+
+    // The animator for all tiles in this tileset
+    auto& animator = registry.emplace<Animator>(tile_set_entity, &(default_animation.frame_durations));
+    // registry.emplace_or_replace<Animation>(entity, &animator);
+
+    // // TODO: Only entities with multiple frames need animations
+    // this->addAnimationComponents(registry, entity, sprite_sheet.animations);
+}
+
+
+void TextureAtlas::initTile(entt::registry& registry, entt::entity tile_entity, 
+    entt::entity tile_set_entity, glm::vec2 image_position, int tile_gid) {
+
+    auto& animator = registry.get<Animator>(tile_set_entity);
+    const auto& tile_set_texture = registry.get<Texture>(tile_set_entity);
+
+    SpriteSheet& sprite_sheet = this->sprite_sheets[tile_set_texture.spriteSheetName];
+    const AnimationData& base_animation = sprite_sheet.animations["idle"][DOWN];
+
+    if (!this->tile_animation_data.contains(tile_gid)) {
+        this->createTileAnimationData(base_animation, image_position, tile_gid);
+    } 
+
+    auto& animation = registry.emplace<Animation>(tile_entity, &animator, &(tile_animation_data[tile_gid]));
+
+    auto& texture = registry.emplace<Texture>(tile_entity, tile_set_texture.spriteSheetName, 16, 16, &(animation.animationData->frames[0]));
+    
+}
+
+void TextureAtlas::createTileAnimationData(const AnimationData& base_animation, const glm::vec2& image_position, int tile_gid) {
+
+    AnimationData new_animation_data{base_animation.name, base_animation.direction, 
+        base_animation.numFrames, base_animation.frame_durations};
+
+    for (const FrameData& frame_data : base_animation.frames) {
+        new_animation_data.frames.emplace_back(
+            glm::vec2(frame_data.position.x + image_position.x,
+                frame_data.position.y + image_position.y),
+            glm::vec2(16, 16)
+        );
+    }
+
+    this->tile_animation_data.emplace(std::make_pair(tile_gid, std::move(new_animation_data)));
+}
+
+void TextureAtlas::addAnimationComponents(entt::registry& registry, entt::entity entity, AnimationMap& animation_map) {
+    
+    for (auto& [animation_name, animation_direction_map] : animation_map) {
             
-        assert(animationMap.find(DOWN) != animationMap.end() && "SpriteSheet animation does not include DOWN sprite");
+        assert(animation_direction_map.contains(DOWN) && "SpriteSheet animation does not include DOWN sprite");
 
         // Fill any empty animations with the down animation
-        if (animationMap.find(UP) == animationMap.end()) {
-            animationMap[UP] = animationMap[DOWN];
+        if (!animation_direction_map.contains(UP)) {
+            animation_direction_map[UP] = animation_direction_map[DOWN];
         }
 
-        if (animationMap.find(LEFT) == animationMap.end()) {
-            animationMap[LEFT] = animationMap[DOWN];
+        if (!animation_direction_map.contains(LEFT)) {
+            animation_direction_map[LEFT] = animation_direction_map[DOWN];
         }
 
-        if (animationMap.find(RIGHT) == animationMap.end()) {
-            animationMap[RIGHT] = animationMap[DOWN];
+        if (!animation_direction_map.contains(RIGHT)) {
+            animation_direction_map[RIGHT] = animation_direction_map[DOWN];
         }
 
-        if (animationName == "idle") {
+        if (animation_name == "idle") {
 
-            registry.emplace_or_replace<IdleAnimation>(entity, animationMap);
+            registry.emplace_or_replace<IdleAnimation>(entity, animation_direction_map);
 
-            texture.frameData = animationMap[DOWN].frames[0];
-
-        } else if (animationName == "move") {
-            registry.emplace_or_replace<MoveAnimation>(entity, animationMap);
+        } else if (animation_name == "move") {
+            registry.emplace_or_replace<MoveAnimation>(entity, animation_direction_map);
         }
     }
 }

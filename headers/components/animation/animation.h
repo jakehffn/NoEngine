@@ -5,12 +5,9 @@
 #include <glm/glm.hpp>
 
 #include "animation_structs.h"
+#include "animator.h"
 
 struct Animation {
-
-    // Total time frame has been visible
-    double frameTime{0};
-    // current animation frame
-    int currentFrame{0};
-    AnimationData animationData;
+    Animator* animator; // The animator which controls this animation
+    AnimationData* animationData; // Data for the currently set animation
 };

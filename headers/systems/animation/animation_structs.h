@@ -8,10 +8,8 @@
 
 #include "spacial.h"
 
-
 struct FrameData {
 
-    float duration;
     glm::vec2 position;
     glm::vec2 size;
     glm::vec2 offset;
@@ -22,15 +20,18 @@ struct AnimationData {
     std::string name;
     DIRECTION direction;
     int numFrames;
+    std::vector<float> frame_durations;
     std::vector<FrameData> frames;
 };
 
+using AnimationMap = std::unordered_map<std::string, std::unordered_map<DIRECTION, AnimationData>>;
+
 struct SpriteSheet {
 
+    std::string name;
     glm::vec2 size;
-    // glm::vec2 position; // Position of spritesheet in atlas
     glm::vec2 spriteSize; // Size of individual sprite
 
-    // Animation name then direction
-    std::unordered_map<std::string, std::unordered_map<DIRECTION, AnimationData>> animations;
+    // Animation name, then direction
+    AnimationMap animations;
 };

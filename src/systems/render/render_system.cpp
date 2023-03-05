@@ -26,8 +26,6 @@ void RenderSystem::update() {
     times.push_back(total);
 
     start =  SDL_GetPerformanceCounter();
-    // Tiles go behind entities, so it should be buffered first
-    this->bufferTileData();
     this->bufferEntityData();
     total =  (SDL_GetPerformanceCounter() - start)/SDL_GetPerformanceFrequency()*1000.0;
     times.push_back(total);
@@ -114,14 +112,7 @@ void RenderSystem::updateModels() {
     for (const auto entity : noModelEntities) {
 
         auto [spacial, texture] = noModelEntities.get<Spacial, Texture>(entity);
-        this->registry.emplace_or_replace<Model>(entity, this->getModel(spacial, texture));
-    }
-
-    auto noModelTiles = this->registry.view<Spacial, Tile>(entt::exclude<Model>);
-    for (const auto entity : noModelTiles) {
-
-        auto spacial = noModelTiles.get<Spacial>(entity);
-        this->registry.emplace_or_replace<Model>(entity, this->getTileModel(spacial));
+        this->registry.emplace<Model>(entity, this->getModel(spacial, texture));
     }
 }
 
@@ -139,11 +130,11 @@ glm::mat4 RenderSystem::getModel(const Spacial& spacial, const Texture& texture)
 
 
     glm::vec3 scaleVec = glm::vec3(spacial.scale.x, spacial.scale.y, spacial.scale.z);
-    glm::vec3 dimensionsVec = glm::vec3(texture.frameData.size.x, texture.frameData.size.y, 1);
+    glm::vec3 dimensionsVec = glm::vec3(texture.frameData->size.x, texture.frameData->size.y, 1);
 
     glm::mat4 scale = glm::scale(glm::mat4(1), scaleVec*dimensionsVec);
 
-    glm::vec3 offset = glm::vec3(texture.frameData.offset.x, texture.frameData.offset.y, 0);
+    glm::vec3 offset = glm::vec3(texture.frameData->offset.x, texture.frameData->offset.y, 0);
 
     glm::mat4 translate = glm::translate(glm::mat4(1), spacial.pos + (offset*scaleVec));
 
@@ -155,42 +146,28 @@ glm::mat4 RenderSystem::getTileModel(const Spacial& spacial) {
 
     Texture texture;
 
-    texture.frameData.size = glm::vec2(16.0f, 16.0f);
-    texture.frameData.offset = glm::vec2();
+    texture.frameData->size = glm::vec2(16.0f, 16.0f);
+    texture.frameData->offset = glm::vec2();
 
     return this->getModel(spacial, texture);
 }
 
 void RenderSystem::bufferEntityData() {
     
-    this->registry.view<Texture, Model, ToRender>(entt::exclude<Text>).use<ToRender>().each([this](auto& texture, auto& model) {  
+    this->registry.view<Texture, Model, Tile, ToRender>().each([this](auto& texture, auto& model, auto& tile) {  
         
-        glm::vec4 textureData = glm::vec4(texture.frameData.position.x, texture.frameData.position.y, 
-            texture.frameData.size.x, texture.frameData.size.y);
+        glm::vec4 textureData = glm::vec4(texture.frameData->position.x, texture.frameData->position.y, 
+            texture.frameData->size.x, texture.frameData->size.y);
 
         this->renderer.addBufferData(textureData, model.model);
     });
-}
 
-void RenderSystem::bufferTileData() {
+    this->registry.view<Texture, Model, ToRender>(entt::exclude<Text, Tile>).use<ToRender>().each([this](auto& texture, auto& model) {  
+        
+        glm::vec4 textureData = glm::vec4(texture.frameData->position.x, texture.frameData->position.y, 
+            texture.frameData->size.x, texture.frameData->size.y);
 
-    auto tileSets = this->registry.view<TileSet, Texture>();
-
-    this->registry.view<Tile, Model, ToRender>().each([this, tileSets](auto& tile, auto& model) {  
-
-        for (auto&& [entity, tileSet, texture] : tileSets.each()) {
-
-            if (tile.GID >= tileSet.firstGID && tile.GID <= tileSet.lastGID) {
-
-                glm::vec4 textureData = glm::vec4(
-                    texture.frameData.position.x + tile.position.x, 
-                    texture.frameData.position.y  + tile.position.y, 
-                    16.0f, 16.0f
-                );
-
-                this->renderer.addBufferData(textureData, model.model);
-            }
-        }
+        this->renderer.addBufferData(textureData, model.model);
     });
 }
 
@@ -204,7 +181,7 @@ void RenderSystem::render() {
 
     this->renderer.render(camera.getViewMatrix(), camera.getProjectionMatrix(),
         glm::vec2(textureAtlas.width, textureAtlas.height), 
-        textureAtlas.glTextureID, clock.getCumulativeTime());
+        textureAtlas.gl_texture_id, clock.getCumulativeTime());
 }
 
 void RenderSystem::initTextMap() {
