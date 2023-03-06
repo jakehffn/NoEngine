@@ -7,7 +7,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "consts.h"
+#include "consts.hpp"
 
 /*
     The Camera class handles generation of the view and projection matricies 

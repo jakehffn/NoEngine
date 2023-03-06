@@ -1,4 +1,4 @@
-#include "render_system.h"
+#include "render_system.hpp"
 
 RenderSystem::RenderSystem(entt::registry& registry) : System(registry), 
     spacialObserver{ entt::observer(registry, entt::collector.update<Spacial>().where<Texture>()) },

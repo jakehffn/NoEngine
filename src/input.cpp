@@ -1,4 +1,4 @@
-#include "input.h"
+#include "input.hpp"
 
 Input::Input() :
     active{ std::unordered_set<SDL_Keycode>() },

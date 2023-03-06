@@ -7,10 +7,10 @@
 #include <entt/entt.hpp>
 #include <SDL.h>
 
-#include "system.h"
-#include "clock.h"
+#include "system.hpp"
+#include "clock.hpp"
 
-#include "consts.h"
+#include "consts.hpp"
 
 class Input {
 public:

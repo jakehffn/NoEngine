@@ -1,4 +1,4 @@
-#include "animation_system.h"
+#include "animation_system.hpp"
 
 AnimationSystem::AnimationSystem(entt::registry& registry) : System(registry),
     idle_animation_observer{ entt::observer(registry, entt::collector.group<Texture, IdleAnimation>(entt::exclude<Velocity>)) }, 

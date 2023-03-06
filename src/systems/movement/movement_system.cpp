@@ -1,4 +1,4 @@
-#include "movement_system.h"
+#include "movement_system.hpp"
 
 MovementSystem::MovementSystem(entt::registry& registry) : System(registry),
     velocityObserver{ entt::observer(registry, entt::collector.group<Velocity, Spacial>()) } {}

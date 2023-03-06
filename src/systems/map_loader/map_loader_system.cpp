@@ -1,6 +1,6 @@
-#include "map_loader_system.h"
+#include "map_loader_system.hpp"
 
-#include "component_factory.h"
+#include "component_factory.hpp"
 
 MapLoaderSystem::MapLoaderSystem(entt::registry& registry) : System(registry) {}
 

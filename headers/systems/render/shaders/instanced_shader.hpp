@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include "shader_program.h"
+#include "shader_program.hpp"
 
 class InstancedShader : public ShaderProgram<glm::mat4, glm::mat4, glm::vec2> {
 public:

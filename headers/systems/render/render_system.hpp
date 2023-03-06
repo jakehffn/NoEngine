@@ -7,25 +7,25 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "system.h"
-#include "texture.h"
-#include "spacial.h"
-#include "model.h"
-#include "camera_controller.h"
-#include "animation.h"
-#include "text.h"
-#include "to_render.h"
-#include "tile.h"
-#include "renderable.h"
-#include "collision.h"
+#include "system.hpp"
+#include "texture.hpp"
+#include "spacial.hpp"
+#include "model.hpp"
+#include "camera_controller.hpp"
+#include "animation.hpp"
+#include "text.hpp"
+#include "to_render.hpp"
+#include "tile.hpp"
+#include "renderable.hpp"
+#include "collision.hpp"
 
-#include "renderer.h"
-#include "camera.h"
-#include "clock.h"
-#include "texture_atlas.h"
-#include "grid.h"
+#include "renderer.hpp"
+#include "camera.hpp"
+#include "clock.hpp"
+#include "texture_atlas.hpp"
+#include "component_grid.hpp"
 
-#include "consts.h"
+#include "consts.hpp"
 
 class RenderSystem : public System {
 public:

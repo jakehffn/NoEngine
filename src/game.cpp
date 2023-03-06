@@ -1,4 +1,4 @@
-#include "game.h"
+#include "game.hpp"
 
 Game::Game(SDL_Window* window) : window{ window } {
 

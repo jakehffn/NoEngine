@@ -9,7 +9,7 @@
 #include <SDL.h>
 #include <SDL_opengl.h>
 
-#include "animation_structs.h"
+#include "animation_structs.hpp"
 
 struct Texture {
 

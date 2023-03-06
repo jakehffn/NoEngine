@@ -5,7 +5,7 @@
 
 #include "glm/gtx/string_cast.hpp"
 
-#include "shader_program.h"
+#include "shader_program.hpp"
 
 class ScreenShader : public ShaderProgram<double> {
 public:

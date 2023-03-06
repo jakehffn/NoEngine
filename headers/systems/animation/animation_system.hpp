@@ -3,17 +3,17 @@
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>
 
-#include "system.h"
-#include "clock.h"
+#include "system.hpp"
+#include "clock.hpp"
 
-#include "texture.h"
-#include "animation.h"
-#include "animator.h"
-#include "idle_animation.h"
-#include "move_animation.h"
+#include "texture.hpp"
+#include "animation.hpp"
+#include "animator.hpp"
+#include "idle_animation.hpp"
+#include "move_animation.hpp"
 
-#include "spacial.h"
-#include "velocity.h"
+#include "spacial.hpp"
+#include "velocity.hpp"
 
 class AnimationSystem : public System {
 public: 

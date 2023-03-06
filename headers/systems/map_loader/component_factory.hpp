@@ -6,10 +6,10 @@
 #include <string>
 #include <any>
 
-#include "player_control.h"
-#include "camera_controller.h"
-#include "collider.h"
-#include "collidable.h"
+#include "player_control.hpp"
+#include "camera_controller.hpp"
+#include "collider.hpp"
+#include "collidable.hpp"
 
 namespace ComponentFactory {
 

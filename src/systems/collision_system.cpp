@@ -1,4 +1,4 @@
-#include "collision_system.h"
+#include "collision_system.hpp"
 
 CollisionSystem::CollisionSystem(entt::registry& registry) : System(registry),
     collision_observer{ entt::observer(registry, entt::collector.update<Spacial>().where<Collision>()) },

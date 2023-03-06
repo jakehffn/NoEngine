@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "clock.h"
+#include "clock.hpp"
 
 Clock::Clock() :
     currentFrame{ SDL_GetPerformanceCounter() }, 

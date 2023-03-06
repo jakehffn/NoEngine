@@ -11,14 +11,14 @@
 #include <glm/glm.hpp>
 #include <rapidjson/document.h>
 
-#include "texture.h"
-#include "spacial.h"
+#include "texture.hpp"
+#include "spacial.hpp"
 
-#include "animation.h"
-#include "idle_animation.h"
-#include "move_animation.h"
+#include "animation.hpp"
+#include "idle_animation.hpp"
+#include "move_animation.hpp"
 
-#include "animation_structs.h"
+#include "animation_structs.hpp"
 
 
 class TextureAtlas {

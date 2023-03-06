@@ -5,12 +5,12 @@
 
 #include <entt\entt.hpp>
 
-#include "system.h"
+#include "system.hpp"
 
-#include "text.h"
-#include "fps_counter.h"
+#include "text.hpp"
+#include "fps_counter.hpp"
 
-#include "clock.h"
+#include "clock.hpp"
 
 class GUISystem : public System {
 public:

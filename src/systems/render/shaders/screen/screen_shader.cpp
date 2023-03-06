@@ -1,4 +1,4 @@
-#include "screen_shader.h"
+#include "screen_shader.hpp"
 
 ScreenShader::ScreenShader() {
     

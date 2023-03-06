@@ -7,7 +7,7 @@
 
 #include <glm/glm.hpp>
 
-#include "shader_loader.h"
+#include "shader_loader.hpp"
 
 // ShaderProgram provides a way for the Game to interface with each shader prorgam
 //  This is done through the renderSetup() function

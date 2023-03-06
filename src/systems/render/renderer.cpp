@@ -1,4 +1,4 @@
-#include "renderer.h"
+#include "renderer.hpp"
 
 Renderer::Renderer() : screenShader{ new ScreenShader() }, 
     instancedShader{ new InstancedShader() } {

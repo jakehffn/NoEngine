@@ -1,4 +1,4 @@
-#include "instanced_shader.h"
+#include "instanced_shader.hpp"
 
 InstancedShader::InstancedShader() {
     

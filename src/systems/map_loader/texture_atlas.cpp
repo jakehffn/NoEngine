@@ -1,4 +1,4 @@
-#include "texture_atlas.h"
+#include "texture_atlas.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"

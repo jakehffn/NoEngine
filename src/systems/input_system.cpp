@@ -1,4 +1,4 @@
-#include "input_system.h"
+#include "input_system.hpp"
 
 InputSystem::InputSystem (entt::registry& registry) : System(registry) {}
 

@@ -6,7 +6,7 @@
 
 #include <glm/glm.hpp>
 
-#include "spacial.h"
+#include "spacial.hpp"
 
 struct FrameData {
 

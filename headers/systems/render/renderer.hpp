@@ -1,9 +1,9 @@
 #include <vector>
 
-#include "consts.h"
-#include "shader_program.h"
-#include "screen_shader.h"
-#include "instanced_shader.h"
+#include "consts.hpp"
+#include "shader_program.hpp"
+#include "screen_shader.hpp"
+#include "instanced_shader.hpp"
 
 class Renderer {
 public:

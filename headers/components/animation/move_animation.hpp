@@ -2,11 +2,11 @@
 
 #include <unordered_map>
 
-#include "animation.h"
-#include "spacial.h"
+#include "animation.hpp"
+#include "spacial.hpp"
 
-#include "animation_structs.h"
+#include "animation_structs.hpp"
 
-struct IdleAnimation {
+struct MoveAnimation {
     std::unordered_map<DIRECTION, AnimationData> animations;
 };

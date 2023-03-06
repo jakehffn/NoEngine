@@ -4,8 +4,8 @@
 
 #include <glm/glm.hpp>
 
-#include "animation_structs.h"
-#include "animator.h"
+#include "animation_structs.hpp"
+#include "animator.hpp"
 
 struct Animation {
     Animator* animator; // The animator which controls this animation

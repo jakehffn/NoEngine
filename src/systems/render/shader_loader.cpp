@@ -1,5 +1,5 @@
 // From opengl-tutorials
-#include "shader_loader.h"
+#include "shader_loader.hpp"
 
 #include <stdio.h>
 #include <stdlib.h>

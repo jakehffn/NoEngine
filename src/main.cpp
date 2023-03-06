@@ -7,10 +7,10 @@
 #include <gl\glew.h>
 #include <SDL.h>
 
-#include "consts.h"
-#include "game.h"
+#include "consts.hpp"
+#include "game.hpp"
 
-#include "grid.h"
+#include "component_grid.hpp"
 
 bool init();
 void close();

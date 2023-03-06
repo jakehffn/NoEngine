@@ -12,22 +12,22 @@
 
 #include <entt\entt.hpp>
 
-#include "clock.h"
-#include "camera.h"
-#include "input.h"
-#include "texture_atlas.h"
-#include "grid.h"
-#include "renderable.h"
-#include "collision.h"
+#include "clock.hpp"
+#include "camera.hpp"
+#include "input.hpp"
+#include "texture_atlas.hpp"
+#include "grid.hpp"
+#include "renderable.hpp"
+#include "collision.hpp"
 
-#include "input_system.h"
-#include "render_system.h"
-#include "collision_system.h"
-#include "movement_system.h"
-#include "animation_system.h"
-#include "camera_system.h"
-#include "gui_system.h"
-#include "map_loader_system.h"
+#include "input_system.hpp"
+#include "render_system.hpp"
+#include "collision_system.hpp"
+#include "movement_system.hpp"
+#include "animation_system.hpp"
+#include "camera_system.hpp"
+#include "gui_system.hpp"
+#include "map_loader_system.hpp"
 
 class Game {
 public:

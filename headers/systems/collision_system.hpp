@@ -3,16 +3,16 @@
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>
 
-#include "system.h"
+#include "system.hpp"
 
-#include "spacial.h"
-#include "renderable.h"
-#include "grid.h"
-#include "collision.h"
-#include "collider.h"
-#include "collidable.h"
-#include "interacter.h"
-#include "interactable.h"
+#include "spacial.hpp"
+#include "renderable.hpp"
+#include "component_grid.hpp"
+#include "collision.hpp"
+#include "collider.hpp"
+#include "collidable.hpp"
+#include "interacter.hpp"
+#include "interactable.hpp"
 
 class CollisionSystem : public System {
 public:

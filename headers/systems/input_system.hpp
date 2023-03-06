@@ -2,13 +2,13 @@
 
 #include <entt/entt.hpp>
 
-#include "velocity.h"
-#include "player_control.h"
-#include "spacial.h"
+#include "velocity.hpp"
+#include "player_control.hpp"
+#include "spacial.hpp"
 
-#include "system.h"
+#include "system.hpp"
 
-#include "input.h"
+#include "input.hpp"
 
 
 class InputSystem : public System {

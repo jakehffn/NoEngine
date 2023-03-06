@@ -1,4 +1,4 @@
-#include "gui_system.h"
+#include "gui_system.hpp"
 
 GUISystem::GUISystem(entt::registry& registry) : System(registry) {}
 

@@ -1,4 +1,4 @@
-#include "camera_system.h"
+#include "camera_system.hpp"
 
 CameraSystem::CameraSystem(entt::registry& registry) : System(registry) {}
 

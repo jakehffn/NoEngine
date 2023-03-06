@@ -3,13 +3,13 @@
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>
 
-#include "system.h"
+#include "system.hpp"
 
-#include "velocity.h"
-#include "spacial.h"
+#include "velocity.hpp"
+#include "spacial.hpp"
 
-#include "clock.h"
-#include "grid.h"
+#include "clock.hpp"
+#include "component_grid.hpp"
 
 class MovementSystem : public System {
 public:

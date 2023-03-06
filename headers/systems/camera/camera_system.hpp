@@ -3,12 +3,12 @@
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>
 
-#include "system.h"
+#include "system.hpp"
 
-#include "camera.h"
+#include "camera.hpp"
 
-#include "camera_controller.h"
-#include "spacial.h"
+#include "camera_controller.hpp"
+#include "spacial.hpp"
 
 class CameraSystem : public System {
 
