@@ -52,7 +52,7 @@ void RenderSystem::cullEntities() {
     int w = camDim.x + 16;
     int h = camDim.y + 16;
   
-    componentGrid.query<Renderable>((struct Bounds) {x,y,w,h}, this->renderQuery);
+    componentGrid.query<Renderable>((lightgrid::bounds) {x,y,w,h}, this->renderQuery);
 
     std::vector<entt::entity> diff;
 

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <entt/entt.hpp>
-#include <grid.hpp>
+#include <lightgrid/grid.hpp>
 
 #include "spacial.hpp"
 
@@ -22,7 +22,7 @@ constexpr std::size_t Index_v = Index<T, Ts...>::value;
 
 template<typename>
 struct GridData {
-    Bounds bounds;
+    lightgrid::bounds bounds;
     int node;
 };
 
@@ -42,11 +42,11 @@ public:
     void update();
 
     template<typename Component, template<typename Rtype> typename R, typename Rtype=entt::entity> 
-    requires Insertable<R<Rtype>, Rtype>
-    R<Rtype>& query(const Bounds& bounds, R<entt::entity>& results);
+    requires lightgrid::insertable<R<Rtype>, Rtype>
+    R<Rtype>& query(const lightgrid::bounds& bounds, R<entt::entity>& results);
 
     template<typename Component, template<typename Rtype> typename R, typename Rtype=entt::entity> 
-    requires Insertable<R<Rtype>, Rtype>
+    requires lightgrid::insertable<R<Rtype>, Rtype>
     R<Rtype>& query(const float x, const float y, const float w, const float h, R<entt::entity>& results);
 
 
@@ -59,7 +59,7 @@ private:
     template<typename Component>
     void observeDestroy(entt::registry& registry, entt::entity entity);
 
-    std::vector<Grid<entt::entity>> grids;
+    std::vector<lightgrid::grid<entt::entity>> grids;
     std::vector<entt::observer> observers;
     entt::registry& registry;
 };
@@ -67,7 +67,7 @@ private:
 template<typename... Components>
 ComponentGrid<Components...>::ComponentGrid(entt::registry& registry) : 
     observers{ std::vector<entt::observer>(sizeof...(Components)) },
-    grids{ std::vector<Grid<entt::entity>>(sizeof...(Components)) }, 
+    grids{ std::vector<lightgrid::grid<entt::entity>>(sizeof...(Components)) }, 
     registry{ registry } {
         
         (this->observers[Index_v<Components,Components...>].connect(registry, entt::collector.update<Spacial>().where<Components>()),...);
@@ -100,7 +100,7 @@ void ComponentGrid<Components...>::update() {
 
         // Add the new data
         auto& spacial = this->registry.get<Spacial>(entity);
-        grid_data.bounds = (struct Bounds) {
+        grid_data.bounds = (struct lightgrid::bounds) {
             static_cast<int>(spacial.pos.x), static_cast<int>(spacial.pos.y), 
             static_cast<int>(spacial.dim.x), static_cast<int>(spacial.dim.y) };
         grid_data.node = this->grids[Index_v<Component, Components...>].insert(entity, grid_data.bounds);
@@ -116,8 +116,8 @@ void ComponentGrid<Components...>::update() {
 
 template<typename... Components>
 template<typename Component, template<typename Rtype> typename R, typename Rtype> 
-requires Insertable<R<Rtype>, Rtype>
-R<Rtype>& ComponentGrid<Components...>::query(const Bounds& bounds, R<entt::entity>& results) {
+requires lightgrid::insertable<R<Rtype>, Rtype>
+R<Rtype>& ComponentGrid<Components...>::query(const lightgrid::bounds& bounds, R<entt::entity>& results) {
 
     assert((std::is_same_v<Component, Components> || ...));
 
@@ -126,7 +126,7 @@ R<Rtype>& ComponentGrid<Components...>::query(const Bounds& bounds, R<entt::enti
 
 template<typename... Components>
 template<typename Component, template<typename Rtype> typename R, typename Rtype> 
-requires Insertable<R<Rtype>, Rtype>
+requires lightgrid::insertable<R<Rtype>, Rtype>
 R<Rtype>& ComponentGrid<Components...>::query(float x, float y, float w, float h, R<entt::entity>& results) {
 
     assert((std::is_same_v<Component, Components> || ...));
@@ -156,7 +156,7 @@ void ComponentGrid<Components...>::observeConstruct(entt::registry& registry, en
     assert((registry.all_of<Spacial>(entity) && "Entity missing Spacial component"));
 
     auto& spacial = registry.get<Spacial>(entity);
-    Bounds bounds{
+    lightgrid::bounds bounds{
         static_cast<int>(spacial.pos.x), static_cast<int>(spacial.pos.y), 
         static_cast<int>(spacial.dim.x), static_cast<int>(spacial.dim.y) };
 

@@ -16,7 +16,7 @@
 #include "camera.hpp"
 #include "input.hpp"
 #include "texture_atlas.hpp"
-#include "grid.hpp"
+#include "component_grid.hpp"
 #include "renderable.hpp"
 #include "collision.hpp"
 
