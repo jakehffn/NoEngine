@@ -3,4 +3,5 @@ target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC
     /entt
     /glm
     /rapidjson
+    /lightgrid/include
 )
