@@ -29,7 +29,7 @@ Game::Game(SDL_Window* window) : window{ window } {
         // SDL_StartTextInput();
 
         const auto map = this->registry.create();
-        this->registry.emplace<MapLoader>(map, "./src/assets/maps/Test/test.tmx");
+        this->registry.emplace<MapLoader>(map, "./assets/maps/Test/test.tmx");
 
         // const auto fps_counter = this->registry.create();
         // this->registry.emplace<Text>(fps_counter, "", true);

@@ -45,7 +45,7 @@ private:
     Camera gui_camera = Camera();
     Input input_manager = Input();
     // This should be read from the map at some point
-    TextureAtlas texture_atlas = TextureAtlas("./src/assets/atlases/UntitledRPGAtlas/UntitledRPGAtlas");
+    TextureAtlas texture_atlas = TextureAtlas("./assets/atlases/UntitledRPGAtlas/UntitledRPGAtlas");
 
     ComponentGrid<Renderable, Collision> component_grid = ComponentGrid<Renderable, Collision>(this->registry);
 };

@@ -16,18 +16,19 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/CMake/)
 find_package(OpenGL REQUIRED)
 
 set(GLEW_VERBOSE true)
-set(GLEW_ROOT "C:/mingw_dev_lib/glew-2.1.0")
+set(GLEW_ROOT "C:/msys64/mingw64/include/GL")
 find_package(GLEW REQUIRED)
 
-set(SDL2_PATH "C:/mingw_dev_lib/SDL2")
+set(SDL2_PATH "C:/msys64/mingw64/include/SDL2")
 find_package(SDL2 REQUIRED)
-message(STATUS GLEW_LIBRARIES=${GLEW_LIBRARIES})
 
-set(TMXLITE_PATH "C:/mingw_dev_lib/tmxlite/lib/libtmxlite.a")
-set(TMXLITE_INCLUDE_DIR "C:/mingw_dev_lib/tmxlite/include")
+set(TMXLITE_PATH "C:/Program Files (x86)/tmxlite/lib/libtmxlite.dll.a")
+set(TMXLITE_INCLUDE_DIR "C:/Program Files (x86)/tmxlite/include")
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${OPENGL_INCLUDE_DIRS} ${SDL2_INCLUDE_DIR} ${TMXLITE_INCLUDE_DIR} ${GLEW_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME} PUBLIC -mconsole ${OPENGL_LIBRARY} ${SDL2_LIBRARY} ${TMXLITE_PATH} GLEW::glew)
+
+file(COPY "./assets" DESTINATION ".")
 
 # target_compile_options(${PROJECT_NAME} PRIVATE
 #   $<$<CXX_COMPILER_ID:MSVC>:/W4 /WX>
