@@ -93,7 +93,7 @@ void CollisionSystem::resolveCollider(entt::entity entity, const glm::vec4& coll
                 break;
         }
 
-        // Patch ensures the componentGrid gets the update
+        // Patch ensures the component_grid gets the update
         this->registry.patch<Spacial>(entity, [](auto& spacial) {});
 }
 

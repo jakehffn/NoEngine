@@ -7,5 +7,5 @@ struct Text {
     // Text string for display
     std::string text;
     // Whether text should be rendered in screen-space or world-space
-    bool guiElement{ false };
+    bool gui_element{ false };
 };

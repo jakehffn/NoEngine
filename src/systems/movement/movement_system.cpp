@@ -1,20 +1,20 @@
 #include "movement_system.hpp"
 
 MovementSystem::MovementSystem(entt::registry& registry) : System(registry),
-    velocityObserver{ entt::observer(registry, entt::collector.group<Velocity, Spacial>()) } {}
+    velocity_observer{ entt::observer(registry, entt::collector.group<Velocity, Spacial>()) } {}
 
 void MovementSystem::update() {
 
-    auto velocityEntities = this->registry.view<Velocity, Spacial>();
+    auto velocity_entities = this->registry.view<Velocity, Spacial>();
 
-    for (auto entity : velocityEntities) {
+    for (auto entity : velocity_entities) {
 
-        auto& velocity = velocityEntities.get<Velocity>(entity);
-        float deltaTime = this->registry.ctx().at<Clock&>().getDeltaTime();
+        auto& velocity = velocity_entities.get<Velocity>(entity);
+        float delta_time = this->registry.ctx().at<Clock&>().getDeltaTime();
 
-        this->registry.patch<Spacial>(entity, [velocity, deltaTime](auto &spacial) { 
+        this->registry.patch<Spacial>(entity, [velocity, delta_time](auto &spacial) { 
 
-            spacial.pos += velocity.direction * velocity.magnitude * deltaTime;
+            spacial.pos += velocity.direction * velocity.magnitude * delta_time;
         });
     }
 }

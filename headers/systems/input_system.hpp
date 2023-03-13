@@ -20,5 +20,5 @@ public:
 private:
     void playerControlUpdate();
 
-    DIRECTION previousPlayerDirection = DOWN;
+    DIRECTION previous_player_direction = DOWN;
 };

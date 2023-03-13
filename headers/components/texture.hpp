@@ -13,10 +13,10 @@
 
 struct Texture {
 
-    std::string spriteSheetName;
+    std::string sprite_sheet_name;
 
     int width;
     int height;
 
-    FrameData* frameData;
+    FrameData* frame_data;
 };

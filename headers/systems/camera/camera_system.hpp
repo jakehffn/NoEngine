@@ -20,5 +20,5 @@ public:
 private:
     void updateCameraToController();
 
-    entt::observer cameraControllerObserver;
+    entt::observer camera_controller_observer;
 };

@@ -8,6 +8,6 @@ struct TileSet {
 
     int width;
     int height;
-    int firstGID;
-    int lastGID;
+    int first_gid;
+    int last_gid;
 };

@@ -5,7 +5,7 @@
 class System {
 public:
 
-    System(entt::registry& registry) : registry{registry}{}
+    System(entt::registry& registry) : registry{ registry } {}
     
     virtual void update() = 0;
 

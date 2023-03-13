@@ -17,10 +17,10 @@ public:
     // Returns the ID for the shader program given by OpenGL once compiled
     // virtual GLuint getOpenGLShaderProgramID() = 0;
 
-    inline void useShader(){ glUseProgram( this->openGLShaderProgramID ); };
+    inline void useShader(){ glUseProgram( this->gl_shader_program_id ); };
     // Functions that provides ability to setup the render specifically for each shader program
     virtual void renderSetup(Ts... args) = 0;
 
 protected:
-    GLuint openGLShaderProgramID;
+    GLuint gl_shader_program_id;
 };

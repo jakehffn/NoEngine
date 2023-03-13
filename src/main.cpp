@@ -49,9 +49,9 @@ bool init() {
 				success = false;
 			} else {
 				glewExperimental = GL_TRUE; 
-				GLenum glewError = glewInit();
-				if( glewError != GLEW_OK ) {
-					printf("GLEW: Error initializing! %s\n", glewGetErrorString(glewError));
+				GLenum glew_error = glewInit();
+				if( glew_error != GLEW_OK ) {
+					printf("GLEW: Error initializing! %s\n", glewGetErrorString(glew_error));
 				}
 
 				// Use Vsync
@@ -72,87 +72,87 @@ MessageCallback( GLenum source,
                  GLenum severity,
                  GLsizei length,
                  const GLchar* message,
-                 const void* userParam ) {
+                 const void* user_param ) {
 
-	std::string sourceString;
-	std::string typeString;
-	std::string severityString;
+	std::string source_string;
+	std::string type_string;
+	std::string severity_string;
 
 	switch(source) {
 		case GL_DEBUG_SOURCE_API:
-			sourceString = "GL_DEBUG_SOURCE_API";
+			source_string = "GL_DEBUG_SOURCE_API";
 			break;
 		case GL_DEBUG_SOURCE_WINDOW_SYSTEM:
-			sourceString = "GL_DEBUG_SOURCE_WINDOW_SYSTEM";
+			source_string = "GL_DEBUG_SOURCE_WINDOW_SYSTEM";
 			break;
 		case GL_DEBUG_SOURCE_SHADER_COMPILER:
-			sourceString = "GL_DEBUG_SOURCE_SHADER_COMPILER";
+			source_string = "GL_DEBUG_SOURCE_SHADER_COMPILER";
 			break;
 		case GL_DEBUG_SOURCE_THIRD_PARTY:
-			sourceString = "GL_DEBUG_SOURCE_THIRD_PARTY";
+			source_string = "GL_DEBUG_SOURCE_THIRD_PARTY";
 			break;
 		case GL_DEBUG_SOURCE_APPLICATION:
-			sourceString = "GL_DEBUG_SOURCE_APPLICATION";
+			source_string = "GL_DEBUG_SOURCE_APPLICATION";
 			break;
 		case GL_DEBUG_SOURCE_OTHER:
-			sourceString = "GL_DEBUG_SOURCE_OTHER";
+			source_string = "GL_DEBUG_SOURCE_OTHER";
 			break;
 		default:
-			sourceString = "OTHER";
+			source_string = "OTHER";
 	};
 
 	switch(type) {
 		case GL_DEBUG_TYPE_ERROR:
-			typeString = "GL_DEBUG_TYPE_ERROR";
+			type_string = "GL_DEBUG_TYPE_ERROR";
 			break;
 		case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
-			typeString = "GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR";
+			type_string = "GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR";
 			break;
 		case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
-			typeString = "GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR";
+			type_string = "GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR";
 			break;
 		case GL_DEBUG_TYPE_PORTABILITY:
-			typeString = "GL_DEBUG_TYPE_PORTABILITY";
+			type_string = "GL_DEBUG_TYPE_PORTABILITY";
 			break;
 		case GL_DEBUG_TYPE_PERFORMANCE:
-			typeString = "GL_DEBUG_TYPE_PERFORMANCE";
+			type_string = "GL_DEBUG_TYPE_PERFORMANCE";
 			break;
 		case GL_DEBUG_TYPE_MARKER:
-			typeString = "GL_DEBUG_TYPE_MARKER";
+			type_string = "GL_DEBUG_TYPE_MARKER";
 			break;
 		case GL_DEBUG_TYPE_PUSH_GROUP:
-			typeString = "GL_DEBUG_TYPE_PUSH_GROUP";
+			type_string = "GL_DEBUG_TYPE_PUSH_GROUP";
 			break;
 		case GL_DEBUG_TYPE_POP_GROUP:
-			typeString = "GL_DEBUG_TYPE_POP_GROUP";
+			type_string = "GL_DEBUG_TYPE_POP_GROUP";
 			break;
 		case GL_DEBUG_TYPE_OTHER:
-			typeString = "GL_DEBUG_TYPE_OTHER";
+			type_string = "GL_DEBUG_TYPE_OTHER";
 			break;
 		default:
-			typeString = "OTHER";
+			type_string = "OTHER";
 	};
 
 	switch(severity) {
 		case GL_DEBUG_SEVERITY_HIGH:
-			severityString = "GL_DEBUG_SEVERITY_HIGH";
+			severity_string = "GL_DEBUG_SEVERITY_HIGH";
 			break;
 		case GL_DEBUG_SEVERITY_MEDIUM:
-			severityString = "GL_DEBUG_SEVERITY_MEDIUM";
+			severity_string = "GL_DEBUG_SEVERITY_MEDIUM";
 			break;
 		case GL_DEBUG_SEVERITY_LOW:
-			severityString = "GL_DEBUG_SEVERITY_LOW";
+			severity_string = "GL_DEBUG_SEVERITY_LOW";
 			break;
 		case GL_DEBUG_SEVERITY_NOTIFICATION:
-			severityString = "GL_DEBUG_SEVERITY_NOTIFICATION";
+			severity_string = "GL_DEBUG_SEVERITY_NOTIFICATION";
 			break;
 		default:
-			severityString = "OTHER";
+			severity_string = "OTHER";
 	};
 	
   	fprintf( stderr, "GL CALLBACK: %s type = %s, source = %s, severity = %s, message = %s\n",
         ( type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : "" ),
-        typeString.c_str(), sourceString.c_str(), severityString.c_str(), message 
+        type_string.c_str(), source_string.c_str(), severity_string.c_str(), message 
 	);
 }
 
@@ -169,38 +169,12 @@ void close() {
 // Parameters necessary for SDL_Main
 int main(int argv, char** args) {
 
-	// if (init()) {
-
-	// 	std::cout << "Grid Test\n";
-	// 	Grid<int> grid(10, 10, 2);
-
-	// 	int numTests = 10000000;
-
-	// 	double start =  SDL_GetPerformanceCounter();
-
-	// 	for (int xx = 0; xx < numTests; xx++) {
-
-	// 		int reference1 = grid.insert(5,1,2,5,6);
-	// 		int reference2 = grid.insert(42,4,4,3,3);
-
-	// 		std::vector<int> query = grid.query(3,3,3,3);
-
-	// 		grid.remove(reference1,1,2,5,6);
-	// 		grid.remove(reference2,4,4,3,3);
-	// 	}
-
-	// 	double total =  (SDL_GetPerformanceCounter() - start)/SDL_GetPerformanceFrequency();
-
-	// 	double average = (total/numTests)*1000;
-
-	// 	std::cout << "Num Tests: " << numTests << "\nTotal Time: " << total << "s\nAverage Time: " << average << "ms\n";
-	// };
-
 	if(!init()) {
 		
 		printf("Failed to initialize!\n");
 
 	} else {
+
 		printf("Initialized Successfully\n");
 
 		// Enable debug output

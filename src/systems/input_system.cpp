@@ -9,30 +9,30 @@ void InputSystem::update() {
 
 void InputSystem::playerControlUpdate() {
 
-    Input& inputManager = this->registry.ctx().at<Input&>();
+    Input& input_manager = this->registry.ctx().at<Input&>();
 
     DIRECTION direction;
 
-    bool upAdded = inputManager.isAdded(SDLK_w);
-    bool downAdded = inputManager.isAdded(SDLK_s);
-    bool leftAdded = inputManager.isAdded(SDLK_a);
-    bool rightAdded = inputManager.isAdded(SDLK_d);
+    bool up_added = input_manager.isAdded(SDLK_w);
+    bool down_added = input_manager.isAdded(SDLK_s);
+    bool left_added = input_manager.isAdded(SDLK_a);
+    bool right_added = input_manager.isAdded(SDLK_d);
 
-    bool up = inputManager.isActive(SDLK_w);
-    bool down = inputManager.isActive(SDLK_s);
-    bool left = inputManager.isActive(SDLK_a);
-    bool right = inputManager.isActive(SDLK_d);
+    bool up = input_manager.isActive(SDLK_w);
+    bool down = input_manager.isActive(SDLK_s);
+    bool left = input_manager.isActive(SDLK_a);
+    bool right = input_manager.isActive(SDLK_d);
 
-    bool anyRemoved = inputManager.isRemoved(SDLK_w) || inputManager.isRemoved(SDLK_s) ||
-                      inputManager.isRemoved(SDLK_a) || inputManager.isRemoved(SDLK_d);
+    bool any_removed = input_manager.isRemoved(SDLK_w) || input_manager.isRemoved(SDLK_s) ||
+                      input_manager.isRemoved(SDLK_a) || input_manager.isRemoved(SDLK_d);
 
     if (!(up || down || left || right)) {
 
-        if (anyRemoved) {
+        if (any_removed) {
 
-            auto playerControlledEntities = registry.view<PlayerControl, Velocity>();
+            auto player_controlled_entities = registry.view<PlayerControl, Velocity>();
 
-            for (auto entity : playerControlledEntities) {
+            for (auto entity : player_controlled_entities) {
 
                 this->registry.remove<Velocity>(entity);
             }  
@@ -42,22 +42,22 @@ void InputSystem::playerControlUpdate() {
     }
 
     // Prioritize new inputs
-    if (upAdded && !down) {
+    if (up_added && !down) {
         direction = UP;
-    } else if (downAdded && !up) {
+    } else if (down_added && !up) {
         direction = DOWN;
-    } else if (leftAdded && !right) {
+    } else if (left_added && !right) {
         direction = LEFT;
-    } else if (rightAdded && !left) {
+    } else if (right_added && !left) {
         direction = RIGHT;
     // Else, if no new inputs, prioritize the previous direction
-    } else if (this->previousPlayerDirection == UP && up && !down) {
+    } else if (this->previous_player_direction == UP && up && !down) {
         direction = UP;
-    } else if (this->previousPlayerDirection == DOWN && down && !up) {
+    } else if (this->previous_player_direction == DOWN && down && !up) {
         direction = DOWN;
-    } else if (this->previousPlayerDirection == LEFT && left && !right) {
+    } else if (this->previous_player_direction == LEFT && left && !right) {
         direction = LEFT;
-    } else if (this->previousPlayerDirection == RIGHT && right && !left) {
+    } else if (this->previous_player_direction == RIGHT && right && !left) {
         direction = RIGHT;
     // Else, if no previous direction, choose a remaining valid direction being pressed
     } else if (up && !down) {
@@ -70,26 +70,26 @@ void InputSystem::playerControlUpdate() {
         direction = RIGHT;
     }
 
-    glm::vec3 velocityDirection = glm::vec3();
+    glm::vec3 velocity_direction = glm::vec3();
 
     switch(direction) {
         case(UP):
-            velocityDirection = glm::vec3(0,-1,0);
+            velocity_direction = glm::vec3(0,-1,0);
             break;
         case(DOWN):
-            velocityDirection = glm::vec3(0,1,0);
+            velocity_direction = glm::vec3(0,1,0);
             break;
         case(LEFT):
-            velocityDirection = glm::vec3(-1,0,0);
+            velocity_direction = glm::vec3(-1,0,0);
             break;
         case(RIGHT):
-            velocityDirection = glm::vec3(1,0,0);
+            velocity_direction = glm::vec3(1,0,0);
             break;
         default:
 
-            auto playerControlledEntities = registry.view<PlayerControl, Velocity>();
+            auto player_controlled_entities = registry.view<PlayerControl, Velocity>();
             
-            for (auto entity : playerControlledEntities) {
+            for (auto entity : player_controlled_entities) {
 
                 this->registry.remove<Velocity>(entity);
             }  
@@ -97,17 +97,17 @@ void InputSystem::playerControlUpdate() {
             return;
     }
 
-    auto playerControlledEntities = registry.view<PlayerControl,Spacial>();
+    auto player_controlled_entities = registry.view<PlayerControl,Spacial>();
 
-    for (auto entity : playerControlledEntities) {
+    for (auto entity : player_controlled_entities) {
 
-        auto& playerControl = playerControlledEntities.get<PlayerControl>(entity);
+        auto& playerControl = player_controlled_entities.get<PlayerControl>(entity);
         
-        this->registry.emplace_or_replace<Velocity>(entity, velocityDirection, playerControl.pixelsPerMillisecond);
+        this->registry.emplace_or_replace<Velocity>(entity, velocity_direction, playerControl.pixels_per_millisecond);
         this->registry.patch<Spacial>(entity, [direction](auto& spacial) {
             spacial.direction = direction;
         });
     }
 
-    this->previousPlayerDirection = direction;
+    this->previous_player_direction = direction;
 }

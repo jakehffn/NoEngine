@@ -10,8 +10,8 @@ public:
     Renderer();
     ~Renderer();
 
-    void addBufferData(const glm::vec4& textureData, const glm::mat4& modelData);
-    void render(const glm::mat4& view, const glm::mat4& projection, const glm::vec2& atlasDim, GLuint atlasTexture, double time);
+    void addBufferData(const glm::vec4& texture_data, const glm::mat4& model_data);
+    void render(const glm::mat4& view, const glm::mat4& projection, const glm::vec2& atlas_dimensions, GLuint atlas_texture, double time);
 
 private:
     void initVAO();
@@ -20,17 +20,17 @@ private:
 
     void bufferData();
 
-    GLuint VAO;
+    GLuint vao;
 
-    GLuint screenFBO;
-    GLuint screenTexture;
+    GLuint screen_fbo;
+    GLuint screen_texture;
 
-    GLuint textureCoordinatesVBO;
-    std::vector<glm::vec4> textureCoordinatesBufferData; 
+    GLuint texture_coordinates_vbo;
+    std::vector<glm::vec4> texture_coordinates_buffer_data; 
 
-    GLuint modelsVBO;
-    std::vector<glm::mat4> modelsBufferData; 
+    GLuint models_vbo;
+    std::vector<glm::mat4> models_buffer_data; 
 
-    InstancedShader* instancedShader;
-    ShaderProgram<double>* screenShader;
+    InstancedShader* instanced_shader;
+    ShaderProgram<double>* screen_shader;
 };

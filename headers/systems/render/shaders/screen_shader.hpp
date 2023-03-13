@@ -14,5 +14,5 @@ public:
     void renderSetup(double time);
 
 private:
-    GLint timeUniformID;
+    GLint time_uniform_id;
 };

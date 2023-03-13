@@ -34,7 +34,7 @@ public:
 private:
     void update() override;
 
-    void loadTiledMap(const char* mapPath);
+    void loadTiledMap(const char* map_path);
 
     void addObjects(const tmx::Map& map);
     void addObject(const tmx::Map& map, const tmx::Object& object);

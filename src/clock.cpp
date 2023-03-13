@@ -3,39 +3,39 @@
 #include "clock.hpp"
 
 Clock::Clock() :
-    currentFrame{ SDL_GetPerformanceCounter() }, 
-    lastFrame{ 0 }, deltaTime{ 0 }, cumulativeTime{ 0 }, smoothedFPS{144.0} {}
+    current_frame{ SDL_GetPerformanceCounter() }, 
+    last_frame{ 0 }, delta_time{ 0 }, cumulative_time{ 0 }, smoothed_fps{144.0} {}
 
 double Clock::tick() {
     
-    lastFrame = currentFrame;
-    currentFrame = SDL_GetPerformanceCounter();
+    last_frame = current_frame;
+    current_frame = SDL_GetPerformanceCounter();
 
-    deltaTime = (double)((currentFrame - lastFrame) / (double)SDL_GetPerformanceFrequency() *1000);
-    cumulativeTime += deltaTime;
+    delta_time = (double)((current_frame - last_frame) / (double)SDL_GetPerformanceFrequency() *1000);
+    cumulative_time += delta_time;
 
-    this->FPS = 1.0/deltaTime * 1000;
+    this->fps = 1.0/delta_time * 1000;
 
     double smoothing = 0.99;
 
-    this->smoothedFPS = (smoothedFPS * smoothing) + (this->FPS * (1 - smoothing));
+    this->smoothed_fps = (smoothed_fps * smoothing) + (this->fps * (1 - smoothing));
 
-    return deltaTime;
+    return delta_time;
 }
 
 // Returns the time change since the last tick in milliseconds
 double Clock::getDeltaTime() {
-    return deltaTime;
+    return delta_time;
 }
 
 double Clock::getCumulativeTime() {
-    return cumulativeTime;
+    return cumulative_time;
 }
 
 double Clock::getFPS() {
-    return this->FPS;
+    return this->fps;
 }
 
 double Clock::getSmoothedFPS() {
-    return this->smoothedFPS;
+    return this->smoothed_fps;
 }

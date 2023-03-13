@@ -3,6 +3,6 @@
 #include <glm/glm.hpp>
 
 struct Tile {
-    int GID;
+    int gid;
     glm::vec2 position; // The position of the tile in the texture
 };

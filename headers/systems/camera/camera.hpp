@@ -32,10 +32,10 @@ public:
     void setPosition(glm::vec3 pos);
 
 private:
-    glm::mat4 viewMatrix;
-    glm::mat4 projectionMatrix;
+    glm::mat4 view_matrix;
+    glm::mat4 projection_matrix;
     glm::vec3 position; 
 
     float zoom;
-    glm::vec2 cameraDim;
+    glm::vec2 camera_dimensions;
 };

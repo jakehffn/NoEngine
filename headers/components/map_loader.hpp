@@ -3,5 +3,5 @@
 #include <string>
 
 struct MapLoader {
-    std::string mapPath;
+    std::string map_path;
 };

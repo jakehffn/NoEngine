@@ -20,13 +20,13 @@ void AnimationSystem::updateAnimators() {
 
     this->registry.view<Animator>().each([&clock](auto animator_entity, auto& animator) {
         
-        if (animator.frameTime > (*(animator.frame_durations))[animator.currentFrame]) {
+        if (animator.frame_time > (*(animator.frame_durations))[animator.current_frame]) {
 
-            animator.currentFrame = (animator.currentFrame + 1) % animator.num_frames;
-            animator.frameTime = 0;
+            animator.current_frame = (animator.current_frame + 1) % animator.num_frames;
+            animator.frame_time = 0;
         }
 
-        animator.frameTime += clock.getDeltaTime();
+        animator.frame_time += clock.getDeltaTime();
     });
 }
 
@@ -34,65 +34,65 @@ void AnimationSystem::updateAnimators() {
 void AnimationSystem::updateTextures() {
 
     this->registry.view<Animation, Texture>().each([](auto animation_entity, const auto& animation, auto& texture) {
-        texture.frameData = &(animation.animationData->frames[animation.animator->currentFrame]);
+        texture.frame_data = &(animation.animation_data->frames[animation.animator->current_frame]);
     });
 }
 
 void AnimationSystem::updateIdleAnimations() {
 
-    auto idleAnimationEntities = this->registry.view<Animation, Texture, IdleAnimation, Spacial>(entt::exclude<Velocity>);
+    auto idle_animation_entities = this->registry.view<Animation, Texture, IdleAnimation, Spacial>(entt::exclude<Velocity>);
 
-    for (auto entity : idleAnimationEntities) {
+    for (auto entity : idle_animation_entities) {
 
-        auto [animation, texture, idleAnimation, spacial] = idleAnimationEntities.get<Animation, Texture, IdleAnimation, Spacial>(entity);
+        auto [animation, texture, idle_animation, spacial] = idle_animation_entities.get<Animation, Texture, IdleAnimation, Spacial>(entity);
 
-        bool needsAnimationUpdate = animation.animationData->name != "idle" || animation.animationData->direction != spacial.direction;
+        bool needs_animation_update = animation.animation_data->name != "idle" || animation.animation_data->direction != spacial.direction;
 
-        if (needsAnimationUpdate) {
+        if (needs_animation_update) {
 
-            animation.animationData = &(idleAnimation.animations[spacial.direction]);
+            animation.animation_data = &(idle_animation.animations[spacial.direction]);
 
-            animation.animator->frame_durations = &(animation.animationData->frame_durations);
-            animation.animator->num_frames = animation.animationData->numFrames;
-            animation.animator->currentFrame = 0;
-            animation.animator->frameTime = 0;
+            animation.animator->frame_durations = &(animation.animation_data->frame_durations);
+            animation.animator->num_frames = animation.animation_data->num_frames;
+            animation.animator->current_frame = 0;
+            animation.animator->frame_time = 0;
 
-            texture.frameData = &(animation.animationData->frames[0]);
+            texture.frame_data = &(animation.animation_data->frames[0]);
         }
     }
 }
 
 void AnimationSystem::updateMoveAnimations() {
 
-    auto moveAnimationEntities = this->registry.view<Animation, Texture, MoveAnimation, Spacial, Velocity>();
+    auto move_animation_entities = this->registry.view<Animation, Texture, MoveAnimation, Spacial, Velocity>();
 
-    for (auto entity : moveAnimationEntities) {
+    for (auto entity : move_animation_entities) {
 
-        auto [animation, texture, moveAnimation, spacial] = moveAnimationEntities.get<Animation, Texture, MoveAnimation, Spacial>(entity);
+        auto [animation, texture, moveAnimation, spacial] = move_animation_entities.get<Animation, Texture, MoveAnimation, Spacial>(entity);
 
-        std::string previousAnimation = animation.animationData->name;
+        std::string previous_animation = animation.animation_data->name;
 
-        bool needsAnimationUpdate = animation.animationData->name != "move" || animation.animationData->direction != spacial.direction;
+        bool needs_animation_update = animation.animation_data->name != "move" || animation.animation_data->direction != spacial.direction;
 
-        if (needsAnimationUpdate) {
+        if (needs_animation_update) {
 
-            animation.animationData = &(moveAnimation.animations[spacial.direction]);
-            animation.animator->frame_durations = &(animation.animationData->frame_durations);
-            animation.animator->num_frames = animation.animationData->numFrames;
+            animation.animation_data = &(moveAnimation.animations[spacial.direction]);
+            animation.animator->frame_durations = &(animation.animation_data->frame_durations);
+            animation.animator->num_frames = animation.animation_data->num_frames;
 
             // You get smoother animations, especially walking, if the walk cycle can continue between direction changes
             // Because of this, on an animation update, the walk-cycle is restarted only after the following conditions
-            bool needsAnimationRestart = previousAnimation != "move" || animation.animator->currentFrame >= animation.animationData->frames.size();
+            bool needs_animation_restart = previous_animation != "move" || animation.animator->current_frame >= animation.animation_data->frames.size();
 
-            if (needsAnimationRestart) {
+            if (needs_animation_restart) {
 
-                animation.animator->currentFrame = 0;
-                animation.animator->frameTime = 0;
+                animation.animator->current_frame = 0;
+                animation.animator->frame_time = 0;
 
-                texture.frameData = &(animation.animationData->frames[0]);
+                texture.frame_data = &(animation.animation_data->frames[0]);
 
             } else {
-                texture.frameData = &(animation.animationData->frames[animation.animator->currentFrame]);
+                texture.frame_data = &(animation.animation_data->frames[animation.animator->current_frame]);
             }
         }
     }

@@ -9,13 +9,13 @@ void CameraSystem::update() {
 void CameraSystem::updateCameraToController() {
 
     using namespace entt::literals;
-    Camera& camera = this->registry.ctx().at<Camera&>("worldCamera"_hs);
+    Camera& camera = this->registry.ctx().at<Camera&>("world_camera"_hs);
 
-    auto controllerEntities = this->registry.view<CameraController, Spacial>();
+    auto controller_entities = this->registry.view<CameraController, Spacial>();
 
-    for (auto entity : controllerEntities) {
+    for (auto entity : controller_entities) {
 
-        auto [cameraController, spacial] = controllerEntities.get<CameraController, Spacial>(entity);
+        auto [cameraController, spacial] = controller_entities.get<CameraController, Spacial>(entity);
 
         float xOffset = spacial.dim.x * spacial.scale.x / 2;
         float yOffset = -spacial.dim.y * spacial.scale.y / 2;

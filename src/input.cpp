@@ -4,12 +4,12 @@ Input::Input() :
     active{ std::unordered_set<SDL_Keycode>() },
     added{ std::unordered_set<SDL_Keycode>() },
     removed{ std::unordered_set<SDL_Keycode>() },
-    mouseX{ 0 }, mouseY{ 0 }, quit{ false } {}
+    mouse_x{ 0 }, mouse_y{ 0 }, quit{ false } {}
 
 void Input::update() {
 
-    // Set mouseX and mouseY to the mouse positions in pixels
-    SDL_GetMouseState(&this->mouseX, &this->mouseY);
+    // Set mouse_x and mouse_y to the mouse positions in pixels
+    SDL_GetMouseState(&this->mouse_x, &this->mouse_y);
 
     this->added.clear();
     this->removed.clear();
@@ -21,20 +21,20 @@ void Input::update() {
             this->quit = true;
         } 
 
-        SDL_Keycode currentKey = e.key.keysym.sym;
+        SDL_Keycode current_key = e.key.keysym.sym;
         
         if (e.type == SDL_KEYDOWN) {
 
-            if (!this->isActive(currentKey)){
+            if (!this->isActive(current_key)){
 
-                this->active.insert(currentKey);
-                this->added.insert(currentKey);
+                this->active.insert(current_key);
+                this->added.insert(current_key);
             }
 
         } else if (e.type == SDL_KEYUP) {
 
-            this->active.erase(currentKey);
-            this->removed.insert(currentKey);
+            this->active.erase(current_key);
+            this->removed.insert(current_key);
         }
     }
 }
@@ -52,11 +52,11 @@ bool Input::isRemoved(SDL_Keycode keycode) {
 }
 
 int Input::getMouseX() {
-    return this->mouseX;
+    return this->mouse_x;
 }
 
 int Input::getMouseY() {
-    return this->mouseY;
+    return this->mouse_y;
 }
 
 bool Input::isQuit() {

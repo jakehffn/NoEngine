@@ -18,5 +18,5 @@ public:
     void update() override;
 
 private:
-    entt::observer velocityObserver;
+    entt::observer velocity_observer;
 };

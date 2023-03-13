@@ -26,7 +26,7 @@ class TextureAtlas {
 public:
     TextureAtlas(std::string texture_atlas_base_path);
 
-    void initEntity(entt::registry& registry, entt::entity entity, std::string spriteSheetName);
+    void initEntity(entt::registry& registry, entt::entity entity, std::string sprite_sheet_name);
     void initTileSet(entt::registry& registry, entt::entity tile_set_entity, std::string tile_set_name);
     void initTile(entt::registry& registry, entt::entity tile_entity, 
         entt::entity tile_set_entity, glm::vec2 image_position, int tile_gid);
@@ -49,7 +49,7 @@ private:
 
     // All sprite sheets that were parsed from the json file.
     std::unordered_map<std::string, SpriteSheet> sprite_sheets;
-    // GID to AnimationData
+    // gid to AnimationData
     // Tile animations are treated differently becuase of the way they are imported. Tiles are 
     //      always 16x16 and are part of a larger texture, meaninhg that the animations are 
     //      generated outside of the json parsing.

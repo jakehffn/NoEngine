@@ -2,14 +2,14 @@
 
 ScreenShader::ScreenShader() {
     
-    std::string vertexShaderPath = "./src/systems/render/shaders/screen/vertexShader.glsl";
-    std::string fragmentShaderPath = "./src/systems/render/shaders/screen/fragmentShader.glsl";
+    std::string vertex_shader_path = "./src/systems/render/shaders/screen/vertexShader.glsl";
+    std::string fragment_shader_path = "./src/systems/render/shaders/screen/fragmentShader.glsl";
 
-    this->openGLShaderProgramID = LoadShaders(vertexShaderPath.c_str(), fragmentShaderPath.c_str());
+    this->gl_shader_program_id = LoadShaders(vertex_shader_path.c_str(), fragment_shader_path.c_str());
 
-    this->timeUniformID = glGetUniformLocation(this->openGLShaderProgramID, "time");
+    this->time_uniform_id = glGetUniformLocation(this->gl_shader_program_id, "time");
 };
 
 void ScreenShader::renderSetup(double time) {
-    glUniform1f(this->timeUniformID, time);
+    glUniform1f(this->time_uniform_id, time);
 };

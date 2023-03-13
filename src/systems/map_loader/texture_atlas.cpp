@@ -137,7 +137,7 @@ void TextureAtlas::initEntity(entt::registry& registry, entt::entity entity, std
         (int)sprite_sheet.size.x, (int)sprite_sheet.size.y, &(default_animation.frames[0])
     );
 
-    auto& animator = registry.emplace<Animator>(entity, &(default_animation.frame_durations), default_animation.numFrames);
+    auto& animator = registry.emplace<Animator>(entity, &(default_animation.frame_durations), default_animation.num_frames);
     registry.emplace_or_replace<Animation>(entity, &animator, &default_animation);
 
     // TODO: Only entities with multiple frames need animations
@@ -169,7 +169,7 @@ void TextureAtlas::initTile(entt::registry& registry, entt::entity tile_entity,
     auto& animator = registry.get<Animator>(tile_set_entity);
     const auto& tile_set_texture = registry.get<Texture>(tile_set_entity);
 
-    SpriteSheet& sprite_sheet = this->sprite_sheets[tile_set_texture.spriteSheetName];
+    SpriteSheet& sprite_sheet = this->sprite_sheets[tile_set_texture.sprite_sheet_name];
     const AnimationData& base_animation = sprite_sheet.animations["idle"][DOWN];
 
     if (!this->tile_animation_data.contains(tile_gid)) {
@@ -178,14 +178,14 @@ void TextureAtlas::initTile(entt::registry& registry, entt::entity tile_entity,
 
     auto& animation = registry.emplace<Animation>(tile_entity, &animator, &(tile_animation_data[tile_gid]));
 
-    auto& texture = registry.emplace<Texture>(tile_entity, tile_set_texture.spriteSheetName, 16, 16, &(animation.animationData->frames[0]));
+    auto& texture = registry.emplace<Texture>(tile_entity, tile_set_texture.sprite_sheet_name, 16, 16, &(animation.animation_data->frames[0]));
     
 }
 
 void TextureAtlas::createTileAnimationData(const AnimationData& base_animation, const glm::vec2& image_position, int tile_gid) {
 
     AnimationData new_animation_data{base_animation.name, base_animation.direction, 
-        base_animation.numFrames, base_animation.frame_durations};
+        base_animation.num_frames, base_animation.frame_durations};
 
     for (const FrameData& frame_data : base_animation.frames) {
         new_animation_data.frames.emplace_back(

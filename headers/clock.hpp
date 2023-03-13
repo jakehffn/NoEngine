@@ -12,11 +12,11 @@ public:
     double getSmoothedFPS();
 
 private:
-    Uint64 currentFrame;
-    Uint64 lastFrame;
+    Uint64 current_frame;
+    Uint64 last_frame;
 
-    double deltaTime;
-    double cumulativeTime;
-    double FPS = 0;
-    double smoothedFPS = 0;
+    double delta_time;
+    double cumulative_time;
+    double fps{0};
+    double smoothed_fps{0};
 };

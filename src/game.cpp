@@ -5,12 +5,12 @@ Game::Game(SDL_Window* window) : window{ window } {
         using namespace entt::literals;
 
         this->registry.ctx().emplace<Clock&>(this->clock);
-        this->registry.ctx().emplace_hint<Camera&>("worldCamera"_hs, this->worldCamera);
-        this->registry.ctx().emplace_hint<Camera&>("guiCamera"_hs, this->guiCamera);
-        this->registry.ctx().emplace<Input&>(this->inputManager);
-        this->registry.ctx().emplace<TextureAtlas&>(this->textureAtlas);
-        this->registry.ctx().emplace<ComponentGrid<Renderable, Collision>&>(this->componentGrid);
-        // this->componentGrid.init(20000,20000,128);
+        this->registry.ctx().emplace_hint<Camera&>("world_camera"_hs, this->world_camera);
+        this->registry.ctx().emplace_hint<Camera&>("gui_camera"_hs, this->gui_camera);
+        this->registry.ctx().emplace<Input&>(this->input_manager);
+        this->registry.ctx().emplace<TextureAtlas&>(this->texture_atlas);
+        this->registry.ctx().emplace<ComponentGrid<Renderable, Collision>&>(this->component_grid);
+        // this->component_grid.init(20000,20000,128);
 
         this->systems.push_back(new MapLoaderSystem(this->registry));
         this->systems.push_back(new InputSystem(this->registry));
@@ -41,7 +41,7 @@ void Game::mainLoop() {
 
     // int it = 0;
 
-    while(!this->inputManager.isQuit()) {
+    while(!this->input_manager.isQuit()) {
 
         // it++;
 
@@ -52,8 +52,8 @@ void Game::mainLoop() {
         // }
 
         this->clock.tick();
-        this->inputManager.update();
-        this->componentGrid.update();
+        this->input_manager.update();
+        this->component_grid.update();
 
         std::vector<double> times;
 

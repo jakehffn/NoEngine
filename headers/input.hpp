@@ -27,8 +27,8 @@ public:
 
 private:
 
-    int mouseX;
-    int mouseY;
+    int mouse_x;
+    int mouse_y;
 
     SDL_Event e;
     bool quit;

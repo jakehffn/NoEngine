@@ -4,7 +4,7 @@
 
 Camera::Camera() :
 
-    position{ glm::vec3(0, 0, 0) }, viewMatrix{ glm::mat4(1.0f) } {
+    position{ glm::vec3(0, 0, 0) }, view_matrix{ glm::mat4(1.0f) } {
 
         this->zoom = 3.0f;
 
@@ -18,21 +18,21 @@ Camera::Camera() :
         float top = (render_c::SCREEN_HEIGHT - (render_c::SCREEN_HEIGHT/this->zoom)) / 2;
         float bottom = top + float(render_c::SCREEN_HEIGHT/this->zoom);
 
-        this->projectionMatrix = glm::ortho(left, right, 
+        this->projection_matrix = glm::ortho(left, right, 
             bottom, top, -100.0f, 100.0f);
 
         this->position = glm::vec3(0, 0, 0);
         this->update();
 
-        this->cameraDim = glm::vec2(right - left, bottom - top);
+        this->camera_dimensions = glm::vec2(right - left, bottom - top);
 }
 
 glm::mat4 Camera::getViewMatrix() const {
-    return this->viewMatrix;
+    return this->view_matrix;
 }
 
 glm::mat4 Camera::getProjectionMatrix() const {
-    return this->projectionMatrix;
+    return this->projection_matrix;
 }
 
 float Camera::getZoom() const {
@@ -40,7 +40,7 @@ float Camera::getZoom() const {
 }
 
 glm::vec2 Camera::getCameraDim() const {
-    return this->cameraDim;
+    return this->camera_dimensions;
 }
 
 glm::vec2 Camera::getPosition() const {
@@ -51,16 +51,16 @@ void Camera::update() {
 
     // printf("x: %f, y: %f, z: %f ", this->position.x, this->position.y, this->position.z);
 
-    float xOffset = render_c::SCREEN_WIDTH/2;
-    float yOffset = render_c::SCREEN_HEIGHT/2;
+    float x_offset = render_c::SCREEN_WIDTH/2;
+    float y_offset = render_c::SCREEN_HEIGHT/2;
 
-    glm::vec3 offset(xOffset, yOffset, 0);
+    glm::vec3 offset(x_offset, y_offset, 0);
 
-    glm::vec3 vPosition = this->position - offset;
+    glm::vec3 v_position = this->position - offset;
 
-	this->viewMatrix = glm::lookAt(
-		vPosition,          
-		vPosition + glm::vec3(0, 0, -1),
+	this->view_matrix = glm::lookAt(
+		v_position,          
+		v_position + glm::vec3(0, 0, -1),
 		glm::vec3(0, 1, 0)
 	);
 }

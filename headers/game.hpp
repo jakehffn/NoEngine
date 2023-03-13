@@ -41,11 +41,11 @@ private:
     std::vector<System*> systems;
 
     Clock clock = Clock();
-    Camera worldCamera = Camera();
-    Camera guiCamera = Camera();
-    Input inputManager = Input();
+    Camera world_camera = Camera();
+    Camera gui_camera = Camera();
+    Input input_manager = Input();
     // This should be read from the map at some point
-    TextureAtlas textureAtlas = TextureAtlas("./src/assets/atlases/UntitledRPGAtlas/UntitledRPGAtlas");
+    TextureAtlas texture_atlas = TextureAtlas("./src/assets/atlases/UntitledRPGAtlas/UntitledRPGAtlas");
 
-    ComponentGrid<Renderable, Collision> componentGrid = ComponentGrid<Renderable, Collision>(this->registry);
+    ComponentGrid<Renderable, Collision> component_grid = ComponentGrid<Renderable, Collision>(this->registry);
 };
