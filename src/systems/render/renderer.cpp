@@ -113,18 +113,24 @@ void Renderer::addBufferData(const glm::vec4& texture_data, const glm::mat4& mod
 
 void Renderer::bufferData() {
 
-    // glBindBuffer(GL_ARRAY_BUFFER, this->texture_coordinates_vbo);
-    // glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec4)*this->texture_coordinates_buffer_data.size(), NULL, GL_STREAM_DRAW);
+    if (this->maxBufferSize < this->models_buffer_data.size()) {
 
-    // glBindBuffer(GL_ARRAY_BUFFER, this->models_vbo);
-    // glBufferData(GL_ARRAY_BUFFER, sizeof(glm::mat4)*this->models_buffer_data.size(), NULL, GL_STREAM_DRAW);
+        this->maxBufferSize = this->models_buffer_data.size();
 
+        glBindBuffer(GL_ARRAY_BUFFER, this->texture_coordinates_vbo);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec4)*this->texture_coordinates_buffer_data.size(), this->texture_coordinates_buffer_data.data(), GL_DYNAMIC_DRAW);
 
-    glBindBuffer(GL_ARRAY_BUFFER, this->texture_coordinates_vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec4)*this->texture_coordinates_buffer_data.size(), this->texture_coordinates_buffer_data.data(), GL_STREAM_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER, this->models_vbo);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(glm::mat4)*this->models_buffer_data.size(), this->models_buffer_data.data(), GL_DYNAMIC_DRAW);
+    
+    } else {
 
-    glBindBuffer(GL_ARRAY_BUFFER, this->models_vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(glm::mat4)*this->models_buffer_data.size(), this->models_buffer_data.data(), GL_STREAM_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER, this->texture_coordinates_vbo);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(glm::vec4)*this->texture_coordinates_buffer_data.size(), this->texture_coordinates_buffer_data.data());
+
+        glBindBuffer(GL_ARRAY_BUFFER, this->models_vbo);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(glm::mat4)*this->models_buffer_data.size(), this->models_buffer_data.data());
+    }
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }

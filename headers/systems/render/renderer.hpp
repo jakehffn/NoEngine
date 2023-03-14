@@ -29,7 +29,9 @@ private:
     std::vector<glm::vec4> texture_coordinates_buffer_data; 
 
     GLuint models_vbo;
-    std::vector<glm::mat4> models_buffer_data; 
+    std::vector<glm::mat4> models_buffer_data;
+
+    size_t maxBufferSize{0}; 
 
     InstancedShader* instanced_shader;
     ShaderProgram<double>* screen_shader;
