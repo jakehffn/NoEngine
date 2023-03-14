@@ -21,8 +21,12 @@ void TextureAtlas::initTexture() {
     if (texture_data) {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, this->width, this->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, texture_data);
         glGenerateMipmap(GL_TEXTURE_2D);
+
     } else {
-        printf("Failed to load texture\n");
+
+        #ifndef NDEBUG
+            printf("Failed to load texture\n");
+        #endif
     }
 
     stbi_image_free(texture_data);
@@ -41,19 +45,26 @@ void TextureAtlas::initSpriteSheets() {
 		json_stream.close();
 
 	} else {
-		std::cout << "Unable to open " << texture_atlas_base_path + ".json" << std::endl;
+
+        #ifndef NDEBUG
+		    std::cout << "Unable to open " << texture_atlas_base_path + ".json" << std::endl;
+        #endif
 	}
 
     rapidjson::Document document;
     document.Parse(json.c_str());
 
-    static const char* type_names[] = { "Null", "False", "True", "Object", "Array", "String", "Number" };
- 
-    for (rapidjson::Value::ConstMemberIterator itr = document.MemberBegin();
-        itr != document.MemberEnd(); ++itr) {
-        printf("Type of member %s is %s\n",
-            itr->name.GetString(), type_names[itr->value.GetType()]);
-    }
+    #ifndef NDEBUG
+
+        static const char* type_names[] = { "Null", "False", "True", "Object", "Array", "String", "Number" };
+    
+        for (rapidjson::Value::ConstMemberIterator itr = document.MemberBegin();
+            itr != document.MemberEnd(); ++itr) {
+            printf("Type of member %s is %s\n",
+                itr->name.GetString(), type_names[itr->value.GetType()]);
+        }
+
+    #endif
 
     const rapidjson::Value& json_sprite_sheets = document["spritesheets"];
     assert(json_sprite_sheets.IsArray() && "'spritesheets' in json is not an array.");
@@ -103,9 +114,6 @@ void TextureAtlas::initSpriteSheets() {
             }
 
             AnimationData new_animation_data{name, direction, a["numFrames"].GetInt()};
-
-            // std::vector<FrameData> new_animation_frames;
-            // std::vector<float> new_animation_frame_durations;
 
             for (rapidjson::SizeType z = 0; z < json_frames.Size(); z++) {
 

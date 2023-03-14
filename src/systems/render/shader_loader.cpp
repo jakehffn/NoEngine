@@ -34,7 +34,10 @@ GLuint LoadShaders(const char * vertex_file_path, const char * fragment_file_pat
 
 	}else{
 
-		printf("Impossible to open %s. Are you in the right directory ? Don't forget to read the FAQ !\n", vertex_file_path);
+		#ifndef NDEBUG
+			printf("Unable to load vertex shader source: %s\n", vertex_file_path);
+		#endif
+
 		getchar();
 		
 		return 0;
@@ -52,66 +55,86 @@ GLuint LoadShaders(const char * vertex_file_path, const char * fragment_file_pat
 		fragment_shader_stream.close();
 	}
 
-	GLint result = GL_FALSE;
-	int info_log_length;
-
+	#ifndef NDEBUG
+		GLint result = GL_FALSE;
+		int info_log_length;
+	#endif
 
 	// Compile Vertex Shader
-	printf("Compiling shader : %s\n", vertex_file_path);
+
+	#ifndef NDEBUG
+		printf("Compiling shader : %s\n", vertex_file_path);
+	#endif
+
 	char const * vertex_source_pointer = vertex_shader_source.c_str();
 	glShaderSource(vertex_shader_id, 1, &vertex_source_pointer , NULL);
 	glCompileShader(vertex_shader_id);
 
-	// Check Vertex Shader
-	glGetShaderiv(vertex_shader_id, GL_COMPILE_STATUS, &result);
-	glGetShaderiv(vertex_shader_id, GL_INFO_LOG_LENGTH, &info_log_length);
+	#ifndef NDEBUG
 
-	if ( info_log_length > 0 ){
+		// Check Vertex Shader
+		glGetShaderiv(vertex_shader_id, GL_COMPILE_STATUS, &result);
+		glGetShaderiv(vertex_shader_id, GL_INFO_LOG_LENGTH, &info_log_length);
 
-		std::vector<char> vertex_shader_error_message(info_log_length+1);
-		glGetShaderInfoLog(vertex_shader_id, info_log_length, NULL, &vertex_shader_error_message[0]);
-		printf("%s\n", &vertex_shader_error_message[0]);
-	}
+		if ( info_log_length > 0 ){
 
+			std::vector<char> vertex_shader_error_message(info_log_length+1);
+			glGetShaderInfoLog(vertex_shader_id, info_log_length, NULL, &vertex_shader_error_message[0]);
+			printf("%s\n", &vertex_shader_error_message[0]);
+		}
 
+	#endif
 
 	// Compile Fragment Shader
-	printf("Compiling shader : %s\n", fragment_file_path);
+
+	#ifndef NDEBUG
+		printf("Compiling shader : %s\n", fragment_file_path);
+	#endif
+
 	char const * fragment_source_pointer = fragment_shader_source.c_str();
 	glShaderSource(fragment_shader_id, 1, &fragment_source_pointer , NULL);
 	glCompileShader(fragment_shader_id);
 
-	// Check Fragment Shader
-	glGetShaderiv(fragment_shader_id, GL_COMPILE_STATUS, &result);
-	glGetShaderiv(fragment_shader_id, GL_INFO_LOG_LENGTH, &info_log_length);
+	#ifndef NDEBUG
 
-	if ( info_log_length > 0 ){
+		// Check Fragment Shader
+		glGetShaderiv(fragment_shader_id, GL_COMPILE_STATUS, &result);
+		glGetShaderiv(fragment_shader_id, GL_INFO_LOG_LENGTH, &info_log_length);
 
-		std::vector<char> FragmentShaderErrorMessage(info_log_length+1);
-		glGetShaderInfoLog(fragment_shader_id, info_log_length, NULL, &FragmentShaderErrorMessage[0]);
-		printf("%s\n", &FragmentShaderErrorMessage[0]);
-	}
+		if ( info_log_length > 0 ){
 
+			std::vector<char> FragmentShaderErrorMessage(info_log_length+1);
+			glGetShaderInfoLog(fragment_shader_id, info_log_length, NULL, &FragmentShaderErrorMessage[0]);
+			printf("%s\n", &FragmentShaderErrorMessage[0]);
+		}
+
+	#endif
 
 
 	// Link the program
-	printf("Linking program\n");
+
+	#ifndef NDEBUG
+		printf("Linking program\n");
+	#endif
+
 	GLuint program_id = glCreateProgram();
 	glAttachShader(program_id, vertex_shader_id);
 	glAttachShader(program_id, fragment_shader_id);
 	glLinkProgram(program_id);
 
-	// Check the program
-	glGetProgramiv(program_id, GL_LINK_STATUS, &result);
-	glGetProgramiv(program_id, GL_INFO_LOG_LENGTH, &info_log_length);
+	#ifndef NDEBUG
+		// Check the program
+		glGetProgramiv(program_id, GL_LINK_STATUS, &result);
+		glGetProgramiv(program_id, GL_INFO_LOG_LENGTH, &info_log_length);
 
-	if ( info_log_length > 0 ){
+		if ( info_log_length > 0 ){
 
-		std::vector<char> program_error_message(info_log_length+1);
-		glGetProgramInfoLog(program_id, info_log_length, NULL, &program_error_message[0]);
-		printf("%s\n", &program_error_message[0]);
-	}
+			std::vector<char> program_error_message(info_log_length+1);
+			glGetProgramInfoLog(program_id, info_log_length, NULL, &program_error_message[0]);
+			printf("%s\n", &program_error_message[0]);
+		}
 
+	#endif
 	
 	glDetachShader(program_id, vertex_shader_id);
 	glDetachShader(program_id, fragment_shader_id);

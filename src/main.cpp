@@ -171,23 +171,31 @@ int main(int argv, char** args) {
 
 	if(!init()) {
 		
-		printf("Failed to initialize!\n");
+		#ifndef NDEBUG
+			printf("GL context failed to initialize!\n");
+		#endif
 
 	} else {
 
-		printf("Initialized Successfully\n");
+		#ifndef NDEBUG
+			printf("GL context initialized successfully\n");
+		#endif
 
-		// Enable debug output
-		glEnable( GL_DEBUG_OUTPUT );
-		glDebugMessageCallback( MessageCallback, 0 );
-		// disable all messages with source `GL_DEBUG_SEVERITY_NOTIFICATION`
-		glDebugMessageControl(
-			GL_DONT_CARE,
-			GL_DONT_CARE,
-			GL_DEBUG_SEVERITY_NOTIFICATION,
-			0, NULL,
-			GL_FALSE
-		); 
+		#ifndef NDEBUG
+
+			// Enable debug output
+			glEnable( GL_DEBUG_OUTPUT );
+			glDebugMessageCallback( MessageCallback, 0 );
+			// disable all messages with source `GL_DEBUG_SEVERITY_NOTIFICATION`
+			glDebugMessageControl(
+				GL_DONT_CARE,
+				GL_DONT_CARE,
+				GL_DEBUG_SEVERITY_NOTIFICATION,
+				0, NULL,
+				GL_FALSE
+			); 
+
+		#endif
 
 		Game scene(window);
 		scene.mainLoop();
