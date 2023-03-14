@@ -22,6 +22,9 @@ find_package(GLEW REQUIRED)
 set(SDL2_PATH "C:/msys64/mingw64/include/SDL2")
 find_package(SDL2 REQUIRED)
 
+set(FREETYPE2_PATH "C:/msys64/mingw64/lib/libfreetype.dll.a")
+set(FREETYPE2_INCLUDE_DIR "C:/msys64/mingw64/include/freetype2")
+
 set(TMXLITE_PATH "C:/Program Files (x86)/tmxlite/lib/libtmxlite.dll.a")
 set(TMXLITE_INCLUDE_DIR "C:/Program Files (x86)/tmxlite/include")
 
