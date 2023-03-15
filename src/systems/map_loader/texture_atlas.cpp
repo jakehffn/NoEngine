@@ -141,8 +141,8 @@ void TextureAtlas::initEntity(entt::registry& registry, entt::entity entity, std
     SpriteSheet& sprite_sheet = this->sprite_sheets[sprite_sheet_name];
 
     AnimationData& default_animation = sprite_sheet.animations["idle"][DOWN];
-    auto& texture = registry.emplace_or_replace<Texture>(entity, sprite_sheet_name, 
-        (int)sprite_sheet.size.x, (int)sprite_sheet.size.y, &(default_animation.frames[0])
+    auto& texture = registry.emplace_or_replace<Texture>(
+        entity, sprite_sheet_name, &(default_animation.frames[0])
     );
 
     auto& animator = registry.emplace<Animator>(entity, &(default_animation.frame_durations), default_animation.num_frames);
@@ -158,8 +158,8 @@ void TextureAtlas::initTileSet(entt::registry& registry, entt::entity tile_set_e
     SpriteSheet& sprite_sheet = this->sprite_sheets[tile_set_name];
 
     AnimationData& default_animation = sprite_sheet.animations["idle"][DOWN];
-    auto& texture = registry.emplace_or_replace<Texture>(tile_set_entity, tile_set_name, 
-        (int)sprite_sheet.size.x, (int)sprite_sheet.size.y, &(default_animation.frames[0])
+    auto& texture = registry.emplace_or_replace<Texture>(
+        tile_set_entity, tile_set_name, &(default_animation.frames[0])
     );
 
     // The animator for all tiles in this tileset
@@ -186,7 +186,7 @@ void TextureAtlas::initTile(entt::registry& registry, entt::entity tile_entity,
 
     auto& animation = registry.emplace<Animation>(tile_entity, &animator, &(tile_animation_data[tile_gid]));
 
-    auto& texture = registry.emplace<Texture>(tile_entity, tile_set_texture.sprite_sheet_name, 16, 16, &(animation.animation_data->frames[0]));
+    auto& texture = registry.emplace<Texture>(tile_entity, tile_set_texture.sprite_sheet_name, &(animation.animation_data->frames[0]));
     
 }
 

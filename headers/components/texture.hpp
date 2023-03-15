@@ -15,8 +15,5 @@ struct Texture {
 
     std::string sprite_sheet_name;
 
-    int width;
-    int height;
-
     FrameData* frame_data;
 };
