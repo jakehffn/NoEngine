@@ -28,8 +28,8 @@ set(FREETYPE2_INCLUDE_DIR "C:/msys64/mingw64/include/freetype2")
 set(TMXLITE_PATH "C:/Program Files (x86)/tmxlite/lib/libtmxlite.dll.a")
 set(TMXLITE_INCLUDE_DIR "C:/Program Files (x86)/tmxlite/include")
 
-target_include_directories(${PROJECT_NAME} PUBLIC ${OPENGL_INCLUDE_DIRS} ${SDL2_INCLUDE_DIR} ${TMXLITE_INCLUDE_DIR} ${GLEW_INCLUDE_DIRS})
-target_link_libraries(${PROJECT_NAME} PUBLIC -mconsole ${OPENGL_LIBRARY} ${SDL2_LIBRARY} ${TMXLITE_PATH} GLEW::glew)
+target_include_directories(${PROJECT_NAME} PUBLIC ${OPENGL_INCLUDE_DIRS} ${SDL2_INCLUDE_DIR} ${FREETYPE2_INCLUDE_DIR} ${TMXLITE_INCLUDE_DIR} ${GLEW_INCLUDE_DIRS})
+target_link_libraries(${PROJECT_NAME} PUBLIC -mconsole ${OPENGL_LIBRARY} ${SDL2_LIBRARY} ${FREETYPE2_PATH} ${TMXLITE_PATH} GLEW::glew)
 
 file(COPY "./assets" DESTINATION ".")
 

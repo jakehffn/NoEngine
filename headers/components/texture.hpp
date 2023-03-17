@@ -15,5 +15,5 @@ struct Texture {
 
     std::string sprite_sheet_name;
 
-    FrameData* frame_data;
+    AtlasData* frame_data;
 };

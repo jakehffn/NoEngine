@@ -9,10 +9,11 @@ Game::Game(SDL_Window* window) : window{ window } {
         this->registry.ctx().emplace_hint<Camera&>("gui_camera"_hs, this->gui_camera);
         this->registry.ctx().emplace<Input&>(this->input_manager);
         this->registry.ctx().emplace<TextureAtlas&>(this->texture_atlas);
+        this->registry.ctx().emplace<SpriteSheetAtlas&>(this->sprite_sheet_atlas);
         this->registry.ctx().emplace<ComponentGrid<Renderable, Collision>&>(this->component_grid);
-        // this->component_grid.init(20000,20000,128);
 
         this->systems.push_back(new MapLoaderSystem(this->registry));
+        this->systems.push_back(new TextSystem(this->registry));
         this->systems.push_back(new InputSystem(this->registry));
         this->systems.push_back(new AnimationSystem(this->registry));
         this->systems.push_back(new MovementSystem(this->registry));
@@ -23,8 +24,7 @@ Game::Game(SDL_Window* window) : window{ window } {
 
         // Tiled map must be loaded after systems are created in order for observers to be able to
         //  monitor patches during creation of entities
-        // this->loadTiledMap("./src/assets/maps/Test/test.tmx");
-        
+    
         // // Enable text input
         // SDL_StartTextInput();
 
@@ -80,7 +80,9 @@ void Game::mainLoop() {
         SDL_GL_SwapWindow(window);
     }
 
-    std::cout << "\nOpenGLError Code: "<< glGetError() << "\n";
+    #ifndef NDEBUG
+        std::cout << "\nOpenGLError Code: "<< glGetError() << "\n";
+    #endif
     
     SDL_StopTextInput();
 }

@@ -34,8 +34,6 @@ public:
     void update() override;
 
 private:
-    void initTextMap();
-
     void cullEntities();
     void sortEntities();
 
@@ -48,8 +46,6 @@ private:
 
     entt::observer spacial_observer;
     entt::observer texture_observer;
-
-    std::unordered_map<char, glm::vec2> text_map;
 
     std::set<entt::entity> render_query;
     std::set<entt::entity> last_render_query;

@@ -3,5 +3,6 @@ target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC
     entt
     glm
     rapidjson
+    retpack2d
     lightgrid/include
 )

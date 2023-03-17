@@ -35,6 +35,10 @@ void MapLoaderSystem::loadTiledMap(const char* map_path) {
 
         this->addObjects(map);
         this->addTilesets(map);
+
+        auto& texture_atlas = this->registry.ctx().at<TextureAtlas&>();
+        // TODO: Make a better name for that function. It's not really descriptive of what that does
+        texture_atlas.updateAtlas();
     }
 }
 
@@ -61,7 +65,7 @@ void MapLoaderSystem::addObjects(const tmx::Map& map) {
 void MapLoaderSystem::addObject(const tmx::Map& map, const tmx::Object& object) {
         
     const auto& entity = this->registry.create();
-    TextureAtlas& texture_atlas = this->registry.ctx().at<TextureAtlas&>();
+    auto& sprite_sheet_atlas = this->registry.ctx().at<SpriteSheetAtlas&>();
 
     std::string type = object.getType();
     tmx::Vector2f position = object.getPosition();
@@ -83,7 +87,7 @@ void MapLoaderSystem::addObject(const tmx::Map& map, const tmx::Object& object) 
 
         std::string texture_name = std::filesystem::path(tile->imagePath).stem().string(); 
 
-        texture_atlas.initEntity(this->registry, entity, texture_name);
+        sprite_sheet_atlas.initEntity(this->registry, entity, texture_name);
 
         this->registry.emplace<Spacial>(entity, glm::vec3(position.x, position.y, 1), 
             glm::vec3(0, 0, 0), glm::vec3(1, 1, 1), glm::vec2(tile->imageSize.x, tile->imageSize.y));
@@ -103,7 +107,7 @@ void MapLoaderSystem::addObject(const tmx::Map& map, const tmx::Object& object) 
 
 void MapLoaderSystem::addTilesets(tmx::Map& map) {
 
-    TextureAtlas& texture_atlas = this->registry.ctx().at<TextureAtlas&>();
+    auto& sprite_sheet_atlas = this->registry.ctx().at<SpriteSheetAtlas&>();
 
     std::unordered_map<std::string, std::vector<glm::vec3>> tile_data_map;
 
@@ -144,14 +148,14 @@ void MapLoaderSystem::addTilesets(tmx::Map& map) {
 
         std::string texture_name = std::filesystem::path(tile_set.getImagePath()).stem().string(); 
 
+        this->registry.emplace<TileSet>(tile_set_entity, (int)dimensions.x, (int)dimensions.y, (int)tile_set.getFirstGID(), (int)tile_set.getLastGID());
         // Animations and textures for tiles are handled by the tile_set. 
         //      Animations for all tiles in the tile_set can then be done at once
         //      The drawback for this is that the textures coordinates are calculated every frame
         //      Another drawback is that adding the buffer data for tiles and other entities ends 
         //      up being different.
-        texture_atlas.initTileSet(this->registry, tile_set_entity, texture_name);
+        sprite_sheet_atlas.initTileSet(this->registry, tile_set_entity, texture_name);
         
-        this->registry.emplace<TileSet>(tile_set_entity, (int)dimensions.x, (int)dimensions.y, (int)tile_set.getFirstGID(), (int)tile_set.getLastGID());
 
         for (auto tile_data_vec : tile_data_map[tile_set.getName()]) {
 
@@ -162,9 +166,9 @@ void MapLoaderSystem::addTilesets(tmx::Map& map) {
             // The position of the tile texture in the tile_set image.
             glm::vec2 image_position = glm::vec2((float)tile->imagePosition.x, (float)tile->imagePosition.y);
 
-            texture_atlas.initTile(this->registry, tile_entity, tile_set_entity, image_position, (int)tile_data_vec.z);
-
             this->registry.emplace<Tile>(tile_entity, (int)tile_data_vec.z);
+            sprite_sheet_atlas.initTile(this->registry, tile_entity, tile_set_entity, image_position, (int)tile_data_vec.z);
+
             this->registry.emplace<Spacial>(tile_entity, glm::vec3(tile_data_vec.x, tile_data_vec.y, 0) * 16.0f, 
                 glm::vec3(0, 0, 0), glm::vec3(1, 1, 1), glm::vec2(16, 16));
             this->registry.emplace<Renderable>(tile_entity);

@@ -24,7 +24,9 @@ namespace ComponentFactory {
         } else if (component == "Collidable") {
             registry.emplace_or_replace<Collidable>(entity);
         } else {
-            std::cout << "No component of type '" << component << "' exists." << std::endl;
+            #ifndef NDEBUG
+                std::cerr << "No component of type '" << component << "' exists." << std::endl;
+            #endif
         }
     }
 }

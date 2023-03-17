@@ -1,7 +1,5 @@
 #include "camera.hpp"
 
-// #include <stdio.h>
-
 Camera::Camera() :
 
     position{ glm::vec3(0, 0, 0) }, view_matrix{ glm::mat4(1.0f) } {

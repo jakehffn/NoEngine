@@ -7,21 +7,16 @@
 #include <glm/glm.hpp>
 
 #include "spacial.hpp"
+#include "atlas_data.hpp"
 
-struct FrameData {
-
-    glm::vec2 position;
-    glm::vec2 size;
-    glm::vec2 offset;
-};
-
+// Data about a specific animation sequence
 struct AnimationData {
 
     std::string name;
     DIRECTION direction;
     int num_frames;
     std::vector<float> frame_durations;
-    std::vector<FrameData> frames;
+    std::vector<AtlasData*> frames; // Unused for tilesets
 };
 
 using AnimationMap = std::unordered_map<std::string, std::unordered_map<DIRECTION, AnimationData>>;

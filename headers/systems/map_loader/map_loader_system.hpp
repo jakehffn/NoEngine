@@ -24,7 +24,7 @@
 #include "tile.hpp"
 #include "renderable.hpp"
 
-#include "texture_atlas.hpp"
+#include "sprite_sheet_atlas.hpp"
 #include "component_grid.hpp"
 
 class MapLoaderSystem : public System {

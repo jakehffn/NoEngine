@@ -16,6 +16,7 @@
 #include "camera.hpp"
 #include "input.hpp"
 #include "texture_atlas.hpp"
+#include "sprite_sheet_atlas.hpp"
 #include "component_grid.hpp"
 #include "renderable.hpp"
 #include "collision.hpp"
@@ -28,6 +29,7 @@
 #include "camera_system.hpp"
 #include "gui_system.hpp"
 #include "map_loader_system.hpp"
+#include "text_system.hpp"
 
 class Game {
 public:
@@ -45,7 +47,8 @@ private:
     Camera gui_camera = Camera();
     Input input_manager = Input();
     // This should be read from the map at some point
-    TextureAtlas texture_atlas = TextureAtlas("./assets/atlases/UntitledRPGAtlas/UntitledRPGAtlas");
+    TextureAtlas texture_atlas;
+    SpriteSheetAtlas sprite_sheet_atlas;
 
     ComponentGrid<Renderable, Collision> component_grid = ComponentGrid<Renderable, Collision>(this->registry);
 };

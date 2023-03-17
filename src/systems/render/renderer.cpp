@@ -99,7 +99,7 @@ void Renderer::initScreenFBO() {
 
     
     if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-        std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
+        std::cerr << "ERROR: Framebuffer is not complete!" << std::endl;
     }
     
     glBindFramebuffer(GL_FRAMEBUFFER, 0); 

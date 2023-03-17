@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -23,13 +22,13 @@ bool init() {
     bool success = true;
 
     if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) < 0) {
-		printf("SDL could not initialize! SDL Error: %s\n", SDL_GetError());
+		std::cerr << "SDL could not initialize! SDL Error: " << SDL_GetError() << "\n";
 		success = false;
 
 	} else {
 		// Use OpenGL 3.1 core
-		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
 		window = SDL_CreateWindow("Untitled RPG", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 
@@ -38,25 +37,25 @@ bool init() {
 		);
 
 		if(window == NULL) {
-			printf("Window could not be created! SDL Error: %s\n", SDL_GetError());
+			std::cerr << "Window could not be created! SDL Error: " << SDL_GetError() << "\n";
 			success = false;
 
 		} else {
 			context = SDL_GL_CreateContext(window);
 
 			if(context == NULL) {
-				printf("SDL: OpenGL context could not be created!\nSDL Error: %s\n", SDL_GetError());
+				std::cerr << "SDL: OpenGL context could not be created!\nSDL Error: " << SDL_GetError() << "\n";
 				success = false;
 			} else {
 				glewExperimental = GL_TRUE; 
 				GLenum glew_error = glewInit();
 				if( glew_error != GLEW_OK ) {
-					printf("GLEW: Error initializing! %s\n", glewGetErrorString(glew_error));
+					std::cerr << "GLEW: Error initializing! " << glewGetErrorString(glew_error) << "\n";
 				}
 
 				// Use Vsync
 				if( SDL_GL_SetSwapInterval( 1 ) < 0 ) {
-					printf("SDL: Warning: Unable to set VSync!\nSDL Error: %s\n", SDL_GetError());
+					std::cerr << "SDL: Warning: Unable to set VSync!\nSDL Error: " << SDL_GetError() << "\n";
 				}
 			}
 		}
@@ -150,10 +149,9 @@ MessageCallback( GLenum source,
 			severity_string = "OTHER";
 	};
 	
-  	fprintf( stderr, "GL CALLBACK: %s type = %s, source = %s, severity = %s, message = %s\n",
-        ( type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : "" ),
-        type_string.c_str(), source_string.c_str(), severity_string.c_str(), message 
-	);
+  	std::cerr << "GL CALLBACK:\ntype = " << type_string.c_str() << ", source = " << source_string.c_str() << 
+		", severity = " << severity_string.c_str() << ", message = " << message << "\n" << 
+		( type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : "" );
 }
 
 void close() {
@@ -169,16 +167,18 @@ void close() {
 // Parameters necessary for SDL_Main
 int main(int argv, char** args) {
 
+	std::cout << GL_MAX_TEXTURE_SIZE << "\n";
+
 	if(!init()) {
 		
 		#ifndef NDEBUG
-			printf("GL context failed to initialize!\n");
+			std::cerr << "GL context failed to initialize!\n";
 		#endif
 
 	} else {
 
 		#ifndef NDEBUG
-			printf("GL context initialized successfully\n");
+			std::cout << "GL context initialized successfully\n";
 		#endif
 
 		#ifndef NDEBUG

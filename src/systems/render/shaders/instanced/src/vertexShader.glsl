@@ -16,4 +16,7 @@ void main() {
 	
 	// Output position of the vertex, in clip space : MVP * position
 	gl_Position =  P*V*instanceModel * vec4(vertex.xy, 1.0, 1.0);
+
+
+	// gl_Position =  P*V*instanceModel * vec4(vertex.xy*8, 1.0, 1.0);
 }

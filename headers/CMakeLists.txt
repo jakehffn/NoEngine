@@ -3,4 +3,5 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 )
 
 add_subdirectory(components)
+add_subdirectory(context)
 add_subdirectory(systems)
