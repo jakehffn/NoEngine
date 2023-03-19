@@ -126,12 +126,3 @@ void TextureAtlas::updateAtlasTexture() {
 
     glGenerateMipmap(GL_TEXTURE_2D);
 }
-
-// void TextureAtlas::copyDataToAtlasSource(unsigned char* data, glm::ivec2 size, glm::ivec2 position) {
-
-//     for (int y_it{0}; y_it < size.y; y_it++) {
-//         for (int x_it{0}; x_it < size.x; x_it++) {
-//             texture_atlas_source[(position.y+y_it)*this->width+position.x+x_it] = data[y_it*size.x+x_it];
-//         }
-//     }
-// }

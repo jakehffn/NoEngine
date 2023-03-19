@@ -30,6 +30,7 @@ set(TMXLITE_INCLUDE_DIR "C:/Program Files (x86)/tmxlite/include")
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${OPENGL_INCLUDE_DIRS} ${SDL2_INCLUDE_DIR} ${FREETYPE2_INCLUDE_DIR} ${TMXLITE_INCLUDE_DIR} ${GLEW_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME} PUBLIC -mconsole ${OPENGL_LIBRARY} ${SDL2_LIBRARY} ${FREETYPE2_PATH} ${TMXLITE_PATH} GLEW::glew)
+# target_link_libraries(${PROJECT_NAME} PUBLIC -mwindows ${OPENGL_LIBRARY} ${SDL2_LIBRARY} ${FREETYPE2_PATH} ${TMXLITE_PATH} GLEW::glew)
 
 file(COPY "./assets" DESTINATION ".")
 

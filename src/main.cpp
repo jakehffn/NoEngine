@@ -167,8 +167,6 @@ void close() {
 // Parameters necessary for SDL_Main
 int main(int argv, char** args) {
 
-	std::cout << GL_MAX_TEXTURE_SIZE << "\n";
-
 	if(!init()) {
 		
 		#ifndef NDEBUG

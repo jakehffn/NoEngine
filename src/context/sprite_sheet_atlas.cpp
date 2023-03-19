@@ -3,7 +3,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-void SpriteSheetAtlas::initEntity(entt::registry& registry, entt::entity entity, std::string sprite_sheet_name) {
+void SpriteSheetAtlas::initEntity(entt::registry& registry, entt::entity entity, const std::string& sprite_sheet_name) {
 
     if (!this->sprite_sheets.contains(sprite_sheet_name)) {
 
@@ -16,12 +16,9 @@ void SpriteSheetAtlas::initEntity(entt::registry& registry, entt::entity entity,
     this->addAnimationComponents(registry, entity, sprite_sheet.animations);
 }
 
-void SpriteSheetAtlas::beginTileSet(entt::registry& registry, entt::entity entity, std::string sprite_sheet_name) {
+void SpriteSheetAtlas::beginTileSet(entt::registry& registry, entt::entity entity, const std::string& sprite_sheet_name) {
     
-    if (!this->sprite_sheets.contains(sprite_sheet_name)) {
-
-        this->beginTileSetAseprite(registry, entity, sprite_sheet_name);
-    }
+    this->beginTileSetAseprite(registry, entity, sprite_sheet_name);
 
     auto& sprite_sheet{this->sprite_sheets[sprite_sheet_name]};
 
@@ -38,8 +35,10 @@ void SpriteSheetAtlas::initTile(entt::registry& registry, entt::entity tile_enti
     SpriteSheet& sprite_sheet = this->sprite_sheets[tile_set_texture.sprite_sheet_name];
     const AnimationData& base_animation = sprite_sheet.animations["idle"][DOWN];
 
-    if (!this->tile_animation_data.contains(tile_gid)) {
+    // If two frames use the same pixel data, then it needs to not be added to the texture atlas a second time
+    std::unordered_map<std::string, AtlasData*> frame_map;
 
+    if (!this->tile_animation_data.contains(tile_gid)) {
 
         this->tile_animation_data[tile_gid] = base_animation;
 
@@ -51,8 +50,10 @@ void SpriteSheetAtlas::initTile(entt::registry& registry, entt::entity tile_enti
 
             TextureSource reference_source = this->current_tile_set_sources[frame_num];
 
-            int x_offset{((tile_gid-tile_set.first_gid)*16)%reference_source.size.x};
-            int y_offset{(((tile_gid-tile_set.first_gid)*16)/reference_source.size.x)*16};
+            // int x_offset{((tile_gid-tile_set.first_gid)*16)%reference_source.size.x};
+            // int y_offset{(((tile_gid-tile_set.first_gid)*16)/reference_source.size.x)*16};
+            int x_offset{((tile_gid-tile_set.first_gid)*16)%sprite_sheet.sprite_size.x};
+            int y_offset{(((tile_gid-tile_set.first_gid)*16)/sprite_sheet.sprite_size.x)*16};
 
             TextureSource new_texture{
                 reference_source.data,
@@ -64,8 +65,13 @@ void SpriteSheetAtlas::initTile(entt::registry& registry, entt::entity tile_enti
                     glm::ivec2(x_offset, y_offset)
             };
 
-            this->tile_animation_data[tile_gid].frames[frame_num] = texture_atlas.insertTexture(new_texture);
-            
+            std::string key{this->getTextureSourceKey(new_texture)};
+
+            if (!frame_map.contains(key)) {
+                frame_map[key] = texture_atlas.insertTexture(new_texture);
+            }
+
+            this->tile_animation_data[tile_gid].frames[frame_num] = frame_map[key];
         }
     }
 
@@ -102,7 +108,7 @@ void SpriteSheetAtlas::addTileSetComponents(entt::registry& registry, entt::enti
     // this->addAnimationComponents(registry, entity, sprite_sheet.animations);
 }
 
-void SpriteSheetAtlas::addTileComponents(entt::registry& registry, entt::entity entity, std::string sprite_sheet_name, Animator& animator) {
+void SpriteSheetAtlas::addTileComponents(entt::registry& registry, entt::entity entity, const std::string& sprite_sheet_name, Animator& animator) {
     
     auto& tile = registry.get<Tile>(entity);
 
@@ -141,7 +147,7 @@ void SpriteSheetAtlas::addAnimationComponents(entt::registry& registry, entt::en
 
 // This function does not call updateAtlas()
 // TODO: split this into a few more readable functions
-void SpriteSheetAtlas::initEntitySpriteSheetAseprite(entt::registry& registry, std::string sprite_sheet_name) {
+void SpriteSheetAtlas::initEntitySpriteSheetAseprite(entt::registry& registry, const std::string& sprite_sheet_name) {
 
     std::string json_path{this->base_sprite_sheet_path + sprite_sheet_name + ".json"};
 
@@ -184,18 +190,7 @@ void SpriteSheetAtlas::initEntitySpriteSheetAseprite(entt::registry& registry, s
         TextureSource new_texture{this->textureSourceFromFrame(frame, texture_data, data_size)};
 
         AtlasData* atlas_data;
-        std::string key_offset{
-            std::to_string(new_texture.source_offset.x)+
-            "_"+
-            std::to_string(new_texture.source_offset.y)
-        };
-        std::string key_size{
-            std::to_string(new_texture.size.x)+
-            "_"+
-            std::to_string(new_texture.size.y)
-        };
-
-        std::string key{key_offset+"_"+key_size};
+        std::string key{this->getTextureSourceKey(new_texture)};
 
         if (!frame_map.contains(key)) {
             frame_map[key] = texture_atlas.insertTexture(new_texture);
@@ -208,7 +203,7 @@ void SpriteSheetAtlas::initEntitySpriteSheetAseprite(entt::registry& registry, s
 }
 
 // TODO: split this into a few more readable functions
-void SpriteSheetAtlas::beginTileSetAseprite(entt::registry& registry, entt::entity entity, std::string sprite_sheet_name) {
+void SpriteSheetAtlas::beginTileSetAseprite(entt::registry& registry, entt::entity entity, const std::string& sprite_sheet_name) {
 
     std::string json_path{this->base_sprite_sheet_path + sprite_sheet_name + ".json"};
 
@@ -253,7 +248,7 @@ void SpriteSheetAtlas::beginTileSetAseprite(entt::registry& registry, entt::enti
     // stbi_image_free(texture_data);
 }
 
-rapidjson::Document SpriteSheetAtlas::readJSON(std::string json_path) {
+rapidjson::Document SpriteSheetAtlas::readJSON(const std::string& json_path) {
     
     std::string json;
 	std::ifstream json_stream(json_path, std::ios::in);
@@ -289,7 +284,7 @@ rapidjson::Document SpriteSheetAtlas::readJSON(std::string json_path) {
     return document;
 }
 
-SpriteSheet& SpriteSheetAtlas::initNewSpriteSheet(const rapidjson::Value& document, std::string sprite_sheet_name) {
+SpriteSheet& SpriteSheetAtlas::initNewSpriteSheet(const rapidjson::Value& document, const std::string& sprite_sheet_name) {
 
     const rapidjson::Value& json_meta{document["meta"]};
 
@@ -317,7 +312,7 @@ SpriteSheet& SpriteSheetAtlas::initNewSpriteSheet(const rapidjson::Value& docume
     if (animations.Size() == 0) {
 
         std::string animation_name{"idle"};
-        int num_animation_frames{json_frames.Size()};
+        int num_animation_frames{(int)json_frames.Size()};
 
         for (rapidjson::SizeType direction_num{0}; direction_num < directions.Size(); direction_num++) {
 
@@ -362,7 +357,7 @@ SpriteSheet& SpriteSheetAtlas::initNewSpriteSheet(const rapidjson::Value& docume
 }
 
 // Parses frame name as tuple of animation name, direction, frame number
-std::tuple<std::string, DIRECTION, int> SpriteSheetAtlas::parseFrameName(std::string frame_name) {
+std::tuple<std::string, DIRECTION, int> SpriteSheetAtlas::parseFrameName(const std::string& frame_name) {
 
     // Filename is a string that looks like "{sprite_sheet_name}_{animation_name}_{direction}_{frame_number}"
     
@@ -433,4 +428,20 @@ DIRECTION SpriteSheetAtlas::formatDirection(std::string direction_string) {
     }
 
     return this->direction_string_to_enum[direction_string];
+}
+
+std::string SpriteSheetAtlas::getTextureSourceKey(const TextureSource& texture_source) {
+
+    std::string key_offset{
+        std::to_string(texture_source.source_offset.x)+
+        "_"+
+        std::to_string(texture_source.source_offset.y)
+    };
+    std::string key_size{
+        std::to_string(texture_source.size.x)+
+        "_"+
+        std::to_string(texture_source.size.y)
+    };
+
+    return {key_offset+"_"+key_size};
 }

@@ -24,8 +24,8 @@ using AnimationMap = std::unordered_map<std::string, std::unordered_map<DIRECTIO
 struct SpriteSheet {
 
     std::string name;
-    glm::vec2 size;
-    glm::vec2 sprite_size; // Size of individual sprite
+    glm::ivec2 size;
+    glm::ivec2 sprite_size; // Size of individual sprite
 
     // Animation name, then direction
     AnimationMap animations;
