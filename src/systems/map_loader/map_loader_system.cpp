@@ -154,7 +154,7 @@ void MapLoaderSystem::addTilesets(tmx::Map& map) {
         //      The drawback for this is that the textures coordinates are calculated every frame
         //      Another drawback is that adding the buffer data for tiles and other entities ends 
         //      up being different.
-        sprite_sheet_atlas.initTileSet(this->registry, tile_set_entity, texture_name);
+        sprite_sheet_atlas.beginTileSet(this->registry, tile_set_entity, texture_name);
         
 
         for (auto tile_data_vec : tile_data_map[tile_set.getName()]) {

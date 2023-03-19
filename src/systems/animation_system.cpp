@@ -46,7 +46,7 @@ void AnimationSystem::updateIdleAnimations() {
 
         auto [animation, texture, idle_animation, spacial] = idle_animation_entities.get<Animation, Texture, IdleAnimation, Spacial>(entity);
 
-        bool needs_animation_update = animation.animation_data->name != "Idle" || animation.animation_data->direction != spacial.direction;
+        bool needs_animation_update = animation.animation_data->name != "idle" || animation.animation_data->direction != spacial.direction;
 
         if (needs_animation_update) {
 
@@ -72,7 +72,7 @@ void AnimationSystem::updateMoveAnimations() {
 
         std::string previous_animation = animation.animation_data->name;
 
-        bool needs_animation_update = animation.animation_data->name != "Move" || animation.animation_data->direction != spacial.direction;
+        bool needs_animation_update = animation.animation_data->name != "move" || animation.animation_data->direction != spacial.direction;
 
         if (needs_animation_update) {
 
@@ -82,7 +82,7 @@ void AnimationSystem::updateMoveAnimations() {
 
             // You get smoother animations, especially walking, if the walk cycle can continue between direction changes
             // Because of this, on an animation update, the walk-cycle is restarted only after the following conditions
-            bool needs_animation_restart = previous_animation != "Move" || animation.animator->current_frame >= animation.animation_data->frames.size();
+            bool needs_animation_restart = previous_animation != "move" || animation.animator->current_frame >= animation.animation_data->frames.size();
 
             if (needs_animation_restart) {
 

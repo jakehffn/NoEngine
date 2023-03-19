@@ -28,7 +28,9 @@ AtlasData* TextureAtlas::insertTexture(const TextureSource& source) {
             }
         }
     } else {
-        std::cerr << "ERROR: Unhandled texture data format!\n";
+        #ifndef NDEBUG
+            std::cerr << "ERROR: Unhandled texture data format!\n";
+        #endif
     }
 
     return &new_atlas_data;
@@ -53,7 +55,9 @@ void TextureAtlas::updateAtlasDataPacking() {
 
 	auto report_unsuccessful = [](rect_type&) {
 
-        std::cerr << "ERROR: Unsuccessful insertion rectpack2D" << "\n";
+        #ifndef NDEBUG
+            std::cerr << "ERROR: Unsuccessful insertion rectpack2D" << "\n";
+        #endif
 
 		return rectpack2D::callback_result::ABORT_PACKING;
 	};
@@ -66,7 +70,6 @@ void TextureAtlas::updateAtlasDataPacking() {
 
     for (auto texture : this->atlas_data) {
         rectangles.emplace_back(0, 0, texture.size.x, texture.size.y);
-        std::cout << texture.size.x << " " << texture.size.y << "\n";
     }
 
     const auto result_size = rectpack2D::find_best_packing<spaces_type>(rectangles, rectpack2D::make_finder_input(
