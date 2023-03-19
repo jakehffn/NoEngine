@@ -26,6 +26,10 @@ void SpriteSheetAtlas::beginTileSet(entt::registry& registry, entt::entity entit
     this->addAnimationComponents(registry, entity, sprite_sheet.animations);
 }
 
+void SpriteSheetAtlas::endTileSet() {
+    this->endTileSetAseprite();
+}
+
 void SpriteSheetAtlas::initTile(entt::registry& registry, entt::entity tile_entity, 
     entt::entity tile_set_entity, glm::vec2 image_position, int tile_gid) {
 
@@ -244,8 +248,16 @@ void SpriteSheetAtlas::beginTileSetAseprite(entt::registry& registry, entt::enti
 
         this->current_tile_set_sources[animation_frame_num] = this->textureSourceFromFrame(frame, texture_data, data_size);
     }
+}
 
-    // stbi_image_free(texture_data);
+void SpriteSheetAtlas::endTileSetAseprite() {
+    
+    // Cleanup the loaded data from the tileset sources if it exists
+    if (this->current_tile_set_sources.size() > 0) {
+        stbi_image_free(current_tile_set_sources[0].data);
+    }
+
+    this->current_tile_set_sources.clear();
 }
 
 rapidjson::Document SpriteSheetAtlas::readJSON(const std::string& json_path) {

@@ -21,6 +21,7 @@ class SpriteSheetAtlas {
 public:
     void initEntity(entt::registry& registry, entt::entity entity, const std::string& sprite_sheet_name);
     void beginTileSet(entt::registry& registry, entt::entity entity, const std::string& sprite_sheet_name);
+    void endTileSet();
     void initTile(entt::registry& registry, entt::entity tile_entity, entt::entity tile_set_entity, 
         glm::vec2 image_position, int tile_gid);
     
@@ -35,11 +36,11 @@ private:
     void beginTileSetAseprite(entt::registry& registry, entt::entity entity, const std::string& sprite_sheet_name);
     void endTileSetAseprite();
 
-    rapidjson::Document readJSON(const std::string& json_path);
     SpriteSheet& initNewSpriteSheet(const rapidjson::Value& document, const std::string& sprite_sheet_name);
     std::tuple<std::string, DIRECTION, int> parseFrameName(const std::string& frame_name);
     TextureSource textureSourceFromFrame(const rapidjson::Value& frame, unsigned char* texture_data, glm::ivec2 texture_data_size);
 
+    rapidjson::Document readJSON(const std::string& json_path);
     std::string formatAnimationName(std::string animation_name);
     DIRECTION formatDirection(std::string direction_name);
 
@@ -54,11 +55,13 @@ private:
     std::vector<TextureSource> current_tile_set_sources;
 
     std::unordered_map<int, AnimationData> tile_animation_data;
+
     std::unordered_map<std::string, DIRECTION> direction_string_to_enum{
         {"up", DIRECTION::UP},
         {"down", DIRECTION::DOWN},
         {"left", DIRECTION::LEFT},
         {"right", DIRECTION::RIGHT}
     };
+
     std::string base_sprite_sheet_path{"./assets/sprite_sheets/"};
 };

@@ -156,7 +156,6 @@ void MapLoaderSystem::addTilesets(tmx::Map& map) {
         //      up being different.
         sprite_sheet_atlas.beginTileSet(this->registry, tile_set_entity, texture_name);
         
-
         for (auto tile_data_vec : tile_data_map[tile_set.getName()]) {
 
             const tmx::Tileset::Tile* tile = tile_set.getTile(tile_data_vec.z);
@@ -175,6 +174,9 @@ void MapLoaderSystem::addTilesets(tmx::Map& map) {
 
             this->addCollision(tile_entity, tile);
         }
+
+        // Clean up resources
+        sprite_sheet_atlas.endTileSet();
     }
 }
 
