@@ -9,9 +9,7 @@ TextSystem::TextSystem(entt::registry& registry) : System(registry) {
     registry.on_construct<Text>().connect<TextSystem::emplaceTextures>(this);
 }
 
-void TextSystem::update() {
-
-}
+void TextSystem::update() {}
 
 void TextSystem::loadFont(std::string font_path) {
 
@@ -103,13 +101,26 @@ void TextSystem::emplaceTextures(entt::registry& registry, entt::entity entity) 
     assert((registry.all_of<Spacial, Text>(entity) && "Entity does not have Spacial"));
     
     auto& spacial{registry.get<Spacial>(entity)};
+    auto& text{registry.get<Text>(entity)};
 
-    auto glyphEntity{registry.create()};
+    float total_x_offset{0};
 
-    registry.emplace<Spacial>(glyphEntity, spacial);
-    registry.emplace<Texture>(glyphEntity,
-        "Cozette",
-        this->fonts["Cozette"].characters['G'].frame_data
-    );
-    registry.emplace<Renderable>(glyphEntity);
+    for (auto c : text.text) {
+
+        auto glyph_entity{registry.create()};
+
+        FontCharacter& curr_char{this->fonts["Cozette"].characters[c]};
+
+        glm::vec3 offset{total_x_offset+curr_char.bearing.x, -curr_char.bearing.y,0};
+
+        registry.emplace<Spacial>(glyph_entity, spacial.pos+offset);
+        registry.emplace<Texture>(glyph_entity,
+            "Cozette",
+            curr_char.frame_data
+        );
+        registry.emplace<Renderable>(glyph_entity);
+
+        total_x_offset += curr_char.advance;
+    }
+
 }

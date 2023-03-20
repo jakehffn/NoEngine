@@ -12,13 +12,13 @@ enum DIRECTION {
 
 struct Spacial {
     // position
-    glm::vec3 pos;
+    glm::vec3 pos{0,0,0};
     // rotation
-    glm::vec3 rot;
+    glm::vec3 rot{0,0,0};
     // scale
-    glm::vec3 scale;
+    glm::vec3 scale{1,1,1};
     // dimensions of entity
-    glm::vec2 dim;
+    glm::vec2 dim{1,1};
     // direction will usually be the same as last velocity
     DIRECTION direction = DOWN;
 };

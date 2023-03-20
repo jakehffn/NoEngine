@@ -66,8 +66,7 @@ void MapLoaderSystem::addObject(const tmx::Map& map, const tmx::Object& object) 
         
     const auto& entity = this->registry.create();
     auto& sprite_sheet_atlas = this->registry.ctx().at<SpriteSheetAtlas&>();
-
-    std::string type = object.getType();
+    
     tmx::Vector2f position = object.getPosition();
 
     // These are the properties that were added to the specific tile instance
@@ -77,31 +76,44 @@ void MapLoaderSystem::addObject(const tmx::Map& map, const tmx::Object& object) 
 
     int tile_id = object.getTileID();
 
-    for (const auto& tile_set : map.getTilesets()) {
+    if (tile_id == 0) {
 
-        if (!tile_set.hasTile(tile_id)) {
-            continue;
+        switch(object.getShape()) {
+            case tmx::Object::Shape::Text:
+                this->registry.emplace<Spacial>(entity, glm::vec3(position.x, position.y, 1));
+                this->registry.emplace<Renderable>(entity);
+                this->registry.emplace<Text>(entity, object.getText().content);
+                break;
+        };
+
+    } else {
+
+        for (const auto& tile_set : map.getTilesets()) {
+
+            if (!tile_set.hasTile(tile_id)) {
+                continue;
+            }
+
+            const auto& tile = tile_set.getTile(tile_id);
+
+            std::string texture_name = std::filesystem::path(tile->imagePath).stem().string(); 
+
+            sprite_sheet_atlas.initEntity(this->registry, entity, texture_name);
+
+            this->registry.emplace<Spacial>(entity, glm::vec3(position.x, position.y, 1), 
+                glm::vec3(0, 0, 0), glm::vec3(1, 1, 1), glm::vec2(tile->imageSize.x, tile->imageSize.y));
+            this->registry.emplace<Renderable>(entity);
+
+            // These are the properties that were added the all instances of that tile
+            for (const auto& property : tile->properties) {
+                ComponentFactory::emplaceComponent(this->registry, entity, property.getName(), std::vector<std::string>());
+            }
+
+            this->addCollision(entity, tile);
+
+            // No need to search anymore if the tile has been found in a tile_set
+            break;
         }
-
-        const auto& tile = tile_set.getTile(tile_id);
-
-        std::string texture_name = std::filesystem::path(tile->imagePath).stem().string(); 
-
-        sprite_sheet_atlas.initEntity(this->registry, entity, texture_name);
-
-        this->registry.emplace<Spacial>(entity, glm::vec3(position.x, position.y, 1), 
-            glm::vec3(0, 0, 0), glm::vec3(1, 1, 1), glm::vec2(tile->imageSize.x, tile->imageSize.y));
-        this->registry.emplace<Renderable>(entity);
-
-        // These are the properties that were added the all instances of that tile
-        for (const auto& property : tile->properties) {
-            ComponentFactory::emplaceComponent(this->registry, entity, property.getName(), std::vector<std::string>());
-        }
-
-        this->addCollision(entity, tile);
-
-        // No need to search anymore if the tile has been found in a tile_set
-        break;
     }
 }
 

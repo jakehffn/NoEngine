@@ -50,7 +50,6 @@ private:
 
     void updateAtlasDataPacking();
     void updateAtlasTexture();
-    // void copyDataToAtlasSource(unsigned char* data, glm::ivec2 size, glm::ivec2 position);
 
     std::vector<TextureSourceData> sources_data;
     std::vector<std::vector<unsigned char>> sources;

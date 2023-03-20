@@ -159,17 +159,20 @@ void TextureAtlas::updateAtlasTexture() {
 
         auto& source = sources[source_data_it->source_index];
         auto& atlas_loc = *(source_data_it->atlas_data);
-        glTexSubImage2D(
-            GL_TEXTURE_2D, 
-            0, 
-            atlas_loc.position.x, 
-            atlas_loc.position.y, 
-            atlas_loc.size.x, 
-            atlas_loc.size.y,
-            GL_RGBA, 
-            GL_UNSIGNED_BYTE,
-            source.data()
-        );
+        // Having textures with zero for one or both dimensions is ok, but it should not be attempted to be put in the texture
+        if (atlas_loc.size.x * atlas_loc.size.y != 0) {
+            glTexSubImage2D(
+                GL_TEXTURE_2D, 
+                0, 
+                atlas_loc.position.x, 
+                atlas_loc.position.y, 
+                atlas_loc.size.x, 
+                atlas_loc.size.y,
+                GL_RGBA, 
+                GL_UNSIGNED_BYTE,
+                source.data()
+            );
+        }
     };
 
     glGenerateMipmap(GL_TEXTURE_2D);
