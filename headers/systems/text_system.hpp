@@ -22,6 +22,8 @@
 #include "texture_atlas.hpp"
 
 #include "spacial.hpp"
+#include "text.hpp"
+#include "renderable.hpp"
 
 class TextSystem : public System {
 
@@ -32,15 +34,20 @@ public:
 
 private:
     struct FontCharacter {
-        AtlasData frame_data;
-        glm::vec2 bearing; // The offset from the baseline to the left/top of glyph
+        AtlasData* frame_data;
+        glm::ivec2 bearing; // The offset from the baseline to the left/top of glyph
         float advance; // Offset to the next glyph
     };
 
     struct FontMap {
-        FontMap() : characters(256) {};
+        FontMap() {};
         std::vector<FontCharacter> characters;
     };
+
+    void loadFont(std::string font_path);
+    std::vector<unsigned char> bitmapToRGBA(unsigned char* data, int width, int height, int pitch);
+    
+    void emplaceTextures(entt::registry& registry, entt::entity entity);
     
     std::unordered_map<std::string, FontMap> fonts;
 };

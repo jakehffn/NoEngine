@@ -4,13 +4,18 @@
 
 TextSystem::TextSystem(entt::registry& registry) : System(registry) {
     
+    this->loadFont("./assets/fonts/cozette/cozette.bdf");
+
+    registry.on_construct<Text>().connect<TextSystem::emplaceTextures>(this);
+}
+
+void TextSystem::update() {
+
+}
+
+void TextSystem::loadFont(std::string font_path) {
+
     TextureAtlas& texture_atlas = this->registry.ctx().at<TextureAtlas&>();
-
-    // Use the following for copying the old atlas texture into the resized, taller texture:
-    // glCopyImageSubData
-
-    // Use the following for copying the bitmap pixel data into the newly resized texture
-    // glTextureSubImage2D
 
     FT_Library ft;
     if (FT_Init_FreeType(&ft)) {
@@ -20,69 +25,91 @@ TextSystem::TextSystem(entt::registry& registry) : System(registry) {
     }
 
     FT_Face face;
-
-    std::string font_path = "./assets/fonts/cozette/cozette_bitmap.ttf";
     if (FT_New_Face(ft, font_path.c_str(), 0, &face)) {
         #ifndef NDEBUG
             std::cerr << "ERROR: FreeType failed to load font: " << font_path << std::endl;  
         #endif
     }
 
-    std::cout << "width: " << face->available_sizes[0].width << " height: " << face->available_sizes[0].height << "\n";
+    FT_Set_Pixel_Sizes(face, 0, face->available_sizes[0].height);  
 
-    // int num_glyphs_to_load{256};
-    // int glyph_max_width{face->available_sizes[0].width};
-    // int glyph_max_height{face->available_sizes[0].height};
+    int num_glyphs_to_load{256};
 
-    // int glyphs_per_row{texture_atlas.width/glyph_max_width};
-    // int num_rows_of_glyphs{(num_glyphs_to_load-1)/glyphs_per_row + 1};
-    // int new_atlas_height{texture_atlas.height+num_rows_of_glyphs*glyph_max_height};
-
-    // std::vector<GLuint> new_texture_atlas_pixels(texture_atlas.width*new_atlas_height*4);
-
-    // glBindTexture(GL_TEXTURE_2D, texture_atlas.gl_texture_id);
-    // glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_INT, new_texture_atlas_pixels.data());
-
-    // 
-    // glPixelStorei(GL_UNPACK_ALIGNMENT, 1); // disable byte-alignment restriction
+    FontMap& font_map{fonts[face->family_name]};
+    font_map.characters.resize(num_glyphs_to_load);
     
-    // for (unsigned char c = 0; c < 128; c++)
-    // {
-    //     // load character glyph 
-    //     if (FT_Load_Char(face, c, FT_LOAD_RENDER))
-    //     {
-    //         std::cout << "ERROR::FREETYTPE: Failed to load Glyph" << std::endl;
-    //         continue;
-    //     }
-    //     // generate texture
-    //     unsigned int texture;
-    //     glGenTextures(1, &texture);
-    //     glBindTexture(GL_TEXTURE_2D, texture);
-    //     glTexImage2D(
-    //         GL_TEXTURE_2D,
-    //         0,
-    //         GL_RED,
-    //         face->glyph->bitmap.width,
-    //         face->glyph->bitmap.rows,
-    //         0,
-    //         GL_RED,
-    //         GL_UNSIGNED_BYTE,
-    //         face->glyph->bitmap.buffer
-    //     );
-    //     // set texture options
-    //     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    //     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    //     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    //     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    //     // now store character for later use
-    //     Character character = {
-    //         texture, 
-    //         glm::ivec2(face->glyph->bitmap.width, face->glyph->bitmap.rows),
-    //         glm::ivec2(face->glyph->bitmap_left, face->glyph->bitmap_top),
-    //         face->glyph->advance.x
-    //     };
-    //     Characters.insert(std::pair<char, Character>(c, character));
-    // }
+    for (int c{0}; c < num_glyphs_to_load; c++)
+    {
+        // load character glyph 
+        if (FT_Load_Char(face, c, FT_LOAD_RENDER))
+        {   
+            #ifndef NDEBUG
+                std::cout << "ERROR FREETYTPE Failed to load Glyph" << std::endl;
+            #endif
+            continue;
+        }
+
+        std::vector<unsigned char> pixels{this->bitmapToRGBA(
+            face->glyph->bitmap.buffer,
+            face->glyph->bitmap.width,
+            face->glyph->bitmap.rows,
+            face->glyph->bitmap.pitch
+        )};
+
+        TextureSource glyph_texture {
+            pixels.data(),
+            GL_RGBA,
+            glm::ivec2(face->glyph->bitmap.width, face->glyph->bitmap.rows),
+            glm::ivec2(0,0),
+            glm::ivec2(face->glyph->bitmap.width, face->glyph->bitmap.rows),
+            glm::ivec2(0,0)
+        };
+
+        font_map.characters[c] = {
+            texture_atlas.insertTexture(glyph_texture),
+            glm::ivec2(face->glyph->bitmap_left, face->glyph->bitmap_top),
+            face->glyph->advance.x/64.0f
+        };
+    }
+
+    texture_atlas.updateAtlas();
+    FT_Done_FreeType(ft);
 }
 
-void TextSystem::update() {}
+std::vector<unsigned char> TextSystem::bitmapToRGBA(unsigned char* data, int width, int height, int pitch) {
+
+    std::vector<unsigned char> pixels;
+    pixels.reserve(width*height*4);
+
+    for (int y{0}; y < height; y++) {
+        for (int x{0}; x < width; x++) {
+            if (data[y*pitch+x/8] & 0b10000000>>(x%8)) {
+                for (int it{0}; it < 4; it++) {
+                    pixels.push_back(0xff);
+                }
+            } else {
+                for (int it{0}; it < 4; it++) {
+                    pixels.push_back(0x00);
+                }
+            }
+        }
+    }
+
+    return pixels;
+}
+
+void TextSystem::emplaceTextures(entt::registry& registry, entt::entity entity) {
+
+    assert((registry.all_of<Spacial, Text>(entity) && "Entity does not have Spacial"));
+    
+    auto& spacial{registry.get<Spacial>(entity)};
+
+    auto glyphEntity{registry.create()};
+
+    registry.emplace<Spacial>(glyphEntity, spacial);
+    registry.emplace<Texture>(glyphEntity,
+        "Cozette",
+        this->fonts["Cozette"].characters['G'].frame_data
+    );
+    registry.emplace<Renderable>(glyphEntity);
+}

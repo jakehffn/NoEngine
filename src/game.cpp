@@ -39,6 +39,8 @@ Game::Game(SDL_Window* window) : window{ window } {
 
 void Game::mainLoop() {
 
+    bool once = true;
+
     // int it = 0;
 
     while(!this->input_manager.isQuit()) {
@@ -66,6 +68,14 @@ void Game::mainLoop() {
             times.push_back(total);
 
             // std::cout << times.size() - 1 << ": " << total << std::endl;
+        }
+
+        if (once) {
+            auto testText{registry.create()};
+            registry.emplace<Spacial>(testText, glm::vec3(10,10,0), glm::vec3(0,0,0), glm::vec3(1,1,1), glm::vec3(100,100,0));
+            registry.emplace<Text>(testText);
+
+            once = false;
         }
 
         // double totalTime = 0.0;

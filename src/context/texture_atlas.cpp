@@ -6,32 +6,80 @@ TextureAtlas::TextureAtlas() {
 
 AtlasData* TextureAtlas::insertTexture(const TextureSource& source) {
 
-    int new_source_index = this->sources.size();
+    // Format is always converted to RGBA
+
+    int format_size{0};
+    const int dest_format_size{4};
+    int num_texels{source.size.x*source.size.y*dest_format_size};
+    std::vector<unsigned char> new_source_data(num_texels);
+
+    switch(source.data_format) {
+
+        case GL_RGBA:
+
+            format_size = 4;
+
+            for (int y{0}; y < source.size.y; y++) {
+                for (int x{0}; x < source.size.x*format_size; x++) {
+
+                    unsigned char val{source.data[(y+source.source_offset.y)*source.data_size.x*format_size + x + source.source_offset.x*format_size]};
+                    new_source_data[y*source.size.x*format_size + x] = val;     
+                }
+            }
+
+            break;
+
+        case GL_RGB:
+
+            format_size = 3;
+
+            for (int y{0}; y < source.size.y; y++) {
+                for (int x{0}; x < source.size.x*format_size; x++) {
+
+                    unsigned char val{source.data[(y+source.source_offset.y)*source.data_size.x*format_size + x + source.source_offset.x*format_size]};
+
+                    // Emplace four values for every value
+                    for (int it{0}; it < 3; it++) {
+                        new_source_data[y*source.size.x*dest_format_size + x + it] = val;
+                    }
+
+                    new_source_data[y*source.size.x*dest_format_size + x + 3] = 0xFF;
+                }
+            }
+
+            break;
+
+
+        case GL_RED:
+
+            for (int y{0}; y < source.size.y; y++) {
+                for (int x{0}; x < source.size.x; x++) {
+
+                    unsigned char val{source.data[(y+source.source_offset.y)*source.data_size.x + x + source.source_offset.x]};
+
+                    // Emplace four values for every value
+                    for (int it{0}; it < 3; it++) {
+                        new_source_data[y*source.size.x*dest_format_size + x*dest_format_size + it] = val;
+                    }
+
+                    new_source_data[y*source.size.x*dest_format_size + x*dest_format_size + 3] = 0xFF;
+                }
+            }
+
+            break;
+
+        default:
+
+            #ifndef NDEBUG
+                std::cerr << "ERROR: Unhandled texture data format!\n";
+            #endif
+
+            return 0;
+    };
 
     auto& new_atlas_data = this->atlas_data.emplace_back(glm::vec2(), source.size, source.offset);
-    this->sources_data.emplace_back(new_source_index, &new_atlas_data);
-
-    // Format is always converted to RGBA
-    if (source.data_format == GL_RGBA) {
-
-        // Four bytes for each texel
-        const int format_size{4};
-
-        int num_texels{source.size.x*source.size.y*format_size};
-        sources.emplace_back(num_texels);
-
-        for (int y{0}; y < source.size.y; y++) {
-            for (int x{0}; x < source.size.x*format_size; x++) {
-
-                this->sources[new_source_index][y*source.size.x*format_size + x] = 
-                    source.data[(y+source.source_offset.y)*source.data_size.x*format_size + x + source.source_offset.x*format_size];
-            }
-        }
-    } else {
-        #ifndef NDEBUG
-            std::cerr << "ERROR: Unhandled texture data format!\n";
-        #endif
-    }
+    this->sources_data.emplace_back(this->sources.size(), &new_atlas_data);
+    sources.emplace_back(new_source_data);
 
     return &new_atlas_data;
 }
@@ -101,9 +149,9 @@ void TextureAtlas::updateAtlasDataPacking() {
 
 void TextureAtlas::updateAtlasTexture() {
 
-    std::vector<unsigned char> empty_texture_source((this->width*this->height+1)/2);
+    std::vector<unsigned char> empty_texture_source(this->width*this->height*4);
     
-    glBindTexture(GL_TEXTURE_2D, this->gl_texture_id); 
+    glBindTexture(GL_TEXTURE_2D, this->gl_texture_id);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, this->width, this->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, empty_texture_source.data());
     
 

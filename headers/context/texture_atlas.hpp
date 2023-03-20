@@ -39,8 +39,8 @@ public:
 
     int num_color_channels;
     GLuint gl_texture_id;
-    int width;
-    int height;
+    int width{0};
+    int height{0};
 
 private:
     struct TextureSourceData {

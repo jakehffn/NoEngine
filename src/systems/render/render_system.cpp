@@ -142,6 +142,7 @@ glm::mat4 RenderSystem::getModel(const Spacial& spacial, const Texture& texture)
 
 void RenderSystem::bufferEntityData() {
     
+    // Tiles need to be rendered under the other textures
     this->registry.view<Texture, Model, Tile, ToRender>().each([this](auto& texture, auto& model, auto& tile) {  
         
         glm::vec4 texture_data = glm::vec4(texture.frame_data->position.x, texture.frame_data->position.y, 
