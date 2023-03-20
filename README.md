@@ -4,7 +4,7 @@ NoEngine is a lightweight, primarily 2D, game engine for use in my own personal 
 
 NoEngine was built with [EnTT](https://github.com/skypjack/entt) and makes use of the entity-component-system pattern for data management and organization. Much of the original reason for this project was to learn about this architectural pattern.
 
-The reason for the name NoEngine is that, in reality, thus is much less a game engine than it is a game *template*, that is tailored to my own needs. There is no library to link against and no api for a front-end.
+The reason for the name NoEngine is that, in reality, this is much less a game engine than it is a game *template*, that is tailored to my own needs. There is no library to link against and no api for a front-end.
 
 In the future, I may turn this into something similar to MonoGame, but that is not part of my current plams.
 
