@@ -36,6 +36,10 @@ void RenderSystem::update() {
     int i = 0;
 }
 
+Renderer* RenderSystem::getRenderer() {
+    return &this->renderer;
+}
+
 void RenderSystem::cullEntities() {
 
     using namespace entt::literals;

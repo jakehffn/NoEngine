@@ -7,16 +7,13 @@ TextureAtlas::TextureAtlas() {
 AtlasData* TextureAtlas::insertTexture(const TextureSource& source) {
 
     // Format is always converted to RGBA
-
     int format_size{0};
     const int dest_format_size{4};
     int num_texels{source.size.x*source.size.y*dest_format_size};
     std::vector<unsigned char> new_source_data(num_texels);
 
     switch(source.data_format) {
-
         case GL_RGBA:
-
             format_size = 4;
 
             for (int y{0}; y < source.size.y; y++) {
@@ -30,12 +27,9 @@ AtlasData* TextureAtlas::insertTexture(const TextureSource& source) {
             break;
 
         case GL_RGB:
-
             format_size = 3;
-
             for (int y{0}; y < source.size.y; y++) {
                 for (int x{0}; x < source.size.x*format_size; x++) {
-
                     unsigned char val{source.data[(y+source.source_offset.y)*source.data_size.x*format_size + x + source.source_offset.x*format_size]};
 
                     // Emplace four values for every value
@@ -51,7 +45,6 @@ AtlasData* TextureAtlas::insertTexture(const TextureSource& source) {
 
 
         case GL_RED:
-
             for (int y{0}; y < source.size.y; y++) {
                 for (int x{0}; x < source.size.x; x++) {
 
@@ -65,15 +58,12 @@ AtlasData* TextureAtlas::insertTexture(const TextureSource& source) {
                     new_source_data[y*source.size.x*dest_format_size + x*dest_format_size + 3] = 0xFF;
                 }
             }
-
             break;
 
         default:
-
             #ifndef NDEBUG
                 std::cerr << "ERROR: Unhandled texture data format!\n";
             #endif
-
             return 0;
     };
 
@@ -153,10 +143,8 @@ void TextureAtlas::updateAtlasTexture() {
     
     glBindTexture(GL_TEXTURE_2D, this->gl_texture_id);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, this->width, this->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, empty_texture_source.data());
-    
 
     for (auto source_data_it{this->sources_data.begin()}; source_data_it != this->sources_data.end(); source_data_it++) {
-
         auto& source = sources[source_data_it->source_index];
         auto& atlas_loc = *(source_data_it->atlas_data);
         // Having textures with zero for one or both dimensions is ok, but it should not be attempted to be put in the texture

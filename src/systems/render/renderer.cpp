@@ -86,6 +86,7 @@ void Renderer::initScreenFBO() {
 
     glGenFramebuffers(1, &(this->screen_fbo));
     glBindFramebuffer(GL_FRAMEBUFFER, this->screen_fbo);
+    glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
     glGenTextures(1, &(this->screen_texture));
     glBindTexture(GL_TEXTURE_2D, this->screen_texture);
@@ -96,12 +97,10 @@ void Renderer::initScreenFBO() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);  
 
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, this->screen_texture, 0); 
-
     
     if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
         std::cerr << "ERROR: Framebuffer is not complete!" << std::endl;
     }
-    
     glBindFramebuffer(GL_FRAMEBUFFER, 0); 
 }
 
@@ -155,10 +154,8 @@ void Renderer::render(const glm::mat4& view, const glm::mat4& projection, const 
     
     glDrawArraysInstanced(GL_TRIANGLES, 0, 6, this->texture_coordinates_buffer_data.size()); 
 
-
-    // Draw frame buffer to the screen
+  
     glBindFramebuffer(GL_FRAMEBUFFER, 0); // back to default
-    
     glClear(GL_COLOR_BUFFER_BIT);
 
     this->screen_shader->useShader();

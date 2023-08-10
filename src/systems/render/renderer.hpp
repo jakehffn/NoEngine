@@ -1,5 +1,8 @@
 #include <vector>
 
+#include "imgui_impl_opengl3.h"
+#include "imgui_impl_sdl2.h"
+
 #include "consts.hpp"
 #include "shader_program.hpp"
 #include "screen_shader.hpp"
@@ -17,6 +20,7 @@ private:
     void initVAO();
     void initVBOs();
     void initScreenFBO();
+    void initRenderResultFBO();
 
     void bufferData();
 
@@ -24,6 +28,9 @@ private:
 
     GLuint screen_fbo;
     GLuint screen_texture;
+
+    GLuint render_result_fbo;
+    GLuint render_result_texture;
 
     GLuint texture_coordinates_vbo;
     std::vector<glm::vec4> texture_coordinates_buffer_data; 

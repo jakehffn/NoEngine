@@ -29,9 +29,34 @@ Game::Game(SDL_Window* window) : window{ window } {
         this->registry.emplace<MapLoader>(map, "./assets/maps/Test/test.tmx");
 }
 
-void Game::mainLoop() {
+inline void Game::startFrame() {
+    #ifndef NDEBUG
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplSDL2_NewFrame();
+        ImGui::NewFrame();
+    #endif
+}
 
+inline void Game::endFrame() {
+    #ifndef NDEBUG
+        ImGuiIO& io = ImGui::GetIO();
+        ImGui::Render();
+        glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+            auto backup_current_window = SDL_GL_GetCurrentWindow();
+            auto backup_current_context = SDL_GL_GetCurrentContext();
+            ImGui::UpdatePlatformWindows();
+            ImGui::RenderPlatformWindowsDefault();
+            SDL_GL_MakeCurrent(backup_current_window, backup_current_context);
+        }
+    #endif
+    SDL_GL_SwapWindow(this->window);
+}
+
+void Game::mainLoop() {
     while(!this->input_manager.isQuit()) {
+        this->startFrame();
 
         this->clock.tick();
         this->input_manager.update();
@@ -42,23 +67,32 @@ void Game::mainLoop() {
         #endif
 
         for (auto system : this->systems) {
-
             #ifndef NDEBUG
-                double start =  SDL_GetPerformanceCounter();
+                double start = SDL_GetPerformanceCounter();
             #endif
             system->update();
             #ifndef NDEBUG
-                double total =  (SDL_GetPerformanceCounter() - start)/SDL_GetPerformanceFrequency()*1000.0;
+                double total = (SDL_GetPerformanceCounter() - start)/SDL_GetPerformanceFrequency()*1000.0;
                 times.push_back(total);
             #endif
         }
-        // Update screen
-        SDL_GL_SwapWindow(window);
+        #ifndef NDEBUG
+            ImGui::SetNextWindowSize({0, 0}, 0);
+            if (ImGui::Begin("Texture Atlas", NULL, 
+                ImGuiWindowFlags_NoCollapse |
+                ImGuiWindowFlags_NoResize
+            )) {
+                const float scale = 2.0;
+                ImGui::Image(
+                    (void*)(intptr_t)this->texture_atlas.gl_texture_id,
+                    {(float)this->texture_atlas.width * scale, (float)this->texture_atlas.height * scale},
+                    {0, 0},
+                    {1, 1}
+                );
+            }
+            ImGui::End();
+        #endif
+        this->endFrame();
     }
-
-    #ifndef NDEBUG
-        std::cout << "\nOpenGLError Code: "<< glGetError() << "\n";
-    #endif
-    
     SDL_StopTextInput();
 }

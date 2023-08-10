@@ -15,8 +15,10 @@ void Input::update() {
     this->removed.clear();
 
     // Handle events on queue
-    while (SDL_PollEvent( &e ) != 0) {
-        
+    while (SDL_PollEvent(&e) != 0) {
+        #ifndef NDEBUG
+            ImGui_ImplSDL2_ProcessEvent(&e);
+        #endif
         if (e.type == SDL_QUIT) {
             this->quit = true;
         } 
@@ -24,15 +26,12 @@ void Input::update() {
         SDL_Keycode current_key = e.key.keysym.sym;
         
         if (e.type == SDL_KEYDOWN) {
-
             if (!this->isActive(current_key)){
-
                 this->active.insert(current_key);
                 this->added.insert(current_key);
             }
 
         } else if (e.type == SDL_KEYUP) {
-
             this->active.erase(current_key);
             this->removed.insert(current_key);
         }

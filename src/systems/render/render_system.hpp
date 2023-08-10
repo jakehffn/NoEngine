@@ -32,6 +32,7 @@ public:
     RenderSystem(entt::registry& registry);
 
     void update() override;
+    Renderer* getRenderer();
 
 private:
     void cullEntities();

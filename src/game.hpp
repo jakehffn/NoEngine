@@ -12,6 +12,9 @@
 
 #include <entt\entt.hpp>
 
+#include "imgui_impl_opengl3.h"
+#include "imgui_impl_sdl2.h"
+
 #include "clock.hpp"
 #include "camera.hpp"
 #include "input.hpp"
@@ -38,6 +41,9 @@ public:
     void mainLoop();
 
 private:
+    inline void startFrame();
+    inline void endFrame();
+
     SDL_Window* window;
     entt::registry registry;
     std::vector<System*> systems;
@@ -49,6 +55,8 @@ private:
     // This should be read from the map at some point
     TextureAtlas texture_atlas;
     SpriteSheetAtlas sprite_sheet_atlas;
+
+    GLuint screen_texture;
 
     ComponentGrid<Renderable, Collision> component_grid = ComponentGrid<Renderable, Collision>(this->registry);
 };
