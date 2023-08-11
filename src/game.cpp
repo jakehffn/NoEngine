@@ -54,7 +54,7 @@ inline void Game::endFrame() {
     SDL_GL_SwapWindow(this->window);
 }
 
-void Game::mainLoop() {
+void Game::mainLoop(void (*debugCallback)()) {
     while(!this->input_manager.isQuit()) {
         this->startFrame();
 
@@ -77,20 +77,7 @@ void Game::mainLoop() {
             #endif
         }
         #ifndef NDEBUG
-            ImGui::SetNextWindowSize({0, 0}, 0);
-            if (ImGui::Begin("Texture Atlas", NULL, 
-                ImGuiWindowFlags_NoCollapse |
-                ImGuiWindowFlags_NoResize
-            )) {
-                const float scale = 2.0;
-                ImGui::Image(
-                    (void*)(intptr_t)this->texture_atlas.gl_texture_id,
-                    {(float)this->texture_atlas.width * scale, (float)this->texture_atlas.height * scale},
-                    {0, 0},
-                    {1, 1}
-                );
-            }
-            ImGui::End();
+            debugCallback();
         #endif
         this->endFrame();
     }

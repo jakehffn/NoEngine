@@ -1,6 +1,7 @@
 target_sources(${PROJECT_NAME} PUBLIC
     game.cpp
     main.cpp
+    debug.cpp
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC

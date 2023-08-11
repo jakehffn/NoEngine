@@ -14,8 +14,11 @@
 #include "imgui/backends/imgui_impl_opengl3.h"
 #include "imgui/backends/imgui_impl_sdl2.h"
 
+#include "debug.hpp"
+
 SDL_Window* window = NULL;
 SDL_GLContext gl_context;
+DebugWindow debugWindow;
 
 // Initializes SDL, GLEW, then OpenGL
 bool initContext() {
@@ -228,6 +231,10 @@ MessageCallback(
 		( type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : "" );
 }
 
+void showDebugWindow() {
+	debugWindow.show();
+}
+
 // Parameters necessary for SDL_Main
 int main(int argv, char** args) {
 
@@ -253,9 +260,14 @@ int main(int argv, char** args) {
 
 			initImGui();
 		#endif
-		
-		Game scene(window);
-		scene.mainLoop();
+
+		Game game(window);
+		#ifndef NDEBUG
+			debugWindow = DebugWindow(&game);
+			game.mainLoop(showDebugWindow);
+		#else
+			game.mainLoop(NULL);
+		#endif
 
 		#ifndef NDEBUG
 			deinitImGui();

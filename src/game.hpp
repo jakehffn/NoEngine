@@ -34,13 +34,11 @@
 #include "map_loader_system.hpp"
 #include "text_system.hpp"
 
-class Game {
-public:
+struct Game {
     Game(SDL_Window* window);
 
-    void mainLoop();
+    void mainLoop(void (*debugCallback)());
 
-private:
     inline void startFrame();
     inline void endFrame();
 

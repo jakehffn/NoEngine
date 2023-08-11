@@ -29,7 +29,17 @@ set(TMXLITE_INCLUDE_DIR "C:/Program Files (x86)/tmxlite/include")
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${OPENGL_INCLUDE_DIRS} ${SDL2_INCLUDE_DIR} ${FREETYPE2_INCLUDE_DIR} ${TMXLITE_INCLUDE_DIR} ${GLEW_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME} PUBLIC -mconsole ${OPENGL_LIBRARY} ${SDL2_LIBRARY} ${FREETYPE2_PATH} ${TMXLITE_PATH} GLEW::glew)
-# target_link_libraries(${PROJECT_NAME} PUBLIC -mwindows ${OPENGL_LIBRARY} ${SDL2_LIBRARY} ${FREETYPE2_PATH} ${TMXLITE_PATH} GLEW::glew)
+
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    target_include_directories(imgui PUBLIC ${OPENGL_INCLUDE_DIRS} ${SDL2_INCLUDE_DIR})
+    target_link_libraries(imgui PUBLIC ${OPENGL_LIBRARY} ${SDL2_LIBRARY})
+    target_link_libraries(${PROJECT_NAME} PUBLIC imgui)
+    install(TARGETS imgui)
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:${PROJECT_NAME}> $<TARGET_FILE_DIR:${PROJECT_NAME}>
+        COMMAND_EXPAND_LISTS
+    )
+endif()
 
 file(COPY "./assets" DESTINATION ".")
 
