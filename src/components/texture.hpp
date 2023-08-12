@@ -12,8 +12,7 @@
 #include "animation_structs.hpp"
 
 struct Texture {
-
     std::string sprite_sheet_name;
-
     AtlasData* frame_data;
+    AtlasData* default_frame_data;
 };

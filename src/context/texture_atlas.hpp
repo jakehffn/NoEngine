@@ -15,8 +15,6 @@
 #include "spacial.hpp"
 
 #include "animation.hpp"
-#include "idle_animation.hpp"
-#include "move_animation.hpp"
 
 #include "atlas_data.hpp"
 

@@ -5,7 +5,6 @@ TextureAtlas::TextureAtlas() {
 }
 
 AtlasData* TextureAtlas::insertTexture(const TextureSource& source) {
-
     // Format is always converted to RGBA
     int format_size{0};
     const int dest_format_size{4};
@@ -18,14 +17,11 @@ AtlasData* TextureAtlas::insertTexture(const TextureSource& source) {
 
             for (int y{0}; y < source.size.y; y++) {
                 for (int x{0}; x < source.size.x*format_size; x++) {
-
                     unsigned char val{source.data[(y+source.source_offset.y)*source.data_size.x*format_size + x + source.source_offset.x*format_size]};
                     new_source_data[y*source.size.x*format_size + x] = val;     
                 }
             }
-
             break;
-
         case GL_RGB:
             format_size = 3;
             for (int y{0}; y < source.size.y; y++) {
@@ -36,30 +32,23 @@ AtlasData* TextureAtlas::insertTexture(const TextureSource& source) {
                     for (int it{0}; it < 3; it++) {
                         new_source_data[y*source.size.x*dest_format_size + x + it] = val;
                     }
-
                     new_source_data[y*source.size.x*dest_format_size + x + 3] = 0xFF;
                 }
             }
-
             break;
-
-
         case GL_RED:
             for (int y{0}; y < source.size.y; y++) {
                 for (int x{0}; x < source.size.x; x++) {
-
                     unsigned char val{source.data[(y+source.source_offset.y)*source.data_size.x + x + source.source_offset.x]};
 
                     // Emplace four values for every value
                     for (int it{0}; it < 3; it++) {
                         new_source_data[y*source.size.x*dest_format_size + x*dest_format_size + it] = val;
                     }
-
                     new_source_data[y*source.size.x*dest_format_size + x*dest_format_size + 3] = 0xFF;
                 }
             }
             break;
-
         default:
             #ifndef NDEBUG
                 std::cerr << "ERROR: Unhandled texture data format!\n";
@@ -75,7 +64,6 @@ AtlasData* TextureAtlas::insertTexture(const TextureSource& source) {
 }
 
 void TextureAtlas::updateAtlas() {
-    
     this->updateAtlasDataPacking();
     this->updateAtlasTexture();
 }
@@ -92,11 +80,9 @@ void TextureAtlas::updateAtlasDataPacking() {
 	};
 
 	auto report_unsuccessful = [](rect_type&) {
-
         #ifndef NDEBUG
             std::cerr << "ERROR: Unsuccessful insertion rectpack2D" << "\n";
         #endif
-
 		return rectpack2D::callback_result::ABORT_PACKING;
 	};
 
@@ -130,7 +116,6 @@ void TextureAtlas::updateAtlasDataPacking() {
     auto atlas_data_it{this->atlas_data.begin()};
 
     while (atlas_data_it != atlas_data.end()) {
-
         atlas_data_it->position = glm::ivec2(rect_it->x, rect_it->y);
         rect_it++;
         atlas_data_it++;
@@ -138,7 +123,6 @@ void TextureAtlas::updateAtlasDataPacking() {
 }
 
 void TextureAtlas::updateAtlasTexture() {
-
     std::vector<unsigned char> empty_texture_source(this->width*this->height*4);
     
     glBindTexture(GL_TEXTURE_2D, this->gl_texture_id);
