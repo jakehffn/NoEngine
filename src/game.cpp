@@ -20,7 +20,10 @@ Game::Game(SDL_Window* window) : window{ window } {
         this->systems.push_back(new CollisionSystem(this->registry));
         this->systems.push_back(new CameraSystem(this->registry));
         this->systems.push_back(new GUISystem(this->registry));
-        this->systems.push_back(new RenderSystem(this->registry));
+
+        auto render_system = new RenderSystem(this->registry);
+        this->screen_texture = render_system->getRenderer()->getScreenTexture();
+        this->systems.push_back(render_system);
 
         // Tiled map must be loaded after systems are created in order for observers to be able to
         //  monitor patches during creation of entities

@@ -12,8 +12,16 @@ public:
     void show();
 private:
     void showMenuBar();
+
     void showTextureAtlas();
+    void showEntityViewer();
 
     Game* game;
+
+    // Texture atlas
     bool openTextureAtlas = false;
+
+    // Entity Viewer
+    bool openEntityViewer = false;
+    entt::entity selected_entity;
 };

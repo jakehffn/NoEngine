@@ -17,10 +17,10 @@ void CameraSystem::updateCameraToController() {
 
         auto [cameraController, spacial] = controller_entities.get<CameraController, Spacial>(entity);
 
-        float xOffset = spacial.dim.x * spacial.scale.x / 2;
-        float yOffset = -spacial.dim.y * spacial.scale.y / 2;
+        float x_offset = spacial.dim.x * spacial.scale.x / 2;
+        float y_offset = -spacial.dim.y * spacial.scale.y / 2;
 
-        glm::vec3 offset(xOffset, yOffset, 0);
+        glm::vec3 offset(x_offset, y_offset, 0);
         camera.setPosition(spacial.pos + offset);
     }
 

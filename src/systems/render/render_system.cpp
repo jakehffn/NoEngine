@@ -6,7 +6,6 @@ RenderSystem::RenderSystem(entt::registry& registry) : System(registry),
 }
 
 void RenderSystem::update() {
-
     std::vector<double> times;
     double start =  SDL_GetPerformanceCounter();
     this->cullEntities();
@@ -41,7 +40,6 @@ Renderer* RenderSystem::getRenderer() {
 }
 
 void RenderSystem::cullEntities() {
-
     using namespace entt::literals;
     auto& camera = this->registry.ctx().at<Camera&>("world_camera"_hs);
     auto& component_grid = this->registry.ctx().at<ComponentGrid<Renderable, Collision>&>();
@@ -75,7 +73,6 @@ void RenderSystem::cullEntities() {
 
     for (auto entity : diff) {
         this->registry.remove<ToRender>(entity);
-        
     }
 
     this->last_render_query = std::move(this->render_query);
@@ -83,10 +80,8 @@ void RenderSystem::cullEntities() {
 }
 
 void RenderSystem::sortEntities() {
-
     // Sort sprites by Spacial y-pos before rendering
     this->registry.sort<ToRender>([this](const entt::entity lhs, const entt::entity rhs) {
-
         auto lhSpacial = this->registry.get<Spacial>(lhs);
         auto rhSpacial = this->registry.get<Spacial>(rhs);
         
@@ -96,30 +91,30 @@ void RenderSystem::sortEntities() {
 }
 
 void RenderSystem::updateModels() {
-
     // TDOD: Consider only updating models of entities which need rendering
 
     // Update the models of all the entities whose spacials have been changed
     for (const auto entity : this->spacial_observer) {
-
         auto [spacial, texture] = this->registry.get<Spacial, Texture>(entity);
         this->registry.emplace_or_replace<Model>(entity, this->getModel(spacial, texture));
     }
-
     this->spacial_observer.clear();
 
     // Create models on entities which have never been rendered
     auto no_model_entities = this->registry.view<Spacial, Texture>(entt::exclude<Model>);
-
     for (const auto entity : no_model_entities) {
-
         auto [spacial, texture] = no_model_entities.get<Spacial, Texture>(entity);
         this->registry.emplace<Model>(entity, this->getModel(spacial, texture));
+    }
+
+    auto no_model_tiles = this->registry.view<Spacial, Tile>(entt::exclude<Model>);
+    for (const auto entity : no_model_tiles) {
+        auto [spacial, tile] = no_model_tiles.get<Spacial, Tile>(entity);
+        this->registry.emplace<Model>(entity, this->getTileModel(spacial));
     }
 }
 
 glm::mat4 RenderSystem::getModel(const Spacial& spacial, const Texture& texture) {
-
     // The model does not represent the physical location exactly, but the rendered location
     //  Information from the texture is needed so that the sprite can be placed correctly
     glm::mat4 model = glm::mat4(1.0f);
@@ -144,19 +139,27 @@ glm::mat4 RenderSystem::getModel(const Spacial& spacial, const Texture& texture)
     return (translate * scale * rotate);
 }
 
-void RenderSystem::bufferEntityData() {
-    
-    // Tiles need to be rendered under the other textures
-    this->registry.view<Texture, Model, Tile, ToRender>().each([this](auto& texture, auto& model, auto& tile) {  
-        
-        glm::vec4 texture_data = glm::vec4(texture.frame_data->position.x, texture.frame_data->position.y, 
-            texture.frame_data->size.x, texture.frame_data->size.y);
+glm::mat4 RenderSystem::getTileModel(const Spacial& spacial) {
+    AtlasData tile_frame_data = {
+        {0, 0},
+        {16, 16},
+        {0, 0}
+    };
+    return this->getModel(spacial, {"", &tile_frame_data});
+}
 
+void RenderSystem::bufferEntityData() {
+    // Tiles need to be rendered under the other textures
+    this->registry.view<Model, Tile, ToRender>().each([this](auto& model, auto& tile) {  
+        glm::vec4 texture_data = glm::vec4(
+            tile.tile_set_texture->frame_data->position.x + tile.position.x, 
+            tile.tile_set_texture->frame_data->position.y + tile.position.y, 
+            16, 16
+        );
         this->renderer.addBufferData(texture_data, model.model);
     });
 
     this->registry.view<Texture, Model, ToRender>(entt::exclude<Text, Tile>).use<ToRender>().each([this](auto& texture, auto& model) {  
-        
         glm::vec4 texture_data = glm::vec4(texture.frame_data->position.x, texture.frame_data->position.y, 
             texture.frame_data->size.x, texture.frame_data->size.y);
 
@@ -165,7 +168,6 @@ void RenderSystem::bufferEntityData() {
 }
 
 void RenderSystem::render() {
-
     using namespace entt::literals;
     
     Camera camera = this->registry.ctx().at<Camera&>("world_camera"_hs);

@@ -15,12 +15,12 @@ public:
 
     void addBufferData(const glm::vec4& texture_data, const glm::mat4& model_data);
     void render(const glm::mat4& view, const glm::mat4& projection, const glm::vec2& atlas_dimensions, GLuint atlas_texture, double time);
-
+    GLuint getScreenTexture();
 private:
     void initVAO();
     void initVBOs();
     void initScreenFBO();
-    void initRenderResultFBO();
+    void initFinalFBO();
 
     void bufferData();
 
@@ -29,8 +29,8 @@ private:
     GLuint screen_fbo;
     GLuint screen_texture;
 
-    GLuint render_result_fbo;
-    GLuint render_result_texture;
+    GLuint final_fbo;
+    GLuint final_texture;
 
     GLuint texture_coordinates_vbo;
     std::vector<glm::vec4> texture_coordinates_buffer_data; 

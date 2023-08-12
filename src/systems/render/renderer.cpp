@@ -2,7 +2,6 @@
 
 Renderer::Renderer() : screen_shader{ new ScreenShader() }, 
     instanced_shader{ new InstancedShader() } {
-
         glClearColor(0.0f, 0.4f, 0.4f, 0.0f);
         glEnable(GL_BLEND); 
         glDisable(GL_DEPTH_TEST);
@@ -10,6 +9,7 @@ Renderer::Renderer() : screen_shader{ new ScreenShader() },
 
         this->initVAO();
         this->initScreenFBO();
+        this->initFinalFBO();
         this->initVBOs();
 }
 
@@ -17,8 +17,11 @@ Renderer::~Renderer() {
     glDeleteFramebuffers(1, &(this->screen_fbo));  
 }
 
-void Renderer::initVAO() {
+GLuint Renderer::getScreenTexture() {
+    return this->final_texture;
+}
 
+void Renderer::initVAO() {
     // create vao
     float quad_vertex_data[] = { 
         // pos      // tex
@@ -48,7 +51,6 @@ void Renderer::initVAO() {
 }
 
 void Renderer::initVBOs() {
-
     glGenBuffers(1, &(this->texture_coordinates_vbo));
     glGenBuffers(1, &(this->models_vbo));
 
@@ -83,7 +85,6 @@ void Renderer::initVBOs() {
 }
 
 void Renderer::initScreenFBO() {
-
     glGenFramebuffers(1, &(this->screen_fbo));
     glBindFramebuffer(GL_FRAMEBUFFER, this->screen_fbo);
     glDrawBuffer(GL_COLOR_ATTACHMENT0);
@@ -104,16 +105,34 @@ void Renderer::initScreenFBO() {
     glBindFramebuffer(GL_FRAMEBUFFER, 0); 
 }
 
-void Renderer::addBufferData(const glm::vec4& texture_data, const glm::mat4& model_data) {
+void Renderer::initFinalFBO() {
+    glGenFramebuffers(1, &(this->final_fbo));
+    glBindFramebuffer(GL_FRAMEBUFFER, this->final_fbo);
+    glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
+    glGenTextures(1, &(this->final_texture));
+    glBindTexture(GL_TEXTURE_2D, this->final_texture);
+    
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, render_c::SCREEN_WIDTH, render_c::SCREEN_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);  
+
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, this->final_texture, 0); 
+    
+    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        std::cerr << "ERROR: Framebuffer is not complete!" << std::endl;
+    }
+    glBindFramebuffer(GL_FRAMEBUFFER, 0); 
+}
+
+void Renderer::addBufferData(const glm::vec4& texture_data, const glm::mat4& model_data) {
     this->texture_coordinates_buffer_data.push_back(texture_data);
     this->models_buffer_data.push_back(model_data);
 }
 
 void Renderer::bufferData() {
-
     if (this->maxBufferSize < this->models_buffer_data.size()) {
-
         this->maxBufferSize = this->models_buffer_data.size();
 
         glBindBuffer(GL_ARRAY_BUFFER, this->texture_coordinates_vbo);
@@ -123,7 +142,6 @@ void Renderer::bufferData() {
         glBufferData(GL_ARRAY_BUFFER, sizeof(glm::mat4)*this->models_buffer_data.size(), this->models_buffer_data.data(), GL_DYNAMIC_DRAW);
     
     } else {
-
         glBindBuffer(GL_ARRAY_BUFFER, this->texture_coordinates_vbo);
         glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(glm::vec4)*this->texture_coordinates_buffer_data.size(), this->texture_coordinates_buffer_data.data());
 
@@ -135,7 +153,6 @@ void Renderer::bufferData() {
 }
 
 void Renderer::render(const glm::mat4& view, const glm::mat4& projection, const glm::vec2& atlas_dimensions, GLuint atlas_texture, double time) {
-
     this->bufferData();
 
     // Render all entities to frame buffer
@@ -154,8 +171,8 @@ void Renderer::render(const glm::mat4& view, const glm::mat4& projection, const 
     
     glDrawArraysInstanced(GL_TRIANGLES, 0, 6, this->texture_coordinates_buffer_data.size()); 
 
-  
-    glBindFramebuffer(GL_FRAMEBUFFER, 0); // back to default
+    // Render to final texture
+    glBindFramebuffer(GL_FRAMEBUFFER, this->final_fbo);
     glClear(GL_COLOR_BUFFER_BIT);
 
     this->screen_shader->useShader();
@@ -163,6 +180,16 @@ void Renderer::render(const glm::mat4& view, const glm::mat4& projection, const 
 
     glBindTexture(GL_TEXTURE_2D, this->screen_texture);
     glDrawArrays(GL_TRIANGLES, 0, 6);   
+
+    // Render to screen
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    this->screen_shader->useShader();
+    this->screen_shader->renderSetup(time);
+
+    glBindTexture(GL_TEXTURE_2D, this->final_texture);
+    glDrawArrays(GL_TRIANGLES, 0, 6);  
 
     glUseProgram(0);
     glBindVertexArray(0);

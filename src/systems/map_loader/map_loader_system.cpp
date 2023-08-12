@@ -166,7 +166,9 @@ void MapLoaderSystem::addTilesets(tmx::Map& map) {
         //      up being different.
         auto& sprite_sheet = sprite_sheet_atlas.initSpriteSheet(registry, texture_name);
         auto& [default_animation_name, default_animation] = *(sprite_sheet.animations.begin());
+        auto& tile_set_texure = this->registry.emplace<Texture>(tile_set_entity, texture_name, default_animation.frames[0]);
         auto& animator = this->registry.emplace<Animator>(tile_set_entity, &default_animation.frame_durations);
+        this->registry.emplace<Animation>(tile_set_entity, &animator, &default_animation);
         
         for (auto tile_data_vec : tile_data_map[tile_set.getName()]) {
             const tmx::Tileset::Tile* tile = tile_set.getTile(tile_data_vec.z);
@@ -176,12 +178,10 @@ void MapLoaderSystem::addTilesets(tmx::Map& map) {
             // The position of the tile texture in the tile_set image.
             glm::vec2 image_position = glm::vec2((float)tile->imagePosition.x, (float)tile->imagePosition.y);
 
-            this->registry.emplace<Tile>(tile_entity, (int)tile_data_vec.z);
-            // TODO !!!! Add back tile loading based on the just created sprite sheet. The positions can be calculated from the gid and the position of sprite sheet in the atlas
-
+            this->registry.emplace<Tile>(tile_entity, (int)tile_data_vec.z, image_position, &tile_set_texure);
             this->registry.emplace<Spacial>(tile_entity, glm::vec3(tile_data_vec.x, tile_data_vec.y, 0) * 16.0f, 
                 glm::vec3(0, 0, 0), glm::vec3(1, 1, 1), glm::vec2(16, 16));
-            // this->registry.emplace<Renderable>(tile_entity);
+            this->registry.emplace<Renderable>(tile_entity);
 
             this->addCollision(tile_entity, tile);
         }
