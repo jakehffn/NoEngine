@@ -24,6 +24,7 @@
 #include "spacial.hpp"
 #include "text.hpp"
 #include "renderable.hpp"
+#include "name.hpp"
 
 class TextSystem : public System {
 

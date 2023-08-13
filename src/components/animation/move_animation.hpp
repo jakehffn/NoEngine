@@ -11,17 +11,20 @@ struct MoveAnimation {
     std::unordered_map<DIRECTION, AnimationData> animations;
 
     MoveAnimation() {}
-    // Takes 5 arguments:
-    // Sprite sheet id and the four animation names for UP, DOWN, LEFT, RIGHT in that order
-    MoveAnimation(entt::registry& registry, std::vector<std::string> args) {
-        assert(args.size() == 5 && "5 arguments must be provided to MoveAnimation");
+    MoveAnimation(
+        entt::registry& registry, 
+        std::string sprite_sheet_id,
+        std::string up_animation_name,
+        std::string down_animation_name,
+        std::string left_animation_name,
+        std::string right_animation_name
+    ) {
         auto& sprite_sheet_atlas = registry.ctx().at<SpriteSheetAtlas&>();
-        auto& sprite_sheet_id = args[0];
         auto& sprite_sheet = sprite_sheet_atlas.getSpriteSheet(sprite_sheet_id);
 
-        this->animations[UP] = sprite_sheet.animations[args[1]];
-        this->animations[DOWN] = sprite_sheet.animations[args[2]];
-        this->animations[LEFT] = sprite_sheet.animations[args[3]];
-        this->animations[RIGHT] = sprite_sheet.animations[args[4]];
+        this->animations[UP] = sprite_sheet.animations[up_animation_name];
+        this->animations[DOWN] = sprite_sheet.animations[down_animation_name];
+        this->animations[LEFT] = sprite_sheet.animations[left_animation_name];
+        this->animations[RIGHT] = sprite_sheet.animations[right_animation_name];
     }
 };

@@ -12,7 +12,6 @@ TextSystem::TextSystem(entt::registry& registry) : System(registry) {
 void TextSystem::update() {}
 
 void TextSystem::loadFont(std::string font_path) {
-
     TextureAtlas& texture_atlas = this->registry.ctx().at<TextureAtlas&>();
 
     FT_Library ft;
@@ -39,8 +38,7 @@ void TextSystem::loadFont(std::string font_path) {
     for (int c{0}; c < num_glyphs_to_load; c++)
     {
         // load character glyph 
-        if (FT_Load_Char(face, c, FT_LOAD_RENDER))
-        {   
+        if (FT_Load_Char(face, c, FT_LOAD_RENDER)) {   
             #ifndef NDEBUG
                 std::cout << "ERROR FREETYTPE Failed to load Glyph" << std::endl;
             #endif
@@ -75,7 +73,6 @@ void TextSystem::loadFont(std::string font_path) {
 }
 
 std::vector<unsigned char> TextSystem::bitmapToRGBA(unsigned char* data, int width, int height, int pitch) {
-
     std::vector<unsigned char> pixels;
     pixels.reserve(width*height*4);
 
@@ -97,7 +94,6 @@ std::vector<unsigned char> TextSystem::bitmapToRGBA(unsigned char* data, int wid
 }
 
 void TextSystem::emplaceTextures(entt::registry& registry, entt::entity entity) {
-
     assert((registry.all_of<Spacial, Text>(entity) && "Entity does not have Spacial"));
     
     auto& spacial{registry.get<Spacial>(entity)};
@@ -106,7 +102,6 @@ void TextSystem::emplaceTextures(entt::registry& registry, entt::entity entity) 
     float total_x_offset{0};
 
     for (auto c : text.text) {
-
         auto glyph_entity{registry.create()};
 
         FontCharacter& curr_char{this->fonts["Cozette"].characters[c]};
@@ -119,8 +114,8 @@ void TextSystem::emplaceTextures(entt::registry& registry, entt::entity entity) 
             curr_char.frame_data
         );
         registry.emplace<Renderable>(glyph_entity);
+        this->registry.emplace<Name>(glyph_entity, std::string(1, c));
 
         total_x_offset += curr_char.advance;
     }
-
 }

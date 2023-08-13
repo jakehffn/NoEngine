@@ -55,11 +55,11 @@ void DebugWindow::showEntityViewer() {
         ImGuiWindowFlags_NoResize
     )) {
         ImGui::BeginChild("left pane", ImVec2(150, 0), true);
-        auto visible_entities = this->game->registry.view<Spacial, Texture>();
+        auto visible_entities = this->game->registry.view<Spacial, Texture, Name>();
         for (const auto entity : visible_entities) {
-            auto [spacial, texture] = visible_entities.get<Spacial, Texture>(entity);
+            auto [spacial, texture, name] = visible_entities.get<Spacial, Texture, Name>(entity);
             char label[128];
-            sprintf(label, "%d", (int)entity);
+            sprintf(label, "%d %s", (int)entity, name.name.c_str());
             if (ImGui::Selectable(label, this->selected_entity == entity)) {
                 this->selected_entity = entity;
             }

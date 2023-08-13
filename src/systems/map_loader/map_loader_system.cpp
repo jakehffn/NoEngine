@@ -1,6 +1,6 @@
 #include "map_loader_system.hpp"
 
-#include "component_factory.hpp"
+#include "prefab_factory.hpp"
 
 MapLoaderSystem::MapLoaderSystem(entt::registry& registry) : System(registry) {}
 
@@ -61,11 +61,6 @@ void MapLoaderSystem::addObject(const tmx::Map& map, const tmx::Object& object) 
     
     tmx::Vector2f position = object.getPosition();
 
-    // These are the properties that were added to the specific tile instance
-    for (const auto& property : object.getProperties()) {
-        ComponentFactory::emplaceComponent(this->registry, entity, property.getName(), std::vector<std::string>());
-    }
-
     int tile_id = object.getTileID();
 
     if (tile_id == 0) {
@@ -87,36 +82,14 @@ void MapLoaderSystem::addObject(const tmx::Map& map, const tmx::Object& object) 
             auto& sprite_sheet = sprite_sheet_atlas.initSpriteSheet(registry, texture_name);
             auto& [default_animation_name, default_animation] = *(sprite_sheet.animations.begin());
             this->registry.emplace<Texture>(entity, texture_name, default_animation.frames[0]);
-
+            this->registry.emplace<Name>(entity, texture_name);
             this->registry.emplace<Spacial>(entity, glm::vec3(position.x, position.y, 1), 
                 glm::vec3(0, 0, 0), glm::vec3(1, 1, 1), glm::vec2(tile->imageSize.x, tile->imageSize.y));
             this->registry.emplace<Renderable>(entity);
-
-            // These are the properties that were added for all instances of that tile
-            for (const auto& property : tile->properties) {
-                std::vector<std::string> args;
-                std::string curr{""};
-                for (auto c : property.getStringValue()) {
-                    if (c == ',' || c == ' ') {
-                        if (curr.length() > 0) {
-                            args.push_back(curr);
-                            curr = "";
-                        }
-                    } else {
-                        curr += c;
-                    }
-                }
-                if (curr.length() > 0) {
-                    args.push_back(curr);
-                }
-                ComponentFactory::emplaceComponent(this->registry, entity, property.getName(), args);
-            }
-
-            if (this->registry.any_of<IdleAnimation, MoveAnimation>(entity)) {
-                auto& animator = this->registry.emplace<Animator>(entity, &default_animation.frame_durations);
-                auto& animation = this->registry.emplace<Animation>(entity, &animator, &default_animation);
-            }
             this->addCollision(entity, tile);
+            
+            // Prefab goes last so things can be removed if needed
+            PrefabFactory::createIfExists(registry, entity, texture_name);
             // No need to search anymore if the tile has been found in a tile_set
             break;
         }
@@ -200,5 +173,6 @@ void MapLoaderSystem::addCollision(entt::entity entity, const tmx::Tileset::Tile
     }
     if (bounding_boxes.size() != 0) {
         this->registry.emplace<Collision>(entity, std::move(bounding_boxes));
+        this->registry.emplace<Collidable>(entity);
     }
 }
