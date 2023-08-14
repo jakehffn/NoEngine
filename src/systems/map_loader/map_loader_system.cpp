@@ -57,7 +57,6 @@ void MapLoaderSystem::addObjects(const tmx::Map& map) {
 
 void MapLoaderSystem::addObject(const tmx::Map& map, const tmx::Object& object) {
     const auto& entity = this->registry.create();
-    auto& sprite_sheet_atlas = this->registry.ctx().at<SpriteSheetAtlas&>();
     
     tmx::Vector2f position = object.getPosition();
 
@@ -78,18 +77,21 @@ void MapLoaderSystem::addObject(const tmx::Map& map, const tmx::Object& object) 
             }
             const auto& tile = tile_set.getTile(tile_id);
 
-            std::string texture_name = std::filesystem::path(tile->imagePath).stem().string(); 
-            auto& sprite_sheet = sprite_sheet_atlas.initSpriteSheet(registry, texture_name);
-            auto& [default_animation_name, default_animation] = *(sprite_sheet.animations.begin());
-            this->registry.emplace<Texture>(entity, texture_name, default_animation.frames[0]);
-            this->registry.emplace<Name>(entity, texture_name);
+            std::string prefab_name;
+
+            for (auto property : tile->properties) {
+                if (property.getName() == "Prefab") {
+                    prefab_name = property.getStringValue();
+                }
+            }
+
+            this->registry.emplace<Name>(entity, prefab_name);
             this->registry.emplace<Spacial>(entity, glm::vec3(position.x, position.y, 1), 
                 glm::vec3(0, 0, 0), glm::vec3(1, 1, 1), glm::vec2(tile->imageSize.x, tile->imageSize.y));
-            this->registry.emplace<Renderable>(entity);
             this->addCollision(entity, tile);
             
             // Prefab goes last so things can be removed if needed
-            PrefabFactory::createIfExists(registry, entity, texture_name);
+            PrefabFactory::createIfExists(registry, entity, prefab_name);
             // No need to search anymore if the tile has been found in a tile_set
             break;
         }
@@ -173,6 +175,5 @@ void MapLoaderSystem::addCollision(entt::entity entity, const tmx::Tileset::Tile
     }
     if (bounding_boxes.size() != 0) {
         this->registry.emplace<Collision>(entity, std::move(bounding_boxes));
-        this->registry.emplace<Collidable>(entity);
     }
 }

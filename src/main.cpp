@@ -11,14 +11,18 @@
 
 #include "component_grid.hpp"
 
-#include "imgui/backends/imgui_impl_opengl3.h"
-#include "imgui/backends/imgui_impl_sdl2.h"
+#ifndef NDEBUG
+	#include "imgui/backends/imgui_impl_opengl3.h"
+	#include "imgui/backends/imgui_impl_sdl2.h"
+	#include "debug.hpp"
+#endif
 
-#include "debug.hpp"
 
 SDL_Window* window = NULL;
 SDL_GLContext gl_context;
-DebugWindow debugWindow;
+#ifndef NDEBUG
+	DebugWindow debugWindow;
+#endif
 
 // Initializes SDL, GLEW, then OpenGL
 bool initContext() {
@@ -37,8 +41,8 @@ bool initContext() {
 			"Untitled RPG", 
 			SDL_WINDOWPOS_UNDEFINED, 
 			SDL_WINDOWPOS_UNDEFINED, 
-			render_c::SCREEN_WIDTH, 
-			render_c::SCREEN_HEIGHT, 
+			constant::SCREEN_WIDTH, 
+			constant::SCREEN_HEIGHT, 
 			SDL_WINDOW_OPENGL | 
 			SDL_WINDOW_SHOWN
 		);
@@ -68,76 +72,82 @@ bool initContext() {
 	return success;
 }
 
-ImVec4 colorRgbToImVec4(float r, float g, float b, float a) {
-    return ImVec4{r/255, g/255, b/255, a/255};
-}
-
-void initStyles() {
-    ImGui::StyleColorsDark(NULL);
-    auto& styles = ImGui::GetStyle();
-
-    const auto main_bg_color = colorRgbToImVec4(45, 53, 59, 255);
-    const auto main_text_color = colorRgbToImVec4(211, 198, 170, 255);
-    const auto hover_color = colorRgbToImVec4(54, 63, 69, 255);
-    const auto main_dark_color = colorRgbToImVec4(33, 39, 43, 255);
-    const auto accent_one = colorRgbToImVec4(131, 192, 146, 255);
-
-    styles.Colors[ImGuiCol_Text] = main_text_color;
-    styles.Colors[ImGuiCol_TitleBg] = main_bg_color;
-    styles.Colors[ImGuiCol_TitleBgActive] = hover_color;
-    styles.Colors[ImGuiCol_TextSelectedBg] = hover_color;
-    styles.Colors[ImGuiCol_FrameBg] = main_dark_color;
-    styles.Colors[ImGuiCol_PopupBg] = main_bg_color;
-
-    // ---- Window stuff ----
-    styles.Colors[ImGuiCol_Border] = main_dark_color;
-    styles.Colors[ImGuiCol_WindowBg] = main_bg_color;
-    styles.WindowBorderSize = 1;
-    styles.WindowPadding = {0, 0};
-
-    // ---- Menu stuff ----
-    styles.Colors[ImGuiCol_MenuBarBg] = main_bg_color;
-    // This also changes the menu item's hover color
-    styles.Colors[ImGuiCol_Header] = hover_color;
-    styles.Colors[ImGuiCol_HeaderHovered] = hover_color;
-
-    // ---- Button stuff ----
-    styles.Colors[ImGuiCol_Button] = main_bg_color;
-    styles.Colors[ImGuiCol_ButtonHovered] = hover_color;
-    styles.Colors[ImGuiCol_ButtonActive] = main_bg_color;
-
-    // ---- Slider stuff ----
-    styles.Colors[ImGuiCol_SliderGrab] = main_bg_color;
-    styles.Colors[ImGuiCol_SliderGrabActive] = main_bg_color; 
-
-    styles.Colors[ImGuiCol_FrameBg] = main_dark_color;
-    styles.Colors[ImGuiCol_FrameBgHovered] = main_dark_color;
-    styles.Colors[ImGuiCol_FrameBgActive] = hover_color;
-}
-
-void initImGui() {
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO();
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
-    ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
-    ImGui_ImplOpenGL3_Init("#version 150");
-    initStyles();
-}
-
 void deinitContext() {
     SDL_GL_DeleteContext(gl_context);
     SDL_DestroyWindow(window);
     SDL_Quit();
 }
 
-void deinitImGui() {
-    ImGui_ImplOpenGL3_Shutdown();
-    ImGui_ImplSDL2_Shutdown();
-    ImGui::DestroyContext();
-}
+#ifndef NDEBUG
+	ImVec4 colorRgbToImVec4(float r, float g, float b, float a) {
+		return ImVec4{r/255, g/255, b/255, a/255};
+	}
+
+	void initStyles() {
+		ImGui::StyleColorsDark(NULL);
+		auto& styles = ImGui::GetStyle();
+
+		const auto main_bg_color = colorRgbToImVec4(45, 53, 59, 255);
+		const auto main_text_color = colorRgbToImVec4(211, 198, 170, 255);
+		const auto hover_color = colorRgbToImVec4(54, 63, 69, 255);
+		const auto main_dark_color = colorRgbToImVec4(33, 39, 43, 255);
+		const auto accent_one = colorRgbToImVec4(131, 192, 146, 255);
+
+		styles.Colors[ImGuiCol_Text] = main_text_color;
+		styles.Colors[ImGuiCol_TitleBg] = main_bg_color;
+		styles.Colors[ImGuiCol_TitleBgActive] = hover_color;
+		styles.Colors[ImGuiCol_TextSelectedBg] = hover_color;
+		styles.Colors[ImGuiCol_FrameBg] = main_dark_color;
+		styles.Colors[ImGuiCol_PopupBg] = main_bg_color;
+
+		// ---- Window stuff ----
+		styles.Colors[ImGuiCol_Border] = main_dark_color;
+		styles.Colors[ImGuiCol_WindowBg] = main_bg_color;
+		styles.WindowBorderSize = 1;
+		styles.WindowPadding = {0, 0};
+
+		// ---- Menu stuff ----
+		styles.Colors[ImGuiCol_MenuBarBg] = main_bg_color;
+		// This also changes the menu item's hover color
+		styles.Colors[ImGuiCol_Header] = hover_color;
+		styles.Colors[ImGuiCol_HeaderHovered] = hover_color;
+
+		// ---- Button stuff ----
+		styles.Colors[ImGuiCol_Button] = main_bg_color;
+		styles.Colors[ImGuiCol_ButtonHovered] = hover_color;
+		styles.Colors[ImGuiCol_ButtonActive] = main_bg_color;
+
+		// ---- Slider stuff ----
+		styles.Colors[ImGuiCol_SliderGrab] = main_bg_color;
+		styles.Colors[ImGuiCol_SliderGrabActive] = main_bg_color; 
+
+		styles.Colors[ImGuiCol_FrameBg] = main_dark_color;
+		styles.Colors[ImGuiCol_FrameBgHovered] = main_dark_color;
+		styles.Colors[ImGuiCol_FrameBgActive] = hover_color;
+	}
+
+	void initImGui() {
+		IMGUI_CHECKVERSION();
+		ImGui::CreateContext();
+		ImGuiIO& io = ImGui::GetIO();
+		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+		ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
+		ImGui_ImplOpenGL3_Init("#version 150");
+		initStyles();
+	}
+
+	void deinitImGui() {
+		ImGui_ImplOpenGL3_Shutdown();
+		ImGui_ImplSDL2_Shutdown();
+		ImGui::DestroyContext();
+	}
+
+	void showDebugWindow() {
+		debugWindow.show();
+	}
+#endif
 
 void GLAPIENTRY
 MessageCallback( 
@@ -229,10 +239,6 @@ MessageCallback(
   	std::cerr << "GL CALLBACK:\ntype = " << type_string.c_str() << ", source = " << source_string.c_str() << 
 		", severity = " << severity_string.c_str() << ", message = " << message << "\n" << 
 		( type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : "" );
-}
-
-void showDebugWindow() {
-	debugWindow.show();
 }
 
 // Parameters necessary for SDL_Main

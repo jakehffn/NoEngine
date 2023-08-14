@@ -67,56 +67,70 @@ void DebugWindow::showEntityViewer() {
         ImGui::EndChild();
         ImGui::SameLine();
         ImGui::BeginChild("entity view", ImVec2(0, -ImGui::GetFrameHeightWithSpacing())); // Leave room for 1 line below us
-        ImGui::Text("%d", (int)this->selected_entity);
-        ImGui::Separator();
-
         if (this->game->registry.all_of<Spacial, Texture>(this->selected_entity)) {
+            auto [spacial, texture, name] = this->game->registry.get<Spacial, Texture, Name>(this->selected_entity);
+            ImGui::Text("%d %s", (int)this->selected_entity, name.name.c_str());
+            ImGui::Separator();
 
-            auto [spacial, texture] = this->game->registry.get<Spacial, Texture>(this->selected_entity);
             using namespace entt::literals;
             Camera& camera = this->game->registry.ctx().at<Camera&>("world_camera"_hs);
-    
+
+            const float max_texture_dimension = std::max(texture.frame_data->size.x, texture.frame_data->size.y);
+            float edge_spacing = 1.2f * max_texture_dimension * camera.getZoom();
+            const float preview_start_x = spacial.pos.x * camera.getZoom() - // Position of entity in pixels
+                (camera.getPosition().x * camera.getZoom() - ((float)constant::SCREEN_WIDTH/2.0f)) - // Position of edge of camera in pixels
+                edge_spacing;
+            const float preview_start_y = -spacial.pos.y * camera.getZoom() + 
+                (camera.getPosition().y * camera.getZoom() - (float)constant::SCREEN_HEIGHT/2.0f) + 
+                edge_spacing;
+            const float preview_end_x = (spacial.pos.x + max_texture_dimension) * camera.getZoom() - 
+                (camera.getPosition().x * camera.getZoom() - ((float)constant::SCREEN_WIDTH/2.0f)) +
+                edge_spacing;
+            const float preview_end_y = (-spacial.pos.y - max_texture_dimension) * camera.getZoom() + 
+                (camera.getPosition().y * camera.getZoom() - ((float)constant::SCREEN_HEIGHT/2.0f)) -
+                edge_spacing;
             ImGui::Image(
                 (void*)(intptr_t)this->game->screen_texture,
                 {100, 100},
                 {
-                    ((float)spacial.pos.x - ((float)camera.getPosition().x - ((float)render_c::SCREEN_WIDTH/2.0) / camera.getZoom())) / ((float)render_c::SCREEN_WIDTH / camera.getZoom()),
-                    ((float)-spacial.pos.y + ((float)camera.getPosition().y - ((float)render_c::SCREEN_HEIGHT/2.0) / camera.getZoom())) / ((float)render_c::SCREEN_HEIGHT / camera.getZoom())
+                    preview_start_x / (float)constant::SCREEN_WIDTH,
+                    preview_start_y / (float)constant::SCREEN_HEIGHT
                 },
                 {
-                    (((float)spacial.pos.x + 50) - ((float)camera.getPosition().x - ((float)render_c::SCREEN_WIDTH/2.0) / camera.getZoom())) / ((float)render_c::SCREEN_WIDTH / camera.getZoom()),
-                    (((float)-spacial.pos.y - 50) + ((float)camera.getPosition().y - ((float)render_c::SCREEN_HEIGHT/2.0) / camera.getZoom())) / ((float)render_c::SCREEN_HEIGHT / camera.getZoom())
+                    preview_end_x / (float)constant::SCREEN_WIDTH,
+                    preview_end_y / (float)constant::SCREEN_HEIGHT
                 }
             );
             ImGui::SameLine();
-            const float texture_scale = 2;
+
+            const float texture_scale = 100.0f / (float)((texture.frame_data->size.x > texture.frame_data->size.y) ? 
+                texture.frame_data->size.x : texture.frame_data->size.y);
+            const float texture_start_x = (float)texture.frame_data->position.x;
+            const float texture_start_y = (float)texture.frame_data->position.y;
+            const float texture_end_x = (float)texture.frame_data->position.x + (float)texture.frame_data->size.x;
+            const float texture_end_y = (float)texture.frame_data->position.y + (float)texture.frame_data->size.y;
             ImGui::Image(
                 (void*)(intptr_t)this->game->texture_atlas.gl_texture_id,
                 {texture.frame_data->size.x * texture_scale, texture.frame_data->size.y * texture_scale},
                 {
-                    (float)texture.frame_data->position.x / (float)this->game->texture_atlas.width,
-                    (float)texture.frame_data->position.y / (float)this->game->texture_atlas.height
+                    texture_start_x / (float)this->game->texture_atlas.width,
+                    texture_start_y / (float)this->game->texture_atlas.height
                 },
                 {
-                    ((float)texture.frame_data->position.x + (float)texture.frame_data->size.x) / (float)this->game->texture_atlas.width,
-                    ((float)texture.frame_data->position.y + (float)texture.frame_data->size.y) / (float)this->game->texture_atlas.height
+                    texture_end_x / (float)this->game->texture_atlas.width,
+                    texture_end_y / (float)this->game->texture_atlas.height
                 }
             );
             ImGui::Separator();
-            if (ImGui::BeginTabBar("##Tabs", ImGuiTabBarFlags_None))
-            {
-                if (ImGui::BeginTabItem("Description"))
-                {
-                    ImGui::TextWrapped("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. ");
-                    ImGui::EndTabItem();
-                }
-                if (ImGui::BeginTabItem("Details"))
-                {
-                    ImGui::Text("ID: 0123456789");
-                    ImGui::EndTabItem();
-                }
-                ImGui::EndTabBar();
-            }
+            ImGui::Text("Spacial");
+            ImGui::Indent();
+            ImGui::Text("Position: \n\tx: %.2f \n\ty: %.2f \n\tz: %.2f", spacial.pos.x, spacial.pos.y, spacial.pos.z);
+            ImGui::Text("Rotation: \n\tx: %.2f \n\ty: %.2f \n\tz: %.2f", spacial.rot.x, spacial.rot.y, spacial.rot.z);
+            ImGui::Text("Scale: \n\tx: %.2f \n\ty: %.2f \n\tz: %.2f", spacial.scale.x, spacial.scale.y, spacial.scale.z);
+            ImGui::Text("Dimensions: \n\tx: %.2f \n\ty: %.2f", spacial.dim.x, spacial.dim.y);
+            const char* direction_string[]{"", "UP", "DOWN", "LEFT", "RIGHT"};
+            ImGui::Text("Direction: %s", direction_string[spacial.direction]);
+            ImGui::Unindent();
         }
         ImGui::EndChild();
     }

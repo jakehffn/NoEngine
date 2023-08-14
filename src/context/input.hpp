@@ -6,9 +6,10 @@
 
 #include <entt/entt.hpp>
 #include <SDL.h>
-
-#include "imgui_impl_opengl3.h"
-#include "imgui_impl_sdl2.h"
+#ifndef NDEBUG
+    #include "imgui_impl_opengl3.h"
+    #include "imgui_impl_sdl2.h"
+#endif
 
 #include "system.hpp"
 #include "clock.hpp"

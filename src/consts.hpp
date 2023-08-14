@@ -1,6 +1,8 @@
 #pragma once
 
-namespace render_c {
+#include <filesystem>
+
+namespace constant {
     //Screen dimension constants
     static const int SCREEN_WIDTH{1440};
     static const int SCREEN_HEIGHT{810};
@@ -16,10 +18,6 @@ namespace render_c {
 
     // static const int SCREEN_FPS = 60;
     static const float SPR_SCALE_UP{5.0f};
-}
-
-namespace input_c {
-
     static const float MOUSE_SPEED{0.003f};
     static const float KEY_SPEED{300.0f};
 }
