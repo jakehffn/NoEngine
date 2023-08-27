@@ -55,11 +55,16 @@ void DebugWindow::showEntityViewer() {
         ImGuiWindowFlags_NoResize
     )) {
         ImGui::BeginChild("left pane", ImVec2(150, 0), true);
-        auto visible_entities = this->game->registry.view<Spacial, Texture, Name>();
+        auto visible_entities = this->game->registry.view<Spacial, Texture, ToRender>();
         for (const auto entity : visible_entities) {
-            auto [spacial, texture, name] = visible_entities.get<Spacial, Texture, Name>(entity);
+            auto [spacial, texture] = visible_entities.get<Spacial, Texture>(entity);
             char label[128];
-            sprintf(label, "%d %s", (int)entity, name.name.c_str());
+            if (this->game->registry.all_of<Name>(entity)) {
+                auto name = this->game->registry.get<Name>(entity);
+                sprintf(label, "%d %s", (int)entity, name.name.c_str());
+            } else {
+                sprintf(label, "%d %s", (int)entity, "<unnamed>");
+            }
             if (ImGui::Selectable(label, this->selected_entity == entity)) {
                 this->selected_entity = entity;
             }
@@ -67,9 +72,14 @@ void DebugWindow::showEntityViewer() {
         ImGui::EndChild();
         ImGui::SameLine();
         ImGui::BeginChild("entity view", ImVec2(0, -ImGui::GetFrameHeightWithSpacing())); // Leave room for 1 line below us
-        if (this->game->registry.all_of<Spacial, Texture>(this->selected_entity)) {
-            auto [spacial, texture, name] = this->game->registry.get<Spacial, Texture, Name>(this->selected_entity);
-            ImGui::Text("%d %s", (int)this->selected_entity, name.name.c_str());
+        if (this->selected_entity != entt::null && this->game->registry.all_of<Spacial, Texture>(this->selected_entity)) {
+            auto [spacial, texture] = this->game->registry.get<Spacial, Texture>(this->selected_entity);
+            if (this->game->registry.all_of<Name>(this->selected_entity)) {
+                auto name = this->game->registry.get<Name>(this->selected_entity);
+                ImGui::Text("%d %s", (int)this->selected_entity, name.name.c_str());
+            } else {
+                ImGui::Text("%d %s", (int)this->selected_entity, "<unnamed>");
+            }
             ImGui::Separator();
 
             using namespace entt::literals;

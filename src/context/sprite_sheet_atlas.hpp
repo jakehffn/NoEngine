@@ -15,20 +15,31 @@
 
 class SpriteSheetAtlas {
 public:
+    SpriteSheetAtlas(std::string base_sprite_sheet_path);
+
+    void initMissingTextureSpriteSheet(
+        entt::registry& registry, 
+        std::string missing_texture_sprite_sheet_id
+    );
     SpriteSheet& initSpriteSheet(entt::registry& registry, const std::string& sprite_sheet_id);
     SpriteSheet& getSpriteSheet(const std::string& sprite_sheet_id);
+    SpriteSheet& getMissingTextureSpriteSheet();
+    std::string_view getBaseSpriteSheetPath() const;
+    std::string getSpriteSheetIdFromPath(std::string sprite_sheet_path);
 private:
     void initAnimations(const std::string& sprite_sheet_id, rapidjson::Document& document);
     void initFrames(entt::registry& registry, const std::string& sprite_sheet_id, rapidjson::Document& document);
 
     std::tuple<std::string, int> parseFrameName(const std::string& frame_name);
+    std::string parseSpriteSheetName(const std::string& sprite_sheet_id);
     TextureSource textureSourceFromFrame(const rapidjson::Value& frame, unsigned char* texture_data, glm::ivec2 texture_data_size);
 
-    rapidjson::Document readJSON(const std::string& json_path);
+    std::optional<rapidjson::Document> readJSON(const std::string& json_path);
 
     std::string getTextureSourceKey(const TextureSource& texture_source);
 
     std::unordered_map<std::string, SpriteSheet> sprite_sheets;
 
-    std::string base_sprite_sheet_path{"./assets/sprite_sheets/"};
+    std::string base_sprite_sheet_path;
+    std::string missing_texture_sprite_sheet_id;
 };

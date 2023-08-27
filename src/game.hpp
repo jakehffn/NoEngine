@@ -53,7 +53,7 @@ struct Game {
     Input input_manager = Input();
     // This should be read from the map at some point
     TextureAtlas texture_atlas;
-    SpriteSheetAtlas sprite_sheet_atlas;
+    SpriteSheetAtlas sprite_sheet_atlas = SpriteSheetAtlas("./assets/sprites/");
 
     GLuint screen_texture;
 

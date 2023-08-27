@@ -10,6 +10,8 @@ Game::Game(SDL_Window* window) : window{ window } {
         this->registry.ctx().emplace<Input&>(this->input_manager);
         this->registry.ctx().emplace<TextureAtlas&>(this->texture_atlas);
         this->registry.ctx().emplace<SpriteSheetAtlas&>(this->sprite_sheet_atlas);
+        this->sprite_sheet_atlas.initMissingTextureSpriteSheet(this->registry, "debug/MissingTexture");
+
         this->registry.ctx().emplace<ComponentGrid<Renderable, Collision>&>(this->component_grid);
 
         this->systems.push_back(new MapLoaderSystem(this->registry));

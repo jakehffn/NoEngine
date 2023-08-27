@@ -3,20 +3,62 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-// The id should be the path of the sprite sheet without the filetype extension
+SpriteSheetAtlas::SpriteSheetAtlas(std::string base_sprite_sheet_path) :
+    base_sprite_sheet_path{base_sprite_sheet_path} {}
+
+void SpriteSheetAtlas::initMissingTextureSpriteSheet(
+    entt::registry& registry, 
+    std::string missing_texture_sprite_sheet_id) {
+        this->missing_texture_sprite_sheet_id = missing_texture_sprite_sheet_id;
+        this->initSpriteSheet(registry, missing_texture_sprite_sheet_id);
+}
+
 SpriteSheet& SpriteSheetAtlas::initSpriteSheet(entt::registry& registry, const std::string& sprite_sheet_id) {
     if (this->sprite_sheets.contains(sprite_sheet_id)) {
         return this->sprite_sheets[sprite_sheet_id];
     }
-    std::string json_path{this->base_sprite_sheet_path + sprite_sheet_id + ".json"};
-    rapidjson::Document document = this->readJSON(json_path);
-    this->initAnimations(sprite_sheet_id, document);
-    this->initFrames(registry, sprite_sheet_id, document);
-    return this->sprite_sheets[sprite_sheet_id];
+
+    std::string json_path{
+        this->base_sprite_sheet_path + sprite_sheet_id + "/" + 
+        this->parseSpriteSheetName(sprite_sheet_id) + ".json"
+    };
+    auto document = this->readJSON(json_path);
+
+    if (document) {
+        this->initAnimations(sprite_sheet_id, *document);
+        this->initFrames(registry, sprite_sheet_id, *document);
+        return this->sprite_sheets[sprite_sheet_id];
+    } else {
+        return this->sprite_sheets[this->missing_texture_sprite_sheet_id];
+    }
 }
 
 SpriteSheet& SpriteSheetAtlas::getSpriteSheet(const std::string& sprite_sheet_id) {
     return this->sprite_sheets[sprite_sheet_id];
+}
+
+SpriteSheet& SpriteSheetAtlas::getMissingTextureSpriteSheet() {
+    return this->sprite_sheets[missing_texture_sprite_sheet_id];
+}
+
+std::string_view SpriteSheetAtlas::getBaseSpriteSheetPath() const {
+    return this->base_sprite_sheet_path;
+}
+
+// The sprite sheet id is the portion of the path relative to the base sprite sheet path in the assets folder
+// Eg. the sprite at "C:Users/.../assets/sprites/characters/kid/kid.png", the sprite sheet id would be "characters/kid"
+std::string SpriteSheetAtlas::getSpriteSheetIdFromPath(std::string sprite_sheet_path) {
+    auto sprite_sheet_path_partial = this->getBaseSpriteSheetPath().substr(2);
+
+    size_t sprite_sheet_id_start = sprite_sheet_path.find(sprite_sheet_path_partial) + 
+        sprite_sheet_path_partial.length();
+
+    return sprite_sheet_path.substr(
+        sprite_sheet_id_start,
+        sprite_sheet_path.find_last_of('/') - sprite_sheet_id_start
+    );
+
+
 }
 
 void SpriteSheetAtlas::initAnimations(const std::string& sprite_sheet_id, rapidjson::Document& document) {
@@ -89,7 +131,10 @@ void SpriteSheetAtlas::initFrames(entt::registry& registry, const std::string& s
     const rapidjson::Value& states{json_meta["layers"]};
     assert(states.IsArray() && "'states' value is not array.");
 
-    std::string png_path{this->base_sprite_sheet_path + sprite_sheet_id + ".png"};
+    std::string png_path{
+        this->base_sprite_sheet_path + sprite_sheet_id + "/" + 
+        this->parseSpriteSheetName(sprite_sheet_id) + ".png"
+    };
     SpriteSheet& new_sprite_sheet = this->sprite_sheets[sprite_sheet_id];
     
     // Loading the sprite_sheet_data
@@ -103,7 +148,7 @@ void SpriteSheetAtlas::initFrames(entt::registry& registry, const std::string& s
     for (rapidjson::SizeType frame_num{0}; frame_num < json_frames.Size(); frame_num++) {
         const rapidjson::Value& frame = json_frames[frame_num];
 
-        // Filename is a sting that looks like "{sprite_sheet_name}_{animation_name}_{direction}_{frame_number}"
+        // Filename is a string that looks like "{sprite_sheet_name}_{animation_name}_{direction}_{frame_number}"
         std::string sprite_frame_name = frame["filename"].GetString();
 
         auto [animation_name, animation_frame_num] = this->parseFrameName(sprite_frame_name);
@@ -125,38 +170,26 @@ void SpriteSheetAtlas::initFrames(entt::registry& registry, const std::string& s
     stbi_image_free(texture_data);
 }
 
-rapidjson::Document SpriteSheetAtlas::readJSON(const std::string& json_path) {
-    
+std::optional<rapidjson::Document> SpriteSheetAtlas::readJSON(const std::string& json_path) {
     std::string json;
 	std::ifstream json_stream(json_path, std::ios::in);
 
-	if(json_stream.is_open()){
+    std::optional<rapidjson::Document> document;
 
+	if(json_stream.is_open()){
 		std::stringstream sstr;
 		sstr << json_stream.rdbuf();
 		json = sstr.str();
 		json_stream.close();
 
-	} else {
+        document = rapidjson::Document();
+        document->Parse(json.c_str());
 
+	} else {
         #ifndef NDEBUG
 		    std::cerr << "Unable to open " << json_path << std::endl;
         #endif
 	}
-
-    rapidjson::Document document;
-    document.Parse(json.c_str());
-
-    #ifndef NDEBUG
-
-        static const char* type_names[] = { "Null", "False", "True", "Object", "Array", "String", "Number" };
-    
-        for (rapidjson::Value::ConstMemberIterator itr = document.MemberBegin();
-            itr != document.MemberEnd(); ++itr) {
-            std::cout << "Type of member " << itr->name.GetString() << " is " << type_names[itr->value.GetType()] << "\n";
-        }
-
-    #endif
 
     return document;
 }
@@ -164,6 +197,7 @@ rapidjson::Document SpriteSheetAtlas::readJSON(const std::string& json_path) {
 // Parses frame name as tuple of animation name, direction, frame number
 std::tuple<std::string, int> SpriteSheetAtlas::parseFrameName(const std::string& frame_name) {
     // Filename is a string that looks like "{sprite_sheet_name}_{animation_name}_{state}_{frame_number}"
+    // NOTE: If needed, the aseprite format is actually {title}_{tag}_{layer}_{frame}
     
     // The first string is the name of the sprite_sheet which is not needed
     // TODO: removed the first part of the name from the frame name
@@ -187,6 +221,10 @@ std::tuple<std::string, int> SpriteSheetAtlas::parseFrameName(const std::string&
         full_animation_name = state;
     }
     return std::make_tuple(full_animation_name, animation_frame_num);
+}
+
+std::string SpriteSheetAtlas::parseSpriteSheetName(const std::string& sprite_sheet_id) {
+    return sprite_sheet_id.substr(sprite_sheet_id.find_last_of('/') + 1);
 }
 
 TextureSource SpriteSheetAtlas::textureSourceFromFrame(const rapidjson::Value& frame, unsigned char* texture_data, glm::ivec2 texture_data_size) {

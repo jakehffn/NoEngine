@@ -23,5 +23,5 @@ private:
 
     // Entity Viewer
     bool openEntityViewer = false;
-    entt::entity selected_entity;
+    entt::entity selected_entity = entt::null;
 };

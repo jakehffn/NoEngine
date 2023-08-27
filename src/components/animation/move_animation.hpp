@@ -21,10 +21,15 @@ struct MoveAnimation {
     ) {
         auto& sprite_sheet_atlas = registry.ctx().at<SpriteSheetAtlas&>();
         auto& sprite_sheet = sprite_sheet_atlas.getSpriteSheet(sprite_sheet_id);
+        auto& [_, missing_animation] = *(sprite_sheet_atlas.getMissingTextureSpriteSheet().animations.begin());
 
-        this->animations[UP] = sprite_sheet.animations[up_animation_name];
-        this->animations[DOWN] = sprite_sheet.animations[down_animation_name];
-        this->animations[LEFT] = sprite_sheet.animations[left_animation_name];
-        this->animations[RIGHT] = sprite_sheet.animations[right_animation_name];
+        this->animations[UP] = (sprite_sheet.animations.contains(up_animation_name)) ? 
+            sprite_sheet.animations[up_animation_name] : missing_animation;
+        this->animations[DOWN] = (sprite_sheet.animations.contains(down_animation_name)) ? 
+            sprite_sheet.animations[down_animation_name] : missing_animation;
+        this->animations[LEFT] = (sprite_sheet.animations.contains(left_animation_name)) ? 
+            sprite_sheet.animations[left_animation_name] : missing_animation;
+        this->animations[RIGHT] = (sprite_sheet.animations.contains(right_animation_name)) ? 
+            sprite_sheet.animations[right_animation_name] : missing_animation;
     }
 };

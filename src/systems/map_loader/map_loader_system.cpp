@@ -91,7 +91,9 @@ void MapLoaderSystem::addObject(const tmx::Map& map, const tmx::Object& object) 
             this->addCollision(entity, tile);
             
             // Prefab goes last so things can be removed if needed
-            PrefabFactory::createIfExists(registry, entity, prefab_name);
+            if (!PrefabFactory::create(registry, entity, prefab_name)) {
+                PrefabFactory::createDefault(registry, entity, tile->imagePath);
+            }
             // No need to search anymore if the tile has been found in a tile_set
             break;
         }
@@ -131,7 +133,8 @@ void MapLoaderSystem::addTilesets(tmx::Map& map) {
         }
         const auto& tile_set_entity = this->registry.create();
 
-        std::string texture_name = std::filesystem::path(tile_set.getImagePath()).stem().string(); 
+        std::string sprite_sheet_name = std::filesystem::path(tile_set.getImagePath()).stem().string(); 
+        std::string sprite_sheet_id = sprite_sheet_atlas.getSpriteSheetIdFromPath(tile_set.getImagePath()); 
 
         this->registry.emplace<TileSet>(tile_set_entity, (int)dimensions.x, (int)dimensions.y, (int)tile_set.getFirstGID(), (int)tile_set.getLastGID());
         // Animations and textures for tiles are handled by the tile_set. 
@@ -139,9 +142,9 @@ void MapLoaderSystem::addTilesets(tmx::Map& map) {
         //      The drawback for this is that the textures coordinates are calculated every frame
         //      Another drawback is that adding the buffer data for tiles and other entities ends 
         //      up being different.
-        auto& sprite_sheet = sprite_sheet_atlas.initSpriteSheet(registry, texture_name);
+        auto& sprite_sheet = sprite_sheet_atlas.initSpriteSheet(registry, sprite_sheet_id);
         auto& [default_animation_name, default_animation] = *(sprite_sheet.animations.begin());
-        auto& tile_set_texure = this->registry.emplace<Texture>(tile_set_entity, texture_name, default_animation.frames[0]);
+        auto& tile_set_texure = this->registry.emplace<Texture>(tile_set_entity, sprite_sheet_name, default_animation.frames[0]);
         auto& animator = this->registry.emplace<Animator>(tile_set_entity, &default_animation.frame_durations);
         this->registry.emplace<Animation>(tile_set_entity, &animator, &default_animation);
         
