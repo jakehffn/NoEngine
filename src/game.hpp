@@ -34,6 +34,7 @@
 #include "gui_system.hpp"
 #include "map_loader_system.hpp"
 #include "text_system.hpp"
+#include "state_machine_system.hpp"
 
 struct Game {
     Game(SDL_Window* window);
@@ -53,7 +54,7 @@ struct Game {
     Input input_manager = Input();
     // This should be read from the map at some point
     TextureAtlas texture_atlas;
-    SpriteSheetAtlas sprite_sheet_atlas = SpriteSheetAtlas("./assets/sprites/");
+    SpriteSheetAtlas sprite_sheet_atlas;
 
     GLuint screen_texture;
 

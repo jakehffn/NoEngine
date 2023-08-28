@@ -1,7 +1,6 @@
 #include "game.hpp"
 
 Game::Game(SDL_Window* window) : window{ window } {
-
         using namespace entt::literals;
 
         this->registry.ctx().emplace<Clock&>(this->clock);
@@ -16,6 +15,7 @@ Game::Game(SDL_Window* window) : window{ window } {
 
         this->systems.push_back(new MapLoaderSystem(this->registry));
         this->systems.push_back(new TextSystem(this->registry));
+        this->systems.push_back(new StateMachineSystem(this->registry));
         this->systems.push_back(new InputSystem(this->registry));
         this->systems.push_back(new AnimationSystem(this->registry));
         this->systems.push_back(new MovementSystem(this->registry));

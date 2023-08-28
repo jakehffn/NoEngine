@@ -10,13 +10,12 @@
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>
 
+#include "consts.hpp"
 #include "animation_structs.hpp"
 #include "texture_atlas.hpp"
 
 class SpriteSheetAtlas {
 public:
-    SpriteSheetAtlas(std::string base_sprite_sheet_path);
-
     void initMissingTextureSpriteSheet(
         entt::registry& registry, 
         std::string missing_texture_sprite_sheet_id
@@ -24,8 +23,7 @@ public:
     SpriteSheet& initSpriteSheet(entt::registry& registry, const std::string& sprite_sheet_id);
     SpriteSheet& getSpriteSheet(const std::string& sprite_sheet_id);
     SpriteSheet& getMissingTextureSpriteSheet();
-    std::string_view getBaseSpriteSheetPath() const;
-    std::string getSpriteSheetIdFromPath(std::string sprite_sheet_path);
+    
 private:
     void initAnimations(const std::string& sprite_sheet_id, rapidjson::Document& document);
     void initFrames(entt::registry& registry, const std::string& sprite_sheet_id, rapidjson::Document& document);
@@ -40,6 +38,5 @@ private:
 
     std::unordered_map<std::string, SpriteSheet> sprite_sheets;
 
-    std::string base_sprite_sheet_path;
     std::string missing_texture_sprite_sheet_id;
 };

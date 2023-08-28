@@ -5,16 +5,19 @@
 #include "camera_controller.hpp"
 #include "collider.hpp"
 #include "collidable.hpp"
+#include "name.hpp"
+#include "renderable.hpp"
 #include "idle_animation.hpp"
 #include "move_animation.hpp"
 #include "player_control.hpp"
+#include "velocity.hpp"
+#include "state_machine.hpp"
+#include "state_machine_builder.hpp"
 
-void Kid(entt::registry& registry, entt::entity entity) {
-    registry.emplace<PlayerControl>(entity);
-    registry.emplace<CameraController>(entity);
+void TestNpc(entt::registry& registry, entt::entity entity) {
     registry.emplace<Collider>(entity);
 
-    std::string sprite_sheet_name = "Kid";
+    std::string sprite_sheet_name = "Npc";
     std::string sprite_sheet_id = "characters/kid";
 
     auto& sprite_sheet_atlas = registry.ctx().at<SpriteSheetAtlas&>();
@@ -28,6 +31,25 @@ void Kid(entt::registry& registry, entt::entity entity) {
     registry.emplace<MoveAnimation>(entity, registry, sprite_sheet_id, "Move_Up", "Move_Down", "Move_Left", "Move_Right");
 
     registry.emplace<Name>(entity, sprite_sheet_name);
+
+    registry.emplace<StateMachine>(entity, 
+        StateMachineBuilder()
+        .wait(2000)
+        ->then([](entt::registry& registry, entt::entity entity) {
+            registry.emplace_or_replace<Velocity>(entity, glm::vec3(-1,0,0), 80.0/1000.0);
+            registry.patch<Spacial>(entity, [](auto& spacial) {
+                spacial.direction = LEFT;
+            });
+        })
+        ->wait(2000)
+        ->then([](entt::registry& registry, entt::entity entity) {
+            registry.emplace_or_replace<Velocity>(entity, glm::vec3(1,0,0), 80.0/1000.0);
+            registry.patch<Spacial>(entity, [](auto& spacial) {
+                spacial.direction = RIGHT;
+            });
+        })
+        ->loop()
+    );
 
     registry.emplace<Renderable>(entity);
 }
