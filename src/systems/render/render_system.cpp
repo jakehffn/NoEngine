@@ -1,8 +1,8 @@
 #include "render_system.hpp"
 
 RenderSystem::RenderSystem(entt::registry& registry) : System(registry), 
-    spacial_observer{ entt::observer(registry, entt::collector.update<Spacial>().where<Texture>()) },
-    texture_observer{ entt::observer(registry, entt::collector.group<Texture>()) } {
+    spacial_observer{entt::observer(registry, entt::collector.update<Spacial>().where<Texture>())},
+    texture_observer{entt::observer(registry, entt::collector.update<Texture>().where<Spacial>())} {
 }
 
 void RenderSystem::update() {
@@ -94,11 +94,16 @@ void RenderSystem::updateModels() {
     // TDOD: Consider only updating models of entities which need rendering
 
     // Update the models of all the entities whose spacials have been changed
-    for (const auto entity : this->spacial_observer) {
+    this->spacial_observer.each([this](entt::entity entity){
         auto [spacial, texture] = this->registry.get<Spacial, Texture>(entity);
         this->registry.emplace_or_replace<Model>(entity, this->getModel(spacial, texture));
-    }
-    this->spacial_observer.clear();
+    });
+    // ...and same for models with updated textures
+    // TODO: Consider ways of avoiding overlap between these two groups
+    this->texture_observer.each([this](entt::entity entity){
+        auto [spacial, texture] = this->registry.get<Spacial, Texture>(entity);
+        this->registry.emplace_or_replace<Model>(entity, this->getModel(spacial, texture));
+    });
 
     // Create models on entities which have never been rendered
     auto no_model_entities = this->registry.view<Spacial, Texture>(entt::exclude<Model>);

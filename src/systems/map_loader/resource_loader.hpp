@@ -52,8 +52,14 @@ namespace ResourceLoader {
         auto& sprite_sheet = sprite_sheet_atlas.initSpriteSheet(registry, resource_id);
         auto& [default_animation_name, default_animation] = *(sprite_sheet.animations.begin());
         registry.emplace<Texture>(entity, sprite_sheet_name, default_animation.frames[0]);
+
+        if (default_animation.num_frames > 1) {
+            auto& animator = registry.emplace<Animator>(entity, &default_animation.frame_durations);
+            registry.emplace<Animation>(entity, &animator, &default_animation);
+        }
+
         registry.emplace<Renderable>(entity);
         registry.emplace<Collidable>(entity); 
-        registry.emplace<Name>(entity, sprite_sheet_name);
+        registry.emplace<Name>(entity, resource_id);
     }
 }
