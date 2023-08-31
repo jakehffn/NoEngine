@@ -27,9 +27,14 @@ void AnimationSystem::updateAnimators() {
 
 // TODO: only update the textures which had updated animators
 void AnimationSystem::updateTextures() {
-    this->registry.view<Animation, Texture, Spacial>().each([](auto animation_entity, const auto& animation, auto& texture, auto& spacial) {
+    this->registry.view<Animation, Texture>().each([](auto animation_entity, const auto& animation, auto& texture) {
         const auto current_frame = animation.animation_data->frames[animation.animator->current_frame];
         texture.frame_data = current_frame;
+    });
+    // Maybe in the future I should consider not having the spacial being updated here?
+    // There might be times where you don't actually want the spacial updated with the new texture size
+    this->registry.view<Animation, Texture, Spacial>().each([](auto animation_entity, const auto& animation, auto& texture, auto& spacial) {
+        const auto current_frame = animation.animation_data->frames[animation.animator->current_frame];
         spacial.dim = {current_frame->size.x, current_frame->size.y};
     });
 }

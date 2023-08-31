@@ -13,14 +13,14 @@ struct IdleAnimation {
     IdleAnimation() {}
     IdleAnimation(
         entt::registry& registry, 
-        std::string sprite_sheet_id,
+        std::string resource_id,
         std::string up_animation_name,
         std::string down_animation_name,
         std::string left_animation_name,
         std::string right_animation_name
     ) {
         auto& sprite_sheet_atlas = registry.ctx().at<SpriteSheetAtlas&>();
-        auto& sprite_sheet = sprite_sheet_atlas.getSpriteSheet(sprite_sheet_id);
+        auto& sprite_sheet = sprite_sheet_atlas.getSpriteSheet(resource_id);
         auto& [_, missing_animation] = *(sprite_sheet_atlas.getMissingTextureSpriteSheet().animations.begin());
 
         this->animations[UP] = (sprite_sheet.animations.contains(up_animation_name)) ? 
