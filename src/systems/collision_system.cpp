@@ -53,7 +53,7 @@ void CollisionSystem::iterateObserverInto(entt::observer& observer,
 // Fill the queries of all entities with collision that have moved
 void CollisionSystem::fillAllQueries() {
 
-    auto& component_grid = this->registry.ctx().at<ComponentGrid<Renderable, Collision>&>();
+    auto& component_grid = this->registry.ctx().at<ComponentGrid<Collision>&>();
 
     this->collision_observer.each([this, &component_grid](const auto entity) {
         this->registry.patch<Collision>(entity, [this, entity, &component_grid](auto& collision) {
@@ -62,9 +62,11 @@ void CollisionSystem::fillAllQueries() {
             
             collision.current_grid_query.clear();
 
-            component_grid.query<Collision>(
+            component_grid.query(
                 observed_spacial.pos.x, observed_spacial.pos.y,
-                observed_spacial.dim.x, observed_spacial.dim.y, collision.current_grid_query);
+                observed_spacial.dim.x, observed_spacial.dim.y, 
+                collision.current_grid_query
+            );
         });
     });
 }

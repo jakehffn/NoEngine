@@ -1,4 +1,5 @@
 #include "debug.hpp"
+#include "debug_timer.hpp"
 
 DebugWindow::DebugWindow(Game* game) : game{game} {}
 
@@ -24,6 +25,7 @@ void DebugWindow::showMenuBar() {
         if (ImGui::BeginMenu("View", true)) {
             ImGui::MenuItem("Texture Atlas", "", &this->openTextureAtlas, true);
             ImGui::MenuItem("Entity Viewer", "", &this->openEntityViewer, true);
+            ImGui::MenuItem("Timer Window", "", &DebugTimer::open_timers_window, true);
             ImGui::EndMenu();
         }
         ImGui::EndMenuBar();

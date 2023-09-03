@@ -5,6 +5,8 @@
 
 #include "game.hpp"
 
+#include "debug_timer.hpp"
+
 class DebugWindow {
 public:
     DebugWindow() = default;
@@ -24,4 +26,5 @@ private:
     // Entity Viewer
     bool openEntityViewer = false;
     entt::entity selected_entity = entt::null;
+
 };

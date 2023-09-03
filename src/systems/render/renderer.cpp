@@ -9,6 +9,7 @@ Renderer::Renderer() : screen_shader{ new ScreenShader() },
 
         this->initVAO();
         this->initScreenFBO();
+        this->initPixelPassFBO();
         this->initFinalFBO();
         this->initVBOs();
 }
@@ -94,10 +95,32 @@ void Renderer::initScreenFBO() {
     
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, constant::SCREEN_WIDTH, constant::SCREEN_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);  
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);  
 
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, this->screen_texture, 0); 
+    
+    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        std::cerr << "ERROR: Framebuffer is not complete!" << std::endl;
+    }
+    glBindFramebuffer(GL_FRAMEBUFFER, 0); 
+}
+
+void Renderer::initPixelPassFBO() {
+
+    glGenFramebuffers(1, &(this->pixel_pass_fbo));
+    glBindFramebuffer(GL_FRAMEBUFFER, this->pixel_pass_fbo);
+    glDrawBuffer(GL_COLOR_ATTACHMENT0);
+
+    glGenTextures(1, &(this->pixel_pass_texture));
+    glBindTexture(GL_TEXTURE_2D, this->pixel_pass_texture);
+    
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, constant::SCREEN_WIDTH / 5, constant::SCREEN_HEIGHT / 5, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);  
+
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, this->pixel_pass_texture, 0); 
     
     if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
         std::cerr << "ERROR: Framebuffer is not complete!" << std::endl;
@@ -115,8 +138,8 @@ void Renderer::initFinalFBO() {
     
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, constant::SCREEN_WIDTH, constant::SCREEN_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);  
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);  
 
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, this->final_texture, 0); 
     
@@ -180,6 +203,17 @@ void Renderer::render(const glm::mat4& view, const glm::mat4& projection, const 
 
     glBindTexture(GL_TEXTURE_2D, this->screen_texture);
     glDrawArrays(GL_TRIANGLES, 0, 6);   
+    
+    // Pixel Pass
+    // glBindFramebuffer(GL_FRAMEBUFFER, this->pixel_pass_fbo);
+    // glClear(GL_COLOR_BUFFER_BIT);
+
+    // this->screen_shader->useShader();
+    // this->screen_shader->renderSetup(time);
+
+    // glBindTexture(GL_TEXTURE_2D, this->final_texture);
+    // glViewport(0, 0, constant::SCREEN_WIDTH / 5, constant::SCREEN_HEIGHT / 5);
+    // glDrawArrays(GL_TRIANGLES, 0, 6);   
 
     // Render to screen
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -189,6 +223,7 @@ void Renderer::render(const glm::mat4& view, const glm::mat4& projection, const 
     this->screen_shader->renderSetup(time);
 
     glBindTexture(GL_TEXTURE_2D, this->final_texture);
+    glViewport(0, 0, constant::SCREEN_WIDTH, constant::SCREEN_HEIGHT);
     glDrawArrays(GL_TRIANGLES, 0, 6);  
 
     glUseProgram(0);

@@ -3,13 +3,7 @@
 Camera::Camera() :
 
     position{ glm::vec3(0, 0, 0) }, view_matrix{ glm::mat4(1.0f) } {
-
         this->zoom = 3.0f;
-
-        // float left = 0;
-        // float right = constant::SCREEN_WIDTH;
-        // float top = 0;
-        // float bottom = constant::SCREEN_HEIGHT;
 
         float left = (constant::SCREEN_WIDTH - (constant::SCREEN_WIDTH/this->zoom)) / 2;
         float right = left + float(constant::SCREEN_WIDTH/this->zoom);
@@ -46,9 +40,6 @@ glm::vec2 Camera::getPosition() const {
 }
 
 void Camera::update() {
-
-    // printf("x: %f, y: %f, z: %f ", this->position.x, this->position.y, this->position.z);
-
     float x_offset = constant::SCREEN_WIDTH/2;
     float y_offset = constant::SCREEN_HEIGHT/2;
 
@@ -64,7 +55,6 @@ void Camera::update() {
 }
 
 void Camera::setPosition(glm::vec3 position) {
-    // printf("Camera Pos - x: %f, y: %f\r", position.x, position.y);
     this->position = position;
 }
 

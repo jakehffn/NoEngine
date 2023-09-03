@@ -23,11 +23,13 @@ void MapLoaderSystem::loadTiledMap(const char* map_path) {
     if (map.load(map_path)) {
         tmx::FloatRect map_bounds = map.getBounds();
 
-        auto& component_grid = this->registry.ctx().at<ComponentGrid<Renderable, Collision>&>();
+        auto& renderable_grid = this->registry.ctx().at<ComponentGrid<Renderable>&>();
+        auto& collision_grid = this->registry.ctx().at<ComponentGrid<Collision>&>();
 
         // printf("Map Hidth:%f, Map Height:%f\n", map_bounds.width, mapbounds.height);
 
-        component_grid.init(map_bounds.width, map_bounds.height, 16);
+        renderable_grid.init(map_bounds.width, map_bounds.height, 16);
+        collision_grid.init(map_bounds.width, map_bounds.height, 16);
 
         this->addObjects(map);
         this->addTilesets(map);

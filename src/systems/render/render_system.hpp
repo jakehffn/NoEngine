@@ -15,6 +15,7 @@
 #include "animation.hpp"
 #include "text.hpp"
 #include "to_render.hpp"
+#include "to_render_tile.hpp"
 #include "tile.hpp"
 #include "renderable.hpp"
 #include "collision.hpp"
@@ -26,6 +27,8 @@
 #include "component_grid.hpp"
 
 #include "consts.hpp"
+
+#include "debug_timer.hpp"
 
 class RenderSystem : public System {
 public:
@@ -49,8 +52,8 @@ private:
     entt::observer spacial_observer;
     entt::observer texture_observer;
 
-    std::set<entt::entity> render_query;
-    std::set<entt::entity> last_render_query;
+    std::set<entt::entity>* render_query{new std::set<entt::entity>};
+    std::set<entt::entity>* last_render_query{new std::set<entt::entity>};
 
     Renderer renderer;
 };

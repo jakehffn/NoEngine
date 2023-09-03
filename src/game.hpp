@@ -58,5 +58,6 @@ struct Game {
 
     GLuint screen_texture;
 
-    ComponentGrid<Renderable, Collision> component_grid = ComponentGrid<Renderable, Collision>(this->registry);
+    ComponentGrid<Renderable> renderable_grid = ComponentGrid<Renderable>(this->registry);
+    ComponentGrid<Collision> collision_grid = ComponentGrid<Collision>(this->registry);
 };

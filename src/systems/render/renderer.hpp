@@ -17,6 +17,7 @@ private:
     void initVAO();
     void initVBOs();
     void initScreenFBO();
+    void initPixelPassFBO();
     void initFinalFBO();
 
     void bufferData();
@@ -25,6 +26,9 @@ private:
 
     GLuint screen_fbo;
     GLuint screen_texture;
+
+    GLuint pixel_pass_fbo;
+    GLuint pixel_pass_texture;
 
     GLuint final_fbo;
     GLuint final_texture;

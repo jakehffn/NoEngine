@@ -11,7 +11,8 @@ Game::Game(SDL_Window* window) : window{ window } {
         this->registry.ctx().emplace<SpriteSheetAtlas&>(this->sprite_sheet_atlas);
         this->sprite_sheet_atlas.initMissingTextureSpriteSheet(this->registry, "debug/MissingTexture");
 
-        this->registry.ctx().emplace<ComponentGrid<Renderable, Collision>&>(this->component_grid);
+        this->registry.ctx().emplace<ComponentGrid<Renderable>&>(this->renderable_grid);
+        this->registry.ctx().emplace<ComponentGrid<Collision>&>(this->collision_grid);
 
         this->systems.push_back(new MapLoaderSystem(this->registry));
         this->systems.push_back(new TextSystem(this->registry));
@@ -65,7 +66,8 @@ void Game::mainLoop(void (*debugCallback)()) {
 
         this->clock.tick();
         this->input_manager.update();
-        this->component_grid.update();
+        this->renderable_grid.update();
+        this->collision_grid.update();
 
         #ifndef NDEBUG
             std::vector<double> times;

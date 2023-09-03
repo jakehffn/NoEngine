@@ -6,33 +6,13 @@ RenderSystem::RenderSystem(entt::registry& registry) : System(registry),
 }
 
 void RenderSystem::update() {
-    std::vector<double> times;
-    double start =  SDL_GetPerformanceCounter();
+    DEBUG_TIMER(_, "RenderSystem::update");
+
     this->cullEntities();
-    double total =  (SDL_GetPerformanceCounter() - start)/SDL_GetPerformanceFrequency()*1000.0;
-    times.push_back(total);
-
-    start =  SDL_GetPerformanceCounter();
     this->sortEntities();
-    total =  (SDL_GetPerformanceCounter() - start)/SDL_GetPerformanceFrequency()*1000.0;
-    times.push_back(total);
-
-    start =  SDL_GetPerformanceCounter();
     this->updateModels();
-    total =  (SDL_GetPerformanceCounter() - start)/SDL_GetPerformanceFrequency()*1000.0;
-    times.push_back(total);
-
-    start =  SDL_GetPerformanceCounter();
     this->bufferEntityData();
-    total =  (SDL_GetPerformanceCounter() - start)/SDL_GetPerformanceFrequency()*1000.0;
-    times.push_back(total);
-
-    start =  SDL_GetPerformanceCounter();
     this->render();
-    total =  (SDL_GetPerformanceCounter() - start)/SDL_GetPerformanceFrequency()*1000.0;
-    times.push_back(total);
-
-    int i = 0;
 }
 
 Renderer* RenderSystem::getRenderer() {
@@ -40,9 +20,11 @@ Renderer* RenderSystem::getRenderer() {
 }
 
 void RenderSystem::cullEntities() {
+    DEBUG_TIMER(_, "RenderSystem::cullEntities");
+
     using namespace entt::literals;
     auto& camera = this->registry.ctx().at<Camera&>("world_camera"_hs);
-    auto& component_grid = this->registry.ctx().at<ComponentGrid<Renderable, Collision>&>();
+    auto& component_grid = this->registry.ctx().at<ComponentGrid<Renderable>&>();
 
     glm::vec2 camera_dimensions = camera.getCameraDim();
     glm::vec2 camera_position = camera.getPosition();
@@ -52,35 +34,47 @@ void RenderSystem::cullEntities() {
     int w = camera_dimensions.x + 16;
     int h = camera_dimensions.y + 16;
   
-    component_grid.query<Renderable>((lightgrid::bounds) {x,y,w,h}, this->render_query);
+    component_grid.query((lightgrid::bounds) {x,y,w,h}, *this->render_query);
 
     std::vector<entt::entity> diff;
-
-    // Get the entities which were in the new query but not in the last query
-    std::set_difference(this->render_query.begin(), this->render_query.end(),
-        this->last_render_query.begin(), this->last_render_query.end(),
-        std::back_inserter(diff));
-
-    for (auto entity : diff) {
-        this->registry.emplace<ToRender>(entity);
+    {
+        DEBUG_TIMER(set_difference_timer, "RenderSystem::cullEntities - set difference");
+        // Get the entities which were in the new query but not in the last query
+        std::set_difference(this->render_query->begin(), this->render_query->end(),
+            this->last_render_query->begin(), this->last_render_query->end(),
+            std::back_inserter(diff)
+        );
     }
 
+    for (auto entity : diff) {
+        if (this->registry.all_of<Tile>(entity)) {
+            this->registry.emplace<ToRenderTile>(entity);
+        } else {
+            this->registry.emplace<ToRender>(entity);
+        }
+    }
     diff.clear();
+
+    // auto total =  (SDL_GetPerformanceCounter() - start)/SDL_GetPerformanceFrequency()*1000.0;
     // Get the entities which were in the last query but not in the new query
-    std::set_difference(this->last_render_query.begin(), this->last_render_query.end(),
-        this->render_query.begin(), this->render_query.end(),
-        std::back_inserter(diff));
+    std::set_difference(this->last_render_query->begin(), this->last_render_query->end(),
+        this->render_query->begin(), this->render_query->end(),
+        std::back_inserter(diff)
+    );
 
     for (auto entity : diff) {
         this->registry.remove<ToRender>(entity);
+        this->registry.remove<ToRenderTile>(entity);
     }
 
-    this->last_render_query = std::move(this->render_query);
-    render_query.clear();
+    std::swap(this->last_render_query, this->render_query);
+    render_query->clear();
 }
 
 void RenderSystem::sortEntities() {
+    DEBUG_TIMER(_, "RenderSystem::sortEntities");
     // Sort sprites by Spacial y-pos before rendering
+    // Tiles don't need to be sorted
     this->registry.sort<ToRender>([this](const entt::entity lhs, const entt::entity rhs) {
         auto lhSpacial = this->registry.get<Spacial>(lhs);
         auto rhSpacial = this->registry.get<Spacial>(rhs);
@@ -91,6 +85,7 @@ void RenderSystem::sortEntities() {
 }
 
 void RenderSystem::updateModels() {
+    DEBUG_TIMER(_, "RenderSystem::updateModels");
     // TDOD: Consider only updating models of entities which need rendering
 
     // Update the models of all the entities whose spacials have been changed
@@ -155,7 +150,7 @@ glm::mat4 RenderSystem::getTileModel(const Spacial& spacial) {
 
 void RenderSystem::bufferEntityData() {
     // Tiles need to be rendered under the other textures
-    this->registry.view<Model, Tile, ToRender>().each([this](auto& model, auto& tile) {  
+    this->registry.view<Model, Tile, ToRenderTile>().each([this](auto& model, auto& tile) {  
         glm::vec4 texture_data = glm::vec4(
             tile.tile_set_texture->frame_data->position.x + tile.position.x, 
             tile.tile_set_texture->frame_data->position.y + tile.position.y, 
