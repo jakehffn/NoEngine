@@ -1,5 +1,8 @@
 #pragma once
 
+#include <functional>
+#include <string>
+
 // GLEW must come before OpenGL
 #include <GL\glew.h>
 #include <SDL.h>
@@ -9,18 +12,21 @@
 
 #include "shader_loader.hpp"
 
-// ShaderProgram provides a way for the Game to interface with each shader prorgam
-//  This is done through the renderSetup() function
-template <typename... Ts>
 class ShaderProgram {
 public:
-    // Returns the ID for the shader program given by OpenGL once compiled
-    // virtual GLuint getOpenGLShaderProgramID() = 0;
+    ShaderProgram(
+        std::function<GLuint(ShaderProgram*)> init_function, 
+        std::function<void(ShaderProgram*)> setup_function
+    );
+    void use();
+    void setup();
+    void reload();
+    void setUniform(const char* name, GLuint id);
+    GLuint getUniform(const char* name);
 
-    inline void useShader(){ glUseProgram( this->gl_shader_program_id ); };
-    // Functions that provides ability to setup the render specifically for each shader program
-    virtual void renderSetup(Ts... args) = 0;
-
-protected:
-    GLuint gl_shader_program_id;
+private:
+    GLuint id;
+    std::unordered_map<std::string, GLuint> uniforms;
+    std::function<GLuint(ShaderProgram*)> init_function;
+    std::function<void(ShaderProgram*)> setup_function;
 };

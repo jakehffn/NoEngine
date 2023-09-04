@@ -1,9 +1,78 @@
 #include "render_system.hpp"
 
-RenderSystem::RenderSystem(entt::registry& registry) : System(registry), 
+RenderSystem::RenderSystem(entt::registry& registry) : System(registry),
     spacial_observer{entt::observer(registry, entt::collector.update<Spacial>().where<Texture>())},
-    texture_observer{entt::observer(registry, entt::collector.update<Texture>().where<Spacial>())} {
-}
+    texture_observer{entt::observer(registry, entt::collector.update<Texture>().where<Spacial>())},
+    screen_shader{
+    [](ShaderProgram* shader_program){
+        std::string vertex_shader_path = "./src/systems/render/shaders/screen/vertexShader.glsl";
+        std::string fragment_shader_path = "./src/systems/render/shaders/screen/fragmentShader.glsl";
+
+        auto id = LoadShaders(vertex_shader_path.c_str(), fragment_shader_path.c_str());
+        shader_program->setUniform("time", glGetUniformLocation(id, "time")); 
+
+        return id;
+    }, 
+    [&registry](ShaderProgram* shader_program){
+        Clock& clock = registry.ctx().at<Clock&>();
+        glUniform1f(shader_program->getUniform("time"), clock.getCumulativeTime());
+    }}, 
+    instanced_shader{
+    [](ShaderProgram* shader_program){
+        std::string vertex_shader_path = "./src/systems/render/shaders/instanced/vertexShader.glsl";
+        std::string fragment_shader_path = "./src/systems/render/shaders/instanced/fragmentShader.glsl";
+
+        auto id = LoadShaders(vertex_shader_path.c_str(), fragment_shader_path.c_str());
+
+        shader_program->setUniform("V", glGetUniformLocation(id, "V"));
+        shader_program->setUniform("P", glGetUniformLocation(id, "P"));
+        shader_program->setUniform("atlasDimensions", glGetUniformLocation(id, "atlasDimensions"));
+    
+        return id;
+    }, 
+    [&registry](ShaderProgram* shader_program){
+        using namespace entt::literals;
+
+        Camera& camera = registry.ctx().at<Camera&>("world_camera"_hs);
+        TextureAtlas& texture_atlas = registry.ctx().at<TextureAtlas&>();
+        Clock& clock = registry.ctx().at<Clock&>();
+
+
+        glUniformMatrix4fv(shader_program->getUniform("V"), 1, GL_FALSE, &(camera.getViewMatrix()[0][0]));
+        glUniformMatrix4fv(shader_program->getUniform("P"), 1, GL_FALSE, &(camera.getProjectionMatrix())[0][0]);
+        glUniform2f(shader_program->getUniform("atlasDimensions"), texture_atlas.width, texture_atlas.height);
+
+        glBindTexture(GL_TEXTURE_2D, texture_atlas.gl_texture_id);
+    }},
+    instanced_other_shader{
+    [](ShaderProgram* shader_program){
+        std::string vertex_shader_path = "./src/systems/render/shaders/instanced_other/vertexShader.glsl";
+        std::string fragment_shader_path = "./src/systems/render/shaders/instanced_other/fragmentShader.glsl";
+
+        auto id = LoadShaders(vertex_shader_path.c_str(), fragment_shader_path.c_str());
+
+        shader_program->setUniform("V", glGetUniformLocation(id, "V"));
+        shader_program->setUniform("P", glGetUniformLocation(id, "P"));
+        shader_program->setUniform("atlasDimensions", glGetUniformLocation(id, "atlasDimensions"));
+    
+        return id;
+    }, 
+    [&registry](ShaderProgram* shader_program){
+        using namespace entt::literals;
+
+        Camera& camera = registry.ctx().at<Camera&>("world_camera"_hs);
+        TextureAtlas& texture_atlas = registry.ctx().at<TextureAtlas&>();
+        Clock& clock = registry.ctx().at<Clock&>();
+
+
+        glUniformMatrix4fv(shader_program->getUniform("V"), 1, GL_FALSE, &(camera.getViewMatrix()[0][0]));
+        glUniformMatrix4fv(shader_program->getUniform("P"), 1, GL_FALSE, &(camera.getProjectionMatrix())[0][0]);
+        glUniform2f(shader_program->getUniform("atlasDimensions"), texture_atlas.width, texture_atlas.height);
+
+        glBindTexture(GL_TEXTURE_2D, texture_atlas.gl_texture_id);
+    }} {
+        this->renderer.setPostProcessingShader(&(this->screen_shader));
+    }
 
 void RenderSystem::update() {
     DEBUG_TIMER(_, "RenderSystem::update");
@@ -156,25 +225,21 @@ void RenderSystem::bufferEntityData() {
             tile.tile_set_texture->frame_data->position.y + tile.position.y, 
             16, 16
         );
-        this->renderer.addBufferData(texture_data, model.model);
+        this->renderer.queueRender(texture_data, model.model, &(this->instanced_shader));
     });
 
-    this->registry.view<Texture, Model, ToRender>(entt::exclude<Text, Tile>).use<ToRender>().each([this](auto& texture, auto& model) {  
+    this->registry.view<Texture, Model, ToRender>(entt::exclude<Text, Tile>).use<ToRender>().each([this](const auto entity, auto& texture, auto& model) {  
         glm::vec4 texture_data = glm::vec4(texture.frame_data->position.x, texture.frame_data->position.y, 
             texture.frame_data->size.x, texture.frame_data->size.y);
 
-        this->renderer.addBufferData(texture_data, model.model);
+        if (this->registry.all_of<CameraController>(entity)) {
+            this->renderer.queueRender(texture_data, model.model, &(this->instanced_other_shader));
+        } else {
+            this->renderer.queueRender(texture_data, model.model, &(this->instanced_shader));
+        }
     });
 }
 
 void RenderSystem::render() {
-    using namespace entt::literals;
-    
-    Camera camera = this->registry.ctx().at<Camera&>("world_camera"_hs);
-    TextureAtlas& texture_atlas = this->registry.ctx().at<TextureAtlas&>();
-    Clock clock = this->registry.ctx().at<Clock&>();
-
-    this->renderer.render(camera.getViewMatrix(), camera.getProjectionMatrix(),
-        glm::vec2(texture_atlas.width, texture_atlas.height), 
-        texture_atlas.gl_texture_id, clock.getCumulativeTime());
+    this->renderer.render();
 }

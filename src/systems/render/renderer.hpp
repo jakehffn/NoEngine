@@ -1,18 +1,25 @@
 #include <vector>
+#include <iostream>
 
 #include "consts.hpp"
 #include "shader_program.hpp"
-#include "screen_shader.hpp"
-#include "instanced_shader.hpp"
+#include "clock.hpp"
+#include "camera.hpp"
+#include "texture_atlas.hpp"
 
 class Renderer {
 public:
     Renderer();
     ~Renderer();
 
-    void addBufferData(const glm::vec4& texture_data, const glm::mat4& model_data);
-    void render(const glm::mat4& view, const glm::mat4& projection, const glm::vec2& atlas_dimensions, GLuint atlas_texture, double time);
+    void queueRender(
+        const glm::vec4& texture_data, 
+        const glm::mat4& model_data,
+        ShaderProgram* shader_program
+    );
+    void render();
     GLuint getScreenTexture();
+    void setPostProcessingShader(ShaderProgram* shader_program);
 private:
     void initVAO();
     void initVBOs();
@@ -20,7 +27,11 @@ private:
     void initPixelPassFBO();
     void initFinalFBO();
 
-    void bufferData();
+    void bufferData(size_t start, size_t end);
+    void renderPartialBuffer(size_t start, size_t end, ShaderProgram* shader_program);
+
+    void renderQueue();
+    void renderPostProcessing();
 
     GLuint vao;
 
@@ -39,8 +50,8 @@ private:
     GLuint models_vbo;
     std::vector<glm::mat4> models_buffer_data;
 
-    size_t maxBufferSize{0}; 
+    std::vector<ShaderProgram*> shader_programs;
+    ShaderProgram* post_processing_shader;
 
-    InstancedShader* instanced_shader;
-    ShaderProgram<double>* screen_shader;
+    size_t max_buffer_size{0}; 
 };

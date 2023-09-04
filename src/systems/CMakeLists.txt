@@ -24,4 +24,4 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     state_machine
 )
 
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/render/shaders)
+add_subdirectory(render/shaders)
