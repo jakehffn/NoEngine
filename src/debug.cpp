@@ -14,6 +14,9 @@ void DebugWindow::show() {
         if (this->openEntityViewer) {
             this->showEntityViewer();
         }
+        if (this->openShaderViewer) {
+            this->showShaderViewer();
+        }
     }
     ImGui::End();
 }
@@ -26,6 +29,7 @@ void DebugWindow::showMenuBar() {
             ImGui::MenuItem("Texture Atlas", "", &this->openTextureAtlas, true);
             ImGui::MenuItem("Entity Viewer", "", &this->openEntityViewer, true);
             ImGui::MenuItem("Timer Window", "", &DebugTimer::open_timers_window, true);
+            ImGui::MenuItem("Shader Viewer", "", &this->openShaderViewer, true);
             ImGui::EndMenu();
         }
         ImGui::EndMenuBar();
@@ -63,9 +67,9 @@ void DebugWindow::showEntityViewer() {
             char label[128];
             if (this->game->registry.all_of<Name>(entity)) {
                 auto name = this->game->registry.get<Name>(entity);
-                sprintf(label, "%d %s", (int)entity, name.name.c_str());
+                sprintf(label, "%5d %s", (int)entity, name.name.c_str());
             } else {
-                sprintf(label, "%d %s", (int)entity, "<unnamed>");
+                sprintf(label, "%5d %s", (int)entity, "<unnamed>");
             }
             if (ImGui::Selectable(label, this->selected_entity == entity)) {
                 this->selected_entity = entity;
@@ -78,9 +82,9 @@ void DebugWindow::showEntityViewer() {
             auto [spacial, texture] = this->game->registry.get<Spacial, Texture>(this->selected_entity);
             if (this->game->registry.all_of<Name>(this->selected_entity)) {
                 auto name = this->game->registry.get<Name>(this->selected_entity);
-                ImGui::Text("%d %s", (int)this->selected_entity, name.name.c_str());
+                ImGui::Text("%5d %s", (int)this->selected_entity, name.name.c_str());
             } else {
-                ImGui::Text("%d %s", (int)this->selected_entity, "<unnamed>");
+                ImGui::Text("%5d %s", (int)this->selected_entity, "<unnamed>");
             }
             ImGui::Separator();
 
@@ -143,6 +147,31 @@ void DebugWindow::showEntityViewer() {
             const char* direction_string[]{"", "UP", "DOWN", "LEFT", "RIGHT"};
             ImGui::Text("Direction: %s", direction_string[spacial.direction]);
             ImGui::Unindent();
+        }
+        ImGui::EndChild();
+    }
+    ImGui::End();
+}
+
+void DebugWindow::showShaderViewer() {
+    ImGui::SetNextWindowSize({500, 440}, 0);
+    if (ImGui::Begin("Shader Viewer", &this->openShaderViewer, 
+        ImGuiWindowFlags_NoCollapse |
+        ImGuiWindowFlags_NoResize
+    )) {
+        ImGui::BeginChild("left pane", ImVec2(250, 0), true);
+        for (auto& [shader_name, shader_program] : this->game->shader_manager.shaders) {
+            if (ImGui::Selectable(shader_name.c_str(), this->selected_shader == shader_program)) {
+                this->selected_shader = shader_program;
+            }
+        }
+        ImGui::EndChild();
+        ImGui::SameLine();
+        ImGui::BeginChild("error view", ImVec2(0, -ImGui::GetFrameHeightWithSpacing())); // Leave room for 1 line below us
+        if (this->selected_shader != NULL) {
+            if (ImGui::Button("Reload")) {
+                this->selected_shader->reload();
+            }
         }
         ImGui::EndChild();
     }

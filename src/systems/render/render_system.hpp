@@ -25,6 +25,7 @@
 #include "clock.hpp"
 #include "texture_atlas.hpp"
 #include "component_grid.hpp"
+#include "shader_manager.hpp"
 
 #include "consts.hpp"
 
@@ -56,8 +57,4 @@ private:
     std::set<entt::entity>* last_render_query{new std::set<entt::entity>};
 
     Renderer renderer;
-
-    ShaderProgram screen_shader;
-    ShaderProgram instanced_shader;
-    ShaderProgram instanced_other_shader;
 };

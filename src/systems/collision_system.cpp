@@ -8,7 +8,7 @@ CollisionSystem::CollisionSystem(entt::registry& registry) : System(registry),
     interactable_observer{ entt::observer(registry, entt::collector.update<Spacial>().where<Collision, Interactable>()) } {}
 
 void CollisionSystem::update() {
-
+    DEBUG_TIMER(_, "CollisionSystem::update");
     this->fillAllQueries();
 
     this->iterateObserverInto<Collidable>(collider_observer, this->resolveCollider);

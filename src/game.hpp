@@ -21,6 +21,7 @@
 #include "input.hpp"
 #include "texture_atlas.hpp"
 #include "sprite_sheet_atlas.hpp"
+#include "shader_manager.hpp"
 #include "component_grid.hpp"
 #include "renderable.hpp"
 #include "collision.hpp"
@@ -35,6 +36,8 @@
 #include "map_loader_system.hpp"
 #include "text_system.hpp"
 #include "state_machine_system.hpp"
+
+#include "debug_timer.hpp"
 
 struct Game {
     Game(SDL_Window* window);
@@ -55,6 +58,7 @@ struct Game {
     // This should be read from the map at some point
     TextureAtlas texture_atlas;
     SpriteSheetAtlas sprite_sheet_atlas;
+    ShaderManager shader_manager{ShaderManager(registry)};
 
     GLuint screen_texture;
 

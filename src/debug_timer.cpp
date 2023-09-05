@@ -35,10 +35,11 @@ DebugTimer::~DebugTimer() {
             ImGuiWindowFlags_NoCollapse |
             ImGuiWindowFlags_NoResize
         )) {
-            if ((this->higher_level_timer == 0 || this->higher_level_timer->not_collapsed) && this->not_collapsed) {
-                ImGui::Text("%.2fms", duration);
-            }
             ImGui::Unindent();
+            if (this->higher_level_timer == 0 || this->higher_level_timer->not_collapsed) {
+                ImGui::Text(" %.2fms", duration);
+                ImGui::Separator();
+            }
         }
         ImGui::End();
     }

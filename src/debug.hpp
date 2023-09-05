@@ -17,6 +17,7 @@ private:
 
     void showTextureAtlas();
     void showEntityViewer();
+    void showShaderViewer();
 
     Game* game;
 
@@ -27,4 +28,7 @@ private:
     bool openEntityViewer = false;
     entt::entity selected_entity = entt::null;
 
+    // Shader Viewer
+    bool openShaderViewer = false;
+    ShaderProgram* selected_shader = NULL;
 };

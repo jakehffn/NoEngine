@@ -14,6 +14,8 @@
 #include "interacter.hpp"
 #include "interactable.hpp"
 
+#include "debug_timer.hpp"
+
 class CollisionSystem : public System {
 public:
     CollisionSystem(entt::registry& registry);

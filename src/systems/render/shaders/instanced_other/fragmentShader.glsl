@@ -19,7 +19,8 @@ void main() {
     float yPercentage = textureData.w/atlasDimensions.y - 2*bleedOffset;
     float yOffset = textureData.y/atlasDimensions.y + bleedOffset;
 
-    color = texture(image, vec2(texCoords.x*xPercentage + xOffset, texCoords.y*yPercentage + yOffset)) / 2;
+    vec4 texture_color = texture(image, vec2(texCoords.x*xPercentage + xOffset, texCoords.y*yPercentage + yOffset));
+    color = texture_color;
     
     // color = texture(image, vec2(texCoords.x, texCoords.y));
     // color = texture(image, vec2(texCoords.x/8, texCoords.y*yPercentage + yOffset));

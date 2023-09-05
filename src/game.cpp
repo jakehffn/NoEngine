@@ -10,9 +10,9 @@ Game::Game(SDL_Window* window) : window{ window } {
         this->registry.ctx().emplace<TextureAtlas&>(this->texture_atlas);
         this->registry.ctx().emplace<SpriteSheetAtlas&>(this->sprite_sheet_atlas);
         this->sprite_sheet_atlas.initMissingTextureSpriteSheet(this->registry, "debug/MissingTexture");
-
         this->registry.ctx().emplace<ComponentGrid<Renderable>&>(this->renderable_grid);
         this->registry.ctx().emplace<ComponentGrid<Collision>&>(this->collision_grid);
+        this->registry.ctx().emplace<ShaderManager&>(this->shader_manager);
 
         this->systems.push_back(new MapLoaderSystem(this->registry));
         this->systems.push_back(new TextSystem(this->registry));
@@ -63,29 +63,31 @@ inline void Game::endFrame() {
 void Game::mainLoop(void (*debugCallback)()) {
     while(!this->input_manager.isQuit()) {
         this->startFrame();
+        {
+            DEBUG_TIMER(_, "Main Loop");
+            this->clock.tick();
+            this->input_manager.update();
+            this->renderable_grid.update();
+            this->collision_grid.update();
 
-        this->clock.tick();
-        this->input_manager.update();
-        this->renderable_grid.update();
-        this->collision_grid.update();
-
-        #ifndef NDEBUG
-            std::vector<double> times;
-        #endif
-
-        for (auto system : this->systems) {
             #ifndef NDEBUG
-                double start = SDL_GetPerformanceCounter();
+                std::vector<double> times;
             #endif
-            system->update();
+
+            for (auto system : this->systems) {
+                #ifndef NDEBUG
+                    double start = SDL_GetPerformanceCounter();
+                #endif
+                system->update();
+                #ifndef NDEBUG
+                    double total = (SDL_GetPerformanceCounter() - start)/SDL_GetPerformanceFrequency()*1000.0;
+                    times.push_back(total);
+                #endif
+            }
             #ifndef NDEBUG
-                double total = (SDL_GetPerformanceCounter() - start)/SDL_GetPerformanceFrequency()*1000.0;
-                times.push_back(total);
+                debugCallback();
             #endif
         }
-        #ifndef NDEBUG
-            debugCallback();
-        #endif
         this->endFrame();
     }
     SDL_StopTextInput();
