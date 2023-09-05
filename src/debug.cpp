@@ -169,8 +169,9 @@ void DebugWindow::showShaderViewer() {
         ImGui::SameLine();
         ImGui::BeginChild("error view", ImVec2(0, -ImGui::GetFrameHeightWithSpacing())); // Leave room for 1 line below us
         if (this->selected_shader != NULL) {
-            if (ImGui::Button("Reload")) {
-                this->selected_shader->reload();
+            ImGui::Spacing();
+            if (ImGui::Button("Recompile")) {
+                this->selected_shader->recompile();
             }
         }
         ImGui::EndChild();

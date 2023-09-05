@@ -20,7 +20,7 @@ public:
     );
     void use();
     void setup();
-    void reload();
+    void recompile();
     void setUniform(const char* name, GLuint id);
     GLuint getUniform(const char* name);
 

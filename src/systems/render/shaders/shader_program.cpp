@@ -15,7 +15,7 @@ void ShaderProgram::setup(){
     this->setup_function(this); 
 };
 
-void ShaderProgram::reload() {
+void ShaderProgram::recompile() {
     glDeleteShader(this->id);
     this->id = this->init_function(this);
 }
