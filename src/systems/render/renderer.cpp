@@ -3,6 +3,7 @@
 Renderer::Renderer() {
         glClearColor(0.0f, 0.4f, 0.4f, 0.0f);
         glEnable(GL_BLEND); 
+        glEnable(GL_STENCIL_TEST);
         glDisable(GL_DEPTH_TEST);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -103,6 +104,14 @@ void Renderer::initScreenFBO() {
 
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, this->screen_texture, 0); 
     
+    GLuint depth_stencil_buffer;
+    glGenRenderbuffers(1, &depth_stencil_buffer);
+    glBindRenderbuffer(GL_RENDERBUFFER, depth_stencil_buffer);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, constant::SCREEN_WIDTH, constant::SCREEN_HEIGHT);
+    glBindRenderbuffer(GL_RENDERBUFFER, 0);
+    // attach render buffer to the fbo as depth buffer
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, depth_stencil_buffer);
+
     if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
         std::cerr << "ERROR: Framebuffer is not complete!" << std::endl;
     }
@@ -181,7 +190,7 @@ void Renderer::bufferData(size_t start, size_t end) {
 
 void Renderer::render() {
     glBindFramebuffer(GL_FRAMEBUFFER, this->screen_fbo);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     this->renderQueue();
     this->renderPostProcessing();
 }
@@ -207,19 +216,7 @@ void Renderer::renderQueue() {
 
 void Renderer::renderPartialBuffer(size_t start, size_t end, ShaderProgram* shader_program) {
     this->bufferData(start, end);
-
-    glBindFramebuffer(GL_FRAMEBUFFER, this->screen_fbo);
-
-    shader_program->use();
-    shader_program->setup();
-
-    glBindVertexArray(this->vao);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    
-    glDrawArraysInstanced(GL_TRIANGLES, 0, 6, end - start); 
-
+    shader_program->render(end - start, this->vao, this->screen_fbo, this->screen_texture);
 }
 
 void Renderer::renderPostProcessing() {
@@ -227,33 +224,13 @@ void Renderer::renderPostProcessing() {
     glBindFramebuffer(GL_FRAMEBUFFER, this->final_fbo);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    this->post_processing_shader->use();
-    this->post_processing_shader->setup();
-
-    glBindTexture(GL_TEXTURE_2D, this->screen_texture);
-    glDrawArrays(GL_TRIANGLES, 0, 6);   
+    this->post_processing_shader->render(6, this->vao, this->final_fbo, this->screen_texture);
     
-    // Pixel Pass
-    // glBindFramebuffer(GL_FRAMEBUFFER, this->pixel_pass_fbo);
-    // glClear(GL_COLOR_BUFFER_BIT);
-
-    // this->screen_shader->use();
-    // this->screen_shader->setup(time);
-
-    // glBindTexture(GL_TEXTURE_2D, this->final_texture);
-    // glViewport(0, 0, constant::SCREEN_WIDTH / 5, constant::SCREEN_HEIGHT / 5);
-    // glDrawArrays(GL_TRIANGLES, 0, 6);   
-
     // Render to screen
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    this->post_processing_shader->use();
-    this->post_processing_shader->setup();
-
-    glBindTexture(GL_TEXTURE_2D, this->final_texture);
-    glViewport(0, 0, constant::SCREEN_WIDTH, constant::SCREEN_HEIGHT);
-    glDrawArrays(GL_TRIANGLES, 0, 6);  
+    this->post_processing_shader->render(6, this->vao, 0, this->final_texture);
 
     glUseProgram(0);
     glBindVertexArray(0);

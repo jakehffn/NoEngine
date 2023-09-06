@@ -20,6 +20,7 @@ public:
     void render();
     GLuint getScreenTexture();
     void setPostProcessingShader(ShaderProgram* shader_program);
+
 private:
     void initVAO();
     void initVBOs();
@@ -32,9 +33,8 @@ private:
 
     void renderQueue();
     void renderPostProcessing();
-
+    
     GLuint vao;
-
     GLuint screen_fbo;
     GLuint screen_texture;
 

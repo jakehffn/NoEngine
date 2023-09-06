@@ -167,7 +167,7 @@ void RenderSystem::bufferEntityData() {
             texture.frame_data->size.x, texture.frame_data->size.y);
 
         if (this->registry.all_of<CameraController>(entity)) {
-            this->renderer.queueRender(texture_data, model.model, shader_manager["other_instanced"]);
+            this->renderer.queueRender(texture_data, model.model, shader_manager["instanced_outline"]);
         } else {
             this->renderer.queueRender(texture_data, model.model, shader_manager["instanced"]);
         }
