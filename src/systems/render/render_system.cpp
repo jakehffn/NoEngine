@@ -81,7 +81,7 @@ void RenderSystem::sortEntities() {
         auto lhSpacial = this->registry.get<Spacial>(lhs);
         auto rhSpacial = this->registry.get<Spacial>(rhs);
         
-        return lhSpacial.pos.y + lhSpacial.dim.y < rhSpacial.pos.y + rhSpacial.dim.y;
+        return (lhSpacial.pos.y + lhSpacial.dim.y) * ((lhSpacial.pos.z + 1)*10) < (rhSpacial.pos.y + rhSpacial.dim.y) * ((rhSpacial.pos.z + 1)*10);
 
     }, entt::insertion_sort {}); // Insertion sort is much faster as the spacials will generally be "mostly sorted"
 }
@@ -166,7 +166,7 @@ void RenderSystem::bufferEntityData() {
         glm::vec4 texture_data = glm::vec4(texture.frame_data->position.x, texture.frame_data->position.y, 
             texture.frame_data->size.x, texture.frame_data->size.y);
 
-        if (this->registry.all_of<CameraController>(entity)) {
+        if (this->registry.all_of<Outline>(entity)) {
             this->renderer.queueRender(texture_data, model.model, shader_manager["instanced_outline"]);
         } else {
             this->renderer.queueRender(texture_data, model.model, shader_manager["instanced"]);

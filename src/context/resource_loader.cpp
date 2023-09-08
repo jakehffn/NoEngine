@@ -1,24 +1,6 @@
-#pragma once
-
-#include <filesystem>
-#include <unordered_map>
-#include <string>
-
-#include <entt/entt.hpp>
-
-#include "consts.hpp"
-#include "renderable.hpp"
-#include "name.hpp"
-
-#include "kid.hpp"
-#include "test_npc.hpp"
+#include "resource_loader.hpp"
 
 namespace ResourceLoader {
-    std::unordered_map<std::string, void (*)(entt::registry&, entt::entity)> prefabs{
-        {"Kid", Kid},
-        {"TestNpc", TestNpc}
-    };
-
     bool create(entt::registry& registry, entt::entity entity, std::string prefab_name) {
         auto prefab_exists = prefabs.contains(prefab_name);
         if (prefab_exists) {

@@ -47,6 +47,8 @@ bool initContext() {
 			SDL_WINDOW_SHOWN
 		);
 
+		SDL_ShowCursor(SDL_DISABLE);
+
 		if(window == NULL) {
 			std::cerr << "Window could not be created! SDL Error: " << SDL_GetError() << "\n";
 			success = false;
@@ -133,6 +135,7 @@ void deinitContext() {
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+		io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange;
 		ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
 		ImGui_ImplOpenGL3_Init("#version 150");
 		initStyles();

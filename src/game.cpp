@@ -70,19 +70,8 @@ void Game::mainLoop(void (*debugCallback)()) {
             this->renderable_grid.update();
             this->collision_grid.update();
 
-            #ifndef NDEBUG
-                std::vector<double> times;
-            #endif
-
             for (auto system : this->systems) {
-                #ifndef NDEBUG
-                    double start = SDL_GetPerformanceCounter();
-                #endif
                 system->update();
-                #ifndef NDEBUG
-                    double total = (SDL_GetPerformanceCounter() - start)/SDL_GetPerformanceFrequency()*1000.0;
-                    times.push_back(total);
-                #endif
             }
             #ifndef NDEBUG
                 debugCallback();

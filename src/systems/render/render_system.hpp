@@ -19,6 +19,7 @@
 #include "tile.hpp"
 #include "renderable.hpp"
 #include "collision.hpp"
+#include "outline.hpp"
 
 #include "renderer.hpp"
 #include "camera.hpp"

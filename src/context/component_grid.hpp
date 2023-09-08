@@ -104,6 +104,8 @@ void ComponentGrid<Component>::clear() {
 
 template<typename Component>
 void ComponentGrid<Component>::observeConstruct(entt::registry& registry, entt::entity entity) {
+    
+    
     assert((registry.all_of<Spacial>(entity) && "Entity missing Spacial component"));
 
     auto& spacial = registry.get<Spacial>(entity);
