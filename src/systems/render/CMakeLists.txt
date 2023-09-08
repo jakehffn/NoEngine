@@ -9,4 +9,5 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     components
 )
 
+add_subdirectory(context)
 add_subdirectory(shaders)

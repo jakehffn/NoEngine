@@ -1,10 +1,7 @@
 target_sources(${PROJECT_NAME} PUBLIC
-    input_system.cpp
+    camera.cpp
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
-    components
 )
-
-add_subdirectory(context)
