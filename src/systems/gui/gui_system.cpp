@@ -1,14 +1,15 @@
 #include "gui_system.hpp"
 
-GUISystem::GUISystem(entt::registry& registry) : System(registry) {}
+GuiSystem::GuiSystem(entt::registry& registry) : System(registry) {}
 
-void GUISystem::update() {
+void GuiSystem::update() {
+    DEBUG_TIMER(_, "GuiSystem::update");
     this->updateFPSCounter();
 }
 
-void GUISystem::updateFPSCounter() {
+void GuiSystem::updateFPSCounter() {
 
-    auto counters = this->registry.view<Text, FPSCounter>();
+    auto counters = this->registry.view<Text, FpsCounter>();
 
     for (auto& entity : counters) {
 

@@ -25,6 +25,14 @@
 #include "text.hpp"
 #include "renderable.hpp"
 #include "name.hpp"
+#include "gui_element.hpp"
+#include "component_grid_ignore.hpp"
+// Theres an outline conflict in freetype
+namespace Component {
+    #include "outline.hpp"
+}
+
+#include "debug_timer.hpp"
 
 class TextSystem : public System {
 

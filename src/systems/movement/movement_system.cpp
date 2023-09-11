@@ -4,7 +4,7 @@ MovementSystem::MovementSystem(entt::registry& registry) : System(registry),
     velocity_observer{ entt::observer(registry, entt::collector.group<Velocity, Spacial>()) } {}
 
 void MovementSystem::update() {
-
+    DEBUG_TIMER(_, "MovementSystem::update");
     auto velocity_entities = this->registry.view<Velocity, Spacial>();
 
     for (auto entity : velocity_entities) {

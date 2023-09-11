@@ -19,23 +19,23 @@ Camera::Camera() :
         this->camera_dimensions = glm::vec2(right - left, bottom - top);
 }
 
-glm::mat4 Camera::getViewMatrix() const {
+glm::mat4& Camera::getViewMatrix() {
     return this->view_matrix;
 }
 
-glm::mat4 Camera::getProjectionMatrix() const {
+glm::mat4& Camera::getProjectionMatrix() {
     return this->projection_matrix;
 }
 
-float Camera::getZoom() const {
+float& Camera::getZoom() {
     return this->zoom;
 }
 
-glm::vec2 Camera::getCameraDim() const {
+glm::vec2& Camera::getCameraDim() {
     return this->camera_dimensions;
 }
 
-glm::vec2 Camera::getPosition() const {
+glm::vec3& Camera::getPosition() {
     return this->position;
 }
 

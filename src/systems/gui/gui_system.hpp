@@ -11,10 +11,13 @@
 #include "fps_counter.hpp"
 
 #include "clock.hpp"
+#include "resource_loader.hpp"
 
-class GUISystem : public System {
+#include "debug_timer.hpp"
+
+class GuiSystem : public System {
 public:
-    GUISystem(entt::registry& registry);
+    GuiSystem(entt::registry& registry);
 
     void update() override;
 

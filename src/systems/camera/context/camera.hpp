@@ -21,11 +21,11 @@ class Camera {
 public:
     Camera();
 
-    glm::mat4 getViewMatrix() const;
-    glm::mat4 getProjectionMatrix() const;
-    float getZoom() const;
-    glm::vec2 getCameraDim() const;
-    glm::vec2 getPosition() const;
+    glm::mat4& getViewMatrix();
+    glm::mat4& getProjectionMatrix();
+    float& getZoom();
+    glm::vec2& getCameraDim();
+    glm::vec3& getPosition();
 
     void update();
 

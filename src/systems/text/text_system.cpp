@@ -104,6 +104,20 @@ void TextSystem::emplaceTextures(entt::registry& registry, entt::entity entity) 
     for (auto c : text.text) {
         auto glyph_entity{registry.create()};
 
+        // If the parent element is a GuiElement, make the glyph entities also GuiElements
+        if (registry.all_of<GuiElement>(entity)) {
+            registry.emplace<GuiElement>(glyph_entity);
+        }
+
+        if (registry.all_of<Component::Outline>(entity)) {
+            registry.emplace<Component::Outline>(glyph_entity);
+        }
+
+        registry.emplace_or_replace<Component::Outline>(glyph_entity);
+
+        // TODO: Remove this
+        // registry.emplace<ComponentGridIgnore>(glyph_entity);
+
         FontCharacter& curr_char{this->fonts["Cozette"].characters[c]};
 
         glm::vec3 offset{total_x_offset+curr_char.bearing.x, -curr_char.bearing.y,0};

@@ -1,5 +1,6 @@
 target_sources(${PROJECT_NAME} PUBLIC
     texture_atlas.cpp
+    shader_manager.cpp
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC

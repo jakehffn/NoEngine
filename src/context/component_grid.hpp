@@ -4,6 +4,8 @@
 #include <lightgrid/grid.hpp>
 
 #include "spacial.hpp"
+#include "component_grid_ignore.hpp"
+#include "debug_timer.hpp"
 
 template<typename>
 struct GridData {
@@ -46,7 +48,7 @@ private:
 
 template<typename Component>
 ComponentGrid<Component>::ComponentGrid(entt::registry& registry) : registry{ registry } { 
-    this->observer.connect(registry, entt::collector.update<Spacial>().where<Component>());
+    this->observer.connect(registry, entt::collector.update<Spacial>().where<Component>(entt::exclude<ComponentGridIgnore>));
     registry.on_construct<Component>().template connect<&ComponentGrid<Component>::observeConstruct>(this);
     registry.on_destroy<Component>().template connect<&ComponentGrid<Component>::observeDestroy>(this);
 }
@@ -58,7 +60,7 @@ void ComponentGrid<Component>::init(int width, int height, int cell_size) {
 
 template<typename Component>
 void ComponentGrid<Component>::update() {
-
+    DEBUG_TIMER(_,"ComponentGrid::update");
     // Update the grid for the related component
     this->observer.each([&, this](auto entity){
 
@@ -104,7 +106,9 @@ void ComponentGrid<Component>::clear() {
 
 template<typename Component>
 void ComponentGrid<Component>::observeConstruct(entt::registry& registry, entt::entity entity) {
-    
+    if (registry.all_of<ComponentGridIgnore>(entity)) {
+        return;
+    }
     
     assert((registry.all_of<Spacial>(entity) && "Entity missing Spacial component"));
 
@@ -120,6 +124,10 @@ void ComponentGrid<Component>::observeConstruct(entt::registry& registry, entt::
 
 template<typename Component>
 void ComponentGrid<Component>::observeDestroy(entt::registry& registry, entt::entity entity) {
+    if (registry.all_of<ComponentGridIgnore>(entity)) {
+        return;
+    }
+
     assert((registry.all_of<Spacial, GridData<Component>>(entity) && "Entity missing Spacial or GridData<T> component"));
 
     auto& grid_data = registry.get<GridData<Component>>(entity);

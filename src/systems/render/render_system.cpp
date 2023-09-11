@@ -2,19 +2,22 @@
 
 RenderSystem::RenderSystem(entt::registry& registry) : System(registry),
     spacial_observer{entt::observer(registry, entt::collector.update<Spacial>().where<Texture>())},
+    spacial_tile_observer{entt::observer(registry, entt::collector.update<Spacial>().where<Tile>())},
     texture_observer{entt::observer(registry, entt::collector.update<Texture>().where<Spacial>())} {
+        this->registry.on_construct<Texture>().connect<&RenderSystem::initModel>();
+        this->registry.on_construct<Tile>().connect<&RenderSystem::initTileModel>();
         auto& shader_manager = this->registry.ctx().at<ShaderManager&>();
         this->renderer.setPostProcessingShader(shader_manager["screen"]);
     }
 
 void RenderSystem::update() {
     DEBUG_TIMER(_, "RenderSystem::update");
-
+    this->renderer.clear();
     this->cullEntities();
     this->sortEntities();
     this->updateModels();
-    this->bufferEntityData();
     this->render();
+    this->renderer.present();
 }
 
 Renderer* RenderSystem::getRenderer() {
@@ -90,29 +93,29 @@ void RenderSystem::updateModels() {
     DEBUG_TIMER(_, "RenderSystem::updateModels");
     // TDOD: Consider only updating models of entities which need rendering
 
-    // Update the models of all the entities whose spacials have been changed
-    this->spacial_observer.each([this](entt::entity entity){
-        auto [spacial, texture] = this->registry.get<Spacial, Texture>(entity);
-        this->registry.emplace_or_replace<Model>(entity, this->getModel(spacial, texture));
-    });
-    // ...and same for models with updated textures
-    // TODO: Consider ways of avoiding overlap between these two groups
-    this->texture_observer.each([this](entt::entity entity){
-        auto [spacial, texture] = this->registry.get<Spacial, Texture>(entity);
-        this->registry.emplace_or_replace<Model>(entity, this->getModel(spacial, texture));
-    });
-
-    // Create models on entities which have never been rendered
-    auto no_model_entities = this->registry.view<Spacial, Texture>(entt::exclude<Model>);
-    for (const auto entity : no_model_entities) {
-        auto [spacial, texture] = no_model_entities.get<Spacial, Texture>(entity);
-        this->registry.emplace<Model>(entity, this->getModel(spacial, texture));
+    {
+        DEBUG_TIMER(spacial_observer_timer, "Spacial Observer");
+        // Update the models of all the entities whose spacials have been changed
+        this->spacial_observer.each([this](entt::entity entity){
+            auto [spacial, texture] = this->registry.get<Spacial, Texture>(entity);
+            this->registry.emplace_or_replace<Model>(entity, RenderSystem::getModel(spacial, texture));
+        });
     }
-
-    auto no_model_tiles = this->registry.view<Spacial, Tile>(entt::exclude<Model>);
-    for (const auto entity : no_model_tiles) {
-        auto [spacial, tile] = no_model_tiles.get<Spacial, Tile>(entity);
-        this->registry.emplace<Model>(entity, this->getTileModel(spacial));
+    {
+        DEBUG_TIMER(spacial_tile_observer_timer, "Spacial Tile Observer");
+        this->spacial_tile_observer.each([this](entt::entity entity) {
+            auto spacial = this->registry.get<Spacial>(entity);
+            this->registry.emplace_or_replace<Model>(entity, RenderSystem::getTileModel(spacial));
+        });
+    }
+    {
+        DEBUG_TIMER(texture_observer_timer, "Texture Observer");
+        // ...and same for models with updated textures
+        // TODO: Consider ways of avoiding overlap between these two groups
+        this->texture_observer.each([this](entt::entity entity){
+            auto [spacial, texture] = this->registry.get<Spacial, Texture>(entity);
+            this->registry.emplace_or_replace<Model>(entity, RenderSystem::getModel(spacial, texture));
+        });
     }
 }
 
@@ -147,11 +150,31 @@ glm::mat4 RenderSystem::getTileModel(const Spacial& spacial) {
         {16, 16},
         {0, 0}
     };
-    return this->getModel(spacial, {"", &tile_frame_data});
+    return RenderSystem::getModel(spacial, {"", &tile_frame_data});
 }
 
-void RenderSystem::bufferEntityData() {
+void RenderSystem::initModel(entt::registry& registry, entt::entity entity) {
+    if (registry.all_of<Spacial>(entity)) {
+        auto [spacial, texture] = registry.get<Spacial, Texture>(entity);
+        registry.emplace_or_replace<Model>(entity, RenderSystem::getModel(spacial, texture));
+    }
+}
+
+void RenderSystem::initTileModel(entt::registry& registry, entt::entity entity) {
+    if (registry.all_of<Spacial>(entity)) {
+        auto spacial = registry.get<Spacial>(entity);
+        registry.emplace_or_replace<Model>(entity, RenderSystem::getTileModel(spacial));
+    } 
+}
+
+void RenderSystem::render() {
     auto& shader_manager = this->registry.ctx().at<ShaderManager&>();
+
+    using namespace entt::literals;
+    Camera& camera = registry.ctx().at<Camera&>("world_camera"_hs);
+    shader_manager["instanced"]->setUniform("P", &camera.getProjectionMatrix()[0][0]);
+    shader_manager["instanced"]->setUniform("V", &camera.getViewMatrix()[0][0]);
+
     // Tiles need to be rendered under the other textures
     this->registry.view<Model, Tile, ToRenderTile>().each([this, &shader_manager](auto& model, auto& tile) {  
         glm::vec4 texture_data = glm::vec4(
@@ -159,21 +182,40 @@ void RenderSystem::bufferEntityData() {
             tile.tile_set_texture->frame_data->position.y + tile.position.y, 
             16, 16
         );
-        this->renderer.queueRender(texture_data, model.model, shader_manager["instanced"]);
+        this->renderer.queue(texture_data, model.model, shader_manager["instanced"]);
     });
 
     this->registry.view<Texture, Model, ToRender>(entt::exclude<Text, Tile>).use<ToRender>().each([this, &shader_manager](const auto entity, auto& texture, auto& model) {  
         glm::vec4 texture_data = glm::vec4(texture.frame_data->position.x, texture.frame_data->position.y, 
-            texture.frame_data->size.x, texture.frame_data->size.y);
-
-        if (this->registry.all_of<Outline>(entity)) {
-            this->renderer.queueRender(texture_data, model.model, shader_manager["instanced_outline"]);
-        } else {
-            this->renderer.queueRender(texture_data, model.model, shader_manager["instanced"]);
-        }
+            texture.frame_data->size.x, texture.frame_data->size.y
+        );
+        this->renderer.queue(texture_data, model.model, shader_manager["instanced"]);
     });
-}
 
-void RenderSystem::render() {
+    shader_manager["instanced_sharp_outline"]->setUniform("P", &camera.getProjectionMatrix()[0][0]);
+    shader_manager["instanced_sharp_outline"]->setUniform("V", &camera.getViewMatrix()[0][0]);
+
+    this->registry.view<Texture, Model, ToRender, Outline>(entt::exclude<Text, Tile>).use<ToRender>().each([this, &shader_manager](const auto entity, auto& texture, auto& model) {  
+        glm::vec4 texture_data = glm::vec4(texture.frame_data->position.x, texture.frame_data->position.y, 
+            texture.frame_data->size.x, texture.frame_data->size.y
+        );
+        this->renderer.queue(texture_data, model.model, shader_manager["instanced_sharp_outline"]);
+    });
+
+    this->renderer.render();
+
+    Camera& gui_camera = registry.ctx().at<Camera&>("gui_camera"_hs);
+    shader_manager["instanced"]->setUniform("P", &gui_camera.getProjectionMatrix()[0][0]);
+    shader_manager["instanced"]->setUniform("V", &gui_camera.getViewMatrix()[0][0]);
+
+    this->registry.view<Texture, Model, GuiElement>().each([this, &shader_manager](const auto entity, auto& texture, auto& model) {  
+        glm::vec4 texture_data = glm::vec4(texture.frame_data->position.x, texture.frame_data->position.y, 
+            texture.frame_data->size.x, texture.frame_data->size.y
+        );
+        using namespace entt::literals;
+
+        this->renderer.queue(texture_data, model.model, shader_manager["instanced"]);
+    });
+
     this->renderer.render();
 }

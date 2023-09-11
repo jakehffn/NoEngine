@@ -10,7 +10,5 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 add_subdirectory(context)
 add_subdirectory(systems)
 add_subdirectory(prefabs)
+add_subdirectory(debug)
 
-if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-    add_subdirectory(debug)
-endif()

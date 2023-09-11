@@ -20,6 +20,7 @@
 #include "renderable.hpp"
 #include "collision.hpp"
 #include "outline.hpp"
+#include "gui_element.hpp"
 
 #include "renderer.hpp"
 #include "camera.hpp"
@@ -44,14 +45,17 @@ private:
     void sortEntities();
 
     void updateModels();
-    glm::mat4 getModel(const Spacial& spacial, const Texture& texture);
-    glm::mat4 getTileModel(const Spacial& spacial);
 
-    void bufferEntityData();
+    static glm::mat4 getModel(const Spacial& spacial, const Texture& texture);
+    static glm::mat4 getTileModel(const Spacial& spacial);
+
+    static void initModel(entt::registry& registry, entt::entity entity);
+    static void initTileModel(entt::registry& registry, entt::entity entity);
 
     void render();
 
     entt::observer spacial_observer;
+    entt::observer spacial_tile_observer;
     entt::observer texture_observer;
 
     std::set<entt::entity>* render_query{new std::set<entt::entity>};

@@ -12,12 +12,16 @@ public:
     Renderer();
     ~Renderer();
 
-    void queueRender(
+    void clear();
+    void queue(
         const glm::vec4& texture_data, 
         const glm::mat4& model_data,
         ShaderProgram* shader_program
     );
     void render();
+    void present();
+
+
     GLuint getScreenTexture();
     void setPostProcessingShader(ShaderProgram* shader_program);
 
@@ -31,7 +35,6 @@ private:
     void bufferData(size_t start, size_t end);
     void renderPartialBuffer(size_t start, size_t end, ShaderProgram* shader_program);
 
-    void renderQueue();
     void renderPostProcessing();
     
     GLuint vao;

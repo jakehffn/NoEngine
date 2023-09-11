@@ -10,11 +10,15 @@
 #include "camera.hpp"
 #include "renderable.hpp"
 #include "cursor.hpp"
+#include "left_clicked.hpp"
+#include "right_clicked.hpp"
 
 #include "system.hpp"
 
 #include "input.hpp"
 #include "resource_loader.hpp"
+
+#include "debug_timer.hpp"
 
 class InputSystem : public System {
 public:
@@ -27,5 +31,5 @@ private:
     void selectedUpdate();
 
     DIRECTION previous_player_direction{DOWN};
-    entt::entity cursor{entt::null};
+    entt::entity cursor_entity;
 };

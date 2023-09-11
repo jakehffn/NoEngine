@@ -21,13 +21,19 @@ public:
     void use();
     void render(size_t num_verts, GLuint vao, GLuint dest_fbo, GLuint prev_texture);
     void recompile();
+
+    void setUniform(const char* name, GLfloat* uniform_data);
+    GLfloat* getUniform(const char* name);
+
     void setUniformId(const char* name, GLuint id);
     GLuint getUniformId(const char* name);
 
 private:
 
     GLuint id;
-    std::unordered_map<std::string, GLuint> uniforms;
+    std::unordered_map<std::string, GLfloat*> uniforms;
+    std::unordered_map<std::string, GLuint> uniform_locations;
+
     std::function<GLuint(ShaderProgram*)> init_function;
     std::function<void(ShaderProgram*, size_t, GLuint, GLuint, GLuint)> setup_function;
 };

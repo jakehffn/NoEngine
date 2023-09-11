@@ -1,17 +1,12 @@
 #include "input_system.hpp"
 
-InputSystem::InputSystem (entt::registry& registry) : System(registry) {}
+InputSystem::InputSystem (entt::registry& registry) : System(registry) {
+    this->cursor_entity = this->registry.create();
+    ResourceLoader::create(this->registry, this->cursor_entity, "CustomCursor");
+}
 
 void InputSystem::update() {
-    if (this->cursor == entt::null) {
-        const auto& entity = this->registry.create();
-        this->registry.emplace<Spacial>(entity, glm::vec3(0, 0, 1), 
-            glm::vec3(0, 0, 0), glm::vec3(1, 1, 1), glm::vec2(5, 5)
-        );
-        ResourceLoader::createDefault(registry, entity, "./assets/misc/PinkFlower/placeholder.png");
-        this->registry.emplace<Cursor>(entity);
-        this->cursor = entity;
-    }
+    DEBUG_TIMER(_, "InputSystem::update");
     this->playerControlUpdate();
     this->selectedUpdate();
 }
@@ -125,27 +120,62 @@ void InputSystem::playerControlUpdate() {
 
 void InputSystem::selectedUpdate() {
     Input& input_manager = this->registry.ctx().at<Input&>();
-
-    this->registry.clear<Outline>();
-
     using namespace entt::literals;
     auto& camera = this->registry.ctx().at<Camera&>("world_camera"_hs);
-    auto& component_grid = this->registry.ctx().at<ComponentGrid<Renderable>&>();
-
     glm::vec2 camera_dimensions = camera.getCameraDim();
     glm::vec2 camera_position = camera.getPosition();
 
-    int x = camera_position.x - camera_dimensions.x/2 + input_manager.getMouseX() / camera.getZoom();
-    int y = camera_position.y - camera_dimensions.y/2 + input_manager.getMouseY() / camera.getZoom();
-    
-    std::vector<entt::entity> query_result;
-    component_grid.query((lightgrid::bounds) {x,y,1,1}, query_result);
-    // component_grid.query(x, y, *this->render_query);
-    for (auto entity : query_result) {
-        this->registry.emplace<Outline>(entity);
+    this->registry.clear<LeftClicked>();
+    this->registry.clear<RightClicked>();
+
+    if (input_manager.isMouseActive(SDL_BUTTON_LEFT) || 
+        input_manager.isMouseAdded(SDL_BUTTON_LEFT) ||
+        input_manager.isMouseAdded(SDL_BUTTON_RIGHT)
+    ) {
+
+        auto& component_grid = this->registry.ctx().at<ComponentGrid<Renderable>&>();
+
+        int x = camera_position.x - camera_dimensions.x/2 + input_manager.getMouseX() / camera.getZoom();
+        int y = camera_position.y - camera_dimensions.y/2 + input_manager.getMouseY() / camera.getZoom();
+        
+        std::vector<entt::entity> query_result;
+        component_grid.query((lightgrid::bounds) {x,y,1,1}, query_result);
+        // component_grid.query(x, y, *this->render_query);
+        for (auto entity : query_result) {
+            if (this->registry.all_of<Spacial, Texture>(entity)) {
+                auto [spacial, texture] = this->registry.get<Spacial, Texture>(entity);
+                glm::vec3 real_dim = glm::vec3(texture.frame_data->size.x, texture.frame_data->size.y, 1);
+                glm::vec3 offset = glm::vec3(texture.frame_data->offset.x, texture.frame_data->offset.y, 0);
+                glm::vec3 real_pos = spacial.pos + offset;
+
+                float hitbox_expansion = 0.5;
+
+                if (x > real_pos.x - hitbox_expansion && x < real_pos.x + real_dim.x + hitbox_expansion &&
+                    y > real_pos.y - hitbox_expansion && y < real_pos.y + real_dim.y + hitbox_expansion
+                ) {
+                    if (input_manager.isMouseActive(SDL_BUTTON_LEFT)) {
+                        this->registry.emplace_or_replace<Outline>(entity);
+                    }
+                    if (input_manager.isMouseAdded(SDL_BUTTON_LEFT)) {
+                        this->registry.emplace_or_replace<LeftClicked>(entity);
+                    }
+                    if (input_manager.isMouseAdded(SDL_BUTTON_RIGHT)) {
+                        // this->registry.clear<Outline>();
+                        this->registry.emplace_or_replace<RightClicked>(entity);
+                    }
+                }
+            }
+        }
     }
 
-    this->registry.patch<Spacial>(this->cursor, [x, y](auto& spacial) {
-        spacial.pos = glm::vec3(x, y, 2);
+    glm::vec3 mouse_position = glm::vec3(
+        input_manager.getMouseX() / camera.getZoom() - camera_dimensions.x/2, 
+        input_manager.getMouseY() / camera.getZoom() - camera_dimensions.y/2, 
+        2
+    );
+
+    this->registry.patch<Spacial>(this->cursor_entity, [mouse_position](auto& spacial) {
+        spacial.pos = mouse_position;
     });
+
 }

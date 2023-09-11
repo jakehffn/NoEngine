@@ -37,34 +37,32 @@ void main() {
         if (current_color.a > 0) {
             // color = current_color;
         } else {
-            if (pixel_x < texture_data.z - 1) {
-                is_near_color = is_near_color || (sampleTexture(pixel_x+1, pixel_y).a > 0);
-            } 
-            if (pixel_y < texture_data.w - 1) {
-                is_near_color = is_near_color || (sampleTexture(pixel_x, pixel_y+1).a > 0);
-            } 
+            // Adjacent
             if (pixel_x > 1) {
                 is_near_color = is_near_color || (sampleTexture(pixel_x-1, pixel_y).a > 0);
             }
             if (pixel_y > 1) {
                 is_near_color = is_near_color || (sampleTexture(pixel_x, pixel_y-1).a > 0);
             }
+            // Diagonal
+            if (pixel_x > 1 && pixel_y > 1) {
+                is_near_color = is_near_color || (sampleTexture(pixel_x-1, pixel_y-1).a > 0);
+            }
             if (is_near_color) {
                 color = outline_color;
             }
         }
     } else {
-        if (pixel_x < 0 && pixel_y > 0 && pixel_y < texture_data.w) {
-            is_near_color = is_near_color || (sampleTexture(pixel_x+1, pixel_y).a > 0);
-        } 
-        if (pixel_y < 0 && pixel_x > 0 && pixel_x < texture_data.z) {
-            is_near_color = is_near_color || (sampleTexture(pixel_x, pixel_y+1).a > 0);
-        } 
+        // Adjacent
         if (pixel_x > texture_data.z && pixel_y > 0 && pixel_y < texture_data.w) {
             is_near_color = is_near_color || (sampleTexture(pixel_x-1, pixel_y).a > 0);
         }
         if (pixel_y > texture_data.w && pixel_x > 0 && pixel_x < texture_data.z) {
             is_near_color = is_near_color || (sampleTexture(pixel_x, pixel_y-1).a > 0);
+        }
+        // Diagonal
+        if (pixel_x > 1 && pixel_y > 1) {
+            is_near_color = is_near_color || (sampleTexture(pixel_x-1, pixel_y-1).a > 0);
         }
         if (is_near_color) {
             color = outline_color;

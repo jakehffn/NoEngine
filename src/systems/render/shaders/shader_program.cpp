@@ -20,10 +20,18 @@ void ShaderProgram::recompile() {
     this->id = this->init_function(this);
 }
 
+void ShaderProgram::setUniform(const char* name, GLfloat* buffer_data) {
+    this->uniforms[name] = buffer_data;
+}
+
+GLfloat* ShaderProgram::getUniform(const char* name) {
+    return this->uniforms.at(name);
+}
+
 void ShaderProgram::setUniformId(const char* name, GLuint id) {
-    this->uniforms[name] = id;
+    this->uniform_locations[name] = id;
 }
 
 GLuint ShaderProgram::getUniformId(const char* name) {
-    return this->uniforms.at(name);
+    return this->uniform_locations.at(name);
 }

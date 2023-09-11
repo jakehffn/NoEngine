@@ -30,6 +30,7 @@
 #include "sprite_sheet_atlas.hpp"
 #include "component_grid.hpp"
 
+#include "debug_timer.hpp"
 
 class MapLoaderSystem : public System {
 public:

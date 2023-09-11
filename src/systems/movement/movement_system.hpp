@@ -11,6 +11,8 @@
 #include "clock.hpp"
 #include "component_grid.hpp"
 
+#include "debug_timer.hpp"
+
 class MovementSystem : public System {
 public:
     MovementSystem(entt::registry& registry);

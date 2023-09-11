@@ -22,7 +22,7 @@ Game::Game(SDL_Window* window) : window{ window } {
         this->systems.push_back(new MovementSystem(this->registry));
         this->systems.push_back(new CollisionSystem(this->registry));
         this->systems.push_back(new CameraSystem(this->registry));
-        this->systems.push_back(new GUISystem(this->registry));
+        this->systems.push_back(new GuiSystem(this->registry));
 
         auto render_system = new RenderSystem(this->registry);
         this->screen_texture = render_system->getRenderer()->getScreenTexture();
@@ -33,6 +33,9 @@ Game::Game(SDL_Window* window) : window{ window } {
 
         const auto map = this->registry.create();
         this->registry.emplace<MapLoader>(map, "./assets/maps/Test/test.tmx");
+
+        // auto entity = this->registry.create();
+        // ResourceLoader::create(registry, entity, "FpsCounterEntity");
 }
 
 inline void Game::startFrame() {
@@ -65,13 +68,18 @@ void Game::mainLoop(void (*debugCallback)()) {
         this->startFrame();
         {
             DEBUG_TIMER(_, "Main Loop");
-            this->clock.tick();
-            this->input_manager.update();
-            this->renderable_grid.update();
-            this->collision_grid.update();
-
-            for (auto system : this->systems) {
-                system->update();
+            {
+                DEBUG_TIMER(context_timer, "Context Updates");
+                this->clock.tick();
+                this->input_manager.update();
+                this->renderable_grid.update();
+                this->collision_grid.update();
+            }
+            {
+                DEBUG_TIMER(systems_timer, "Systems Updates");
+                for (auto system : this->systems) {
+                    system->update();
+                }
             }
             #ifndef NDEBUG
                 debugCallback();

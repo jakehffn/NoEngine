@@ -160,12 +160,6 @@ void Renderer::initFinalFBO() {
     glBindFramebuffer(GL_FRAMEBUFFER, 0); 
 }
 
-void Renderer::queueRender(const glm::vec4& texture_data, const glm::mat4& model_data, ShaderProgram* shader_program) {
-    this->texture_coordinates_buffer_data.push_back(texture_data);
-    this->models_buffer_data.push_back(model_data);
-    this->shader_programs.push_back(shader_program);
-}
-
 void Renderer::bufferData(size_t start, size_t end) {
     const auto buffer_data_size = end - start;
     if (this->max_buffer_size < buffer_data_size) {
@@ -188,14 +182,18 @@ void Renderer::bufferData(size_t start, size_t end) {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void Renderer::render() {
+void Renderer::clear() {
     glBindFramebuffer(GL_FRAMEBUFFER, this->screen_fbo);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-    this->renderQueue();
-    this->renderPostProcessing();
 }
 
-void Renderer::renderQueue() {
+void Renderer::queue(const glm::vec4& texture_data, const glm::mat4& model_data, ShaderProgram* shader_program) {
+    this->texture_coordinates_buffer_data.push_back(texture_data);
+    this->models_buffer_data.push_back(model_data);
+    this->shader_programs.push_back(shader_program);
+}
+
+void Renderer::render() {
     size_t start = 0, end = 0;
     ShaderProgram* last_shader{this->shader_programs[0]};
     ShaderProgram* next_shader;
@@ -212,6 +210,10 @@ void Renderer::renderQueue() {
     this->texture_coordinates_buffer_data.clear();
     this->models_buffer_data.clear();
     this->shader_programs.clear();
+}
+
+void Renderer::present() {
+    this->renderPostProcessing();
 }
 
 void Renderer::renderPartialBuffer(size_t start, size_t end, ShaderProgram* shader_program) {
