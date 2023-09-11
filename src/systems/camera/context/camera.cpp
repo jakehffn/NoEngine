@@ -31,7 +31,7 @@ float& Camera::getZoom() {
     return this->zoom;
 }
 
-glm::vec2& Camera::getCameraDim() {
+glm::vec2& Camera::getDimensions() {
     return this->camera_dimensions;
 }
 
@@ -56,5 +56,9 @@ void Camera::update() {
 
 void Camera::setPosition(glm::vec3 position) {
     this->position = position;
+}
+
+glm::vec2 Camera::pixelToScreenCoords(glm::vec2 screen_coords) {
+    return (screen_coords / this->getZoom()) - (this->getDimensions() / 2.0f);
 }
 

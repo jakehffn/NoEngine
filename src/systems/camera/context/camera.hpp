@@ -24,12 +24,13 @@ public:
     glm::mat4& getViewMatrix();
     glm::mat4& getProjectionMatrix();
     float& getZoom();
-    glm::vec2& getCameraDim();
+    glm::vec2& getDimensions();
     glm::vec3& getPosition();
 
     void update();
 
     void setPosition(glm::vec3 pos);
+    glm::vec2 pixelToScreenCoords(glm::vec2 screen_coords);
 
 private:
     glm::mat4 view_matrix;

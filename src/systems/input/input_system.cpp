@@ -7,12 +7,12 @@ InputSystem::InputSystem (entt::registry& registry) : System(registry) {
 
 void InputSystem::update() {
     DEBUG_TIMER(_, "InputSystem::update");
-    this->playerControlUpdate();
-    this->selectedUpdate();
+    this->updatePlayerControl();
+    this->updatePlayerInteract();
+    this->updateCursor();
 }
 
-void InputSystem::playerControlUpdate() {
-
+void InputSystem::updatePlayerControl() {
     Input& input_manager = this->registry.ctx().at<Input&>();
 
     DIRECTION direction;
@@ -31,17 +31,13 @@ void InputSystem::playerControlUpdate() {
                       input_manager.isRemoved(SDLK_a) || input_manager.isRemoved(SDLK_d);
 
     if (!(up || down || left || right)) {
-
         if (any_removed) {
-
             auto player_controlled_entities = registry.view<PlayerControl, Velocity>();
 
             for (auto entity : player_controlled_entities) {
-
                 this->registry.remove<Velocity>(entity);
             }  
         }
-
         return;
     }
 
@@ -104,7 +100,6 @@ void InputSystem::playerControlUpdate() {
     auto player_controlled_entities = registry.view<PlayerControl,Spacial>();
 
     for (auto entity : player_controlled_entities) {
-
         auto& playerControl = player_controlled_entities.get<PlayerControl>(entity);
         
         this->registry.emplace_or_replace<Velocity>(entity, velocity_direction, playerControl.pixels_per_millisecond);
@@ -116,14 +111,38 @@ void InputSystem::playerControlUpdate() {
     this->previous_player_direction = direction;
 }
 
-#include <iostream>
+void InputSystem::updatePlayerInteract() {
+    Input& input_manager = this->registry.ctx().at<Input&>();
 
-void InputSystem::selectedUpdate() {
+    if (input_manager.isAdded(SDLK_SPACE)) {
+        auto player_controlled_entities = registry.view<PlayerControl,Spacial>();
+
+        for (auto controlled_entity : player_controlled_entities) {
+            auto spacial = this->registry.get<Spacial>(controlled_entity);
+
+            auto entity{registry.create()};
+            this->registry.emplace<Spacial>(entity, spacial.pos);
+            ResourceLoader::createDefault(this->registry, entity, "assets/misc/PinkFlower/placeholder.png");
+        }
+    }
+}
+
+void InputSystem::updateCursor() {
     Input& input_manager = this->registry.ctx().at<Input&>();
     using namespace entt::literals;
     auto& camera = this->registry.ctx().at<Camera&>("world_camera"_hs);
-    glm::vec2 camera_dimensions = camera.getCameraDim();
-    glm::vec2 camera_position = camera.getPosition();
+
+    const glm::vec2 camera_dimensions = camera.getDimensions();
+    const glm::vec2 camera_position = camera.getPosition();
+
+    glm::vec3 mouse_position = glm::vec3(
+        camera.pixelToScreenCoords({input_manager.getMouseX(), input_manager.getMouseY()}),
+        2
+    );
+
+    this->registry.patch<Spacial>(this->cursor_entity, [mouse_position](auto& spacial) {
+        spacial.pos = mouse_position;
+    });
 
     this->registry.clear<LeftClicked>();
     this->registry.clear<RightClicked>();
@@ -132,50 +151,81 @@ void InputSystem::selectedUpdate() {
         input_manager.isMouseAdded(SDL_BUTTON_LEFT) ||
         input_manager.isMouseAdded(SDL_BUTTON_RIGHT)
     ) {
+        glm::vec2 mouse_world_pos{mouse_position + camera.getPosition()};
+        this->updateHoveredEntities(mouse_world_pos);
 
-        auto& component_grid = this->registry.ctx().at<ComponentGrid<Renderable>&>();
-
-        int x = camera_position.x - camera_dimensions.x/2 + input_manager.getMouseX() / camera.getZoom();
-        int y = camera_position.y - camera_dimensions.y/2 + input_manager.getMouseY() / camera.getZoom();
-        
-        std::vector<entt::entity> query_result;
-        component_grid.query((lightgrid::bounds) {x,y,1,1}, query_result);
-        // component_grid.query(x, y, *this->render_query);
-        for (auto entity : query_result) {
-            if (this->registry.all_of<Spacial, Texture>(entity)) {
-                auto [spacial, texture] = this->registry.get<Spacial, Texture>(entity);
-                glm::vec3 real_dim = glm::vec3(texture.frame_data->size.x, texture.frame_data->size.y, 1);
-                glm::vec3 offset = glm::vec3(texture.frame_data->offset.x, texture.frame_data->offset.y, 0);
-                glm::vec3 real_pos = spacial.pos + offset;
-
-                float hitbox_expansion = 0.5;
-
-                if (x > real_pos.x - hitbox_expansion && x < real_pos.x + real_dim.x + hitbox_expansion &&
-                    y > real_pos.y - hitbox_expansion && y < real_pos.y + real_dim.y + hitbox_expansion
-                ) {
-                    if (input_manager.isMouseActive(SDL_BUTTON_LEFT)) {
-                        this->registry.emplace_or_replace<Outline>(entity);
-                    }
-                    if (input_manager.isMouseAdded(SDL_BUTTON_LEFT)) {
-                        this->registry.emplace_or_replace<LeftClicked>(entity);
-                    }
-                    if (input_manager.isMouseAdded(SDL_BUTTON_RIGHT)) {
-                        // this->registry.clear<Outline>();
-                        this->registry.emplace_or_replace<RightClicked>(entity);
-                    }
-                }
+        for (auto entity : *this->hovered_entities) {
+            
+            if (input_manager.isMouseActive(SDL_BUTTON_LEFT)) {
+                this->registry.emplace_or_replace<Outline>(entity);
+            }
+            if (input_manager.isMouseAdded(SDL_BUTTON_LEFT)) {
+                this->registry.emplace_or_replace<LeftClicked>(entity);
+            }
+            if (input_manager.isMouseAdded(SDL_BUTTON_RIGHT)) {
+                this->registry.remove<Outline>(entity);
+                this->registry.emplace_or_replace<RightClicked>(entity);
             }
         }
     }
 
-    glm::vec3 mouse_position = glm::vec3(
-        input_manager.getMouseX() / camera.getZoom() - camera_dimensions.x/2, 
-        input_manager.getMouseY() / camera.getZoom() - camera_dimensions.y/2, 
-        2
+    
+
+}
+
+void InputSystem::updateHoveredEntities(const glm::vec2& mouse_world_pos) {
+    std::swap(this->last_hovered_entities, this->hovered_entities);
+    hovered_entities->clear();
+
+    auto& component_grid = this->registry.ctx().at<ComponentGrid<Renderable>&>();
+    
+    // Get everything around where the mouse is
+    std::vector<entt::entity> query_result;
+    component_grid.query(
+        (lightgrid::bounds) {
+            static_cast<int>(mouse_world_pos.x - 5), 
+            static_cast<int>(mouse_world_pos.y - 5), 
+            10, 10
+        }, 
+        query_result
+    );
+    // Put everything with their texture under the mouse into a set
+    for (auto entity : query_result) {
+        if (this->registry.all_of<Spacial, Texture>(entity)) {
+            auto [spacial, texture] = this->registry.get<Spacial, Texture>(entity);
+            glm::vec3 real_dim = glm::vec3(texture.frame_data->size.x, texture.frame_data->size.y, 1);
+            glm::vec3 offset = glm::vec3(texture.frame_data->offset.x, texture.frame_data->offset.y, 0);
+            glm::vec3 real_pos = spacial.pos + offset;
+
+            float hitbox_expansion = 1;
+
+            if (mouse_world_pos.x > real_pos.x - hitbox_expansion && 
+                mouse_world_pos.x < real_pos.x + real_dim.x + hitbox_expansion &&
+                mouse_world_pos.y > real_pos.y - hitbox_expansion && 
+                mouse_world_pos.y < real_pos.y + real_dim.y + hitbox_expansion
+            ) {
+                this->hovered_entities->insert(entity);
+            }
+        }
+    }
+    std::vector<entt::entity> diff;
+    // Get the entities which were in the new query but not in the last query
+    std::set_difference(this->hovered_entities->begin(), this->hovered_entities->end(),
+        this->last_hovered_entities->begin(), this->last_hovered_entities->end(),
+        std::back_inserter(diff)
     );
 
-    this->registry.patch<Spacial>(this->cursor_entity, [mouse_position](auto& spacial) {
-        spacial.pos = mouse_position;
-    });
+    for (auto entity : diff) {
+        this->registry.emplace<Hovered>(entity);
+    }
+    diff.clear();
 
+    std::set_difference(this->last_hovered_entities->begin(), this->last_hovered_entities->end(),
+        this->hovered_entities->begin(), this->hovered_entities->end(),
+        std::back_inserter(diff)
+    );
+
+    for (auto entity : diff) {
+        this->registry.remove<Hovered>(entity);
+    }
 }

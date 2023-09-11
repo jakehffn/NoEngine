@@ -31,7 +31,7 @@ void RenderSystem::cullEntities() {
     auto& camera = this->registry.ctx().at<Camera&>("world_camera"_hs);
     auto& component_grid = this->registry.ctx().at<ComponentGrid<Renderable>&>();
 
-    glm::vec2 camera_dimensions = camera.getCameraDim();
+    glm::vec2 camera_dimensions = camera.getDimensions();
     glm::vec2 camera_position = camera.getPosition();
 
     int x = camera_position.x - camera_dimensions.x/2;
