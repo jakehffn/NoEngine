@@ -31,7 +31,7 @@ ShaderManager::ShaderManager(entt::registry& registry) {
         "./src/systems/render/shaders/instanced/fragment.glsl"
     );
 
-    this->shaders["other_instanced"] = this->simpleInstancedShader(
+    this->shaders["instanced_other"] = this->simpleInstancedShader(
         registry,
         "./src/systems/render/shaders/instanced_other/vertex.glsl",
         "./src/systems/render/shaders/instanced_other/fragment.glsl"
@@ -39,20 +39,26 @@ ShaderManager::ShaderManager(entt::registry& registry) {
 
     this->shaders["instanced_outline"] = this->simpleInstancedShader(
         registry,
-        "./src/systems/render/shaders/sprite_outline/vertex.glsl",
-        "./src/systems/render/shaders/sprite_outline/fragment.glsl"
+        "./src/systems/render/shaders/instanced_outline/vertex.glsl",
+        "./src/systems/render/shaders/instanced_outline/fragment.glsl"
     );
 
     this->shaders["instanced_sharp_outline"] = this->simpleInstancedShader(
         registry,
-        "./src/systems/render/shaders/sprite_outline_sharp/vertex.glsl",
-        "./src/systems/render/shaders/sprite_outline_sharp/fragment.glsl"
+        "./src/systems/render/shaders/instanced_outline_sharp/vertex.glsl",
+        "./src/systems/render/shaders/instanced_outline_sharp/fragment.glsl"
     );
 
     this->shaders["instanced_backdrop"] = this->simpleInstancedShader(
         registry,
-        "./src/systems/render/shaders/sprite_drop_shadow/vertex.glsl",
-        "./src/systems/render/shaders/sprite_drop_shadow/fragment.glsl"
+        "./src/systems/render/shaders/instanced_drop_shadow/vertex.glsl",
+        "./src/systems/render/shaders/instanced_drop_shadow/fragment.glsl"
+    );
+
+    this->shaders["instanced_inline"] = this->simpleInstancedShader(
+        registry,
+        "./src/systems/render/shaders/instanced_inline/vertex.glsl",
+        "./src/systems/render/shaders/instanced_inline/fragment.glsl"
     );
 }
 

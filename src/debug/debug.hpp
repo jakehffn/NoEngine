@@ -7,6 +7,8 @@
 
 #include "debug_timer.hpp"
 
+#include "render_collision.hpp"
+
 class DebugWindow {
 public:
     DebugWindow() = default;
@@ -22,13 +24,16 @@ private:
     Game* game;
 
     // Texture atlas
-    bool openTextureAtlas = false;
+    bool open_texture_atlas = false;
 
     // Entity Viewer
-    bool openEntityViewer = false;
+    bool open_entity_viewer = false;
     entt::entity selected_entity = entt::null;
 
     // Shader Viewer
-    bool openShaderViewer = false;
+    bool open_shader_viewer = false;
     ShaderProgram* selected_shader = NULL;
+
+    // Collision
+    bool show_collision_boxes{false};
 };

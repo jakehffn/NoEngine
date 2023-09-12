@@ -122,14 +122,11 @@ void RenderSystem::updateModels() {
 glm::mat4 RenderSystem::getModel(const Spacial& spacial, const Texture& texture) {
     // The model does not represent the physical location exactly, but the rendered location
     //  Information from the texture is needed so that the sprite can be placed correctly
-    glm::mat4 model = glm::mat4(1.0f);
-
     glm::mat4 rotate = glm::mat4(1.0f);
     
     rotate = glm::rotate(rotate, spacial.rot.x, glm::vec3(1, 0, 0));
     rotate = glm::rotate(rotate, spacial.rot.y, glm::vec3(0, 1, 0));
     rotate = glm::rotate(rotate, spacial.rot.z, glm::vec3(0, 0, 1));
-
 
     glm::vec3 scale_vector = glm::vec3(spacial.scale.x, spacial.scale.y, spacial.scale.z);
     glm::vec3 dimensions_vector = glm::vec3(texture.frame_data->size.x, texture.frame_data->size.y, 1);
@@ -212,10 +209,34 @@ void RenderSystem::render() {
         glm::vec4 texture_data = glm::vec4(texture.frame_data->position.x, texture.frame_data->position.y, 
             texture.frame_data->size.x, texture.frame_data->size.y
         );
-        using namespace entt::literals;
-
         this->renderer.queue(texture_data, model.model, shader_manager["instanced"]);
     });
 
     this->renderer.render();
+
+    #ifndef NDEBUG
+        shader_manager["instanced_inline"]->setUniform("P", &camera.getProjectionMatrix()[0][0]);
+        shader_manager["instanced_inline"]->setUniform("V", &camera.getViewMatrix()[0][0]);
+
+        this->registry.view<Collision, Spacial, RenderCollision>().each([this, &shader_manager](
+            const auto entity, 
+            auto& collision, 
+            auto& spacial
+        ) {  
+            for (auto collision_bounds : collision.bounding_boxes) {
+                glm::vec4 texture_data = glm::vec4(
+                    0, 0, 
+                    collision_bounds.x, collision_bounds.y
+                );
+                glm::vec3 scale_vector = glm::vec3(spacial.scale.x, spacial.scale.y, spacial.scale.z);
+                glm::vec3 dimensions_vector = glm::vec3(collision_bounds.x, collision_bounds.y, 1);
+                glm::mat4 scale = glm::scale(glm::mat4(1), scale_vector*dimensions_vector);
+                glm::vec3 offset = glm::vec3(collision_bounds.z, collision_bounds.w, 0);
+                glm::mat4 translate = glm::translate(glm::mat4(1), spacial.pos + (offset*scale_vector));
+
+                this->renderer.queue(texture_data, translate * scale * glm::mat4(1), shader_manager["instanced_inline"]);
+            }
+        });
+        this->renderer.render();
+    #endif
 }

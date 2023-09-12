@@ -9,16 +9,8 @@ uniform sampler2D image;
 uniform vec2 atlas_dimensions;
 
 vec4 sampleTexture(float x, float y) {
-    float bleed_offset = 0.000001; // There may be a better solution that exists to avoid texture bleeding
-
-    float x_percentage = texture_data.z/atlas_dimensions.x - 2*bleed_offset;
-    float x_offset = texture_data.x/atlas_dimensions.x + bleed_offset;
-
-    float y_percentage = texture_data.w/atlas_dimensions.y - 2*bleed_offset;
-    float y_offset = texture_data.y/atlas_dimensions.y + bleed_offset;
-
-    vec2 texture_pixel = vec2((x/texture_data.z)*x_percentage + x_offset, (y/texture_data.w)*y_percentage + y_offset);
-    return texture(image, texture_pixel);
+    vec2 sample_pixel_center = texture_data.xy + vec2(ivec2(x, y)) + vec2(0.5, 0.5);
+    return texture(image, sample_pixel_center/atlas_dimensions);
 }
 
 void main() {
@@ -37,34 +29,32 @@ void main() {
         if (current_color.a > 0) {
             // color = current_color;
         } else {
-            if (pixel_x < texture_data.z - 1) {
-                is_near_color = is_near_color || (sampleTexture(pixel_x+1, pixel_y).a > 0);
-            } 
-            if (pixel_y < texture_data.w - 1) {
-                is_near_color = is_near_color || (sampleTexture(pixel_x, pixel_y+1).a > 0);
-            } 
+            // Adjacent
             if (pixel_x > 1) {
                 is_near_color = is_near_color || (sampleTexture(pixel_x-1, pixel_y).a > 0);
             }
             if (pixel_y > 1) {
                 is_near_color = is_near_color || (sampleTexture(pixel_x, pixel_y-1).a > 0);
             }
+            // Diagonal
+            if (pixel_x > 1 && pixel_y > 1) {
+                is_near_color = is_near_color || (sampleTexture(pixel_x-1, pixel_y-1).a > 0);
+            }
             if (is_near_color) {
                 color = outline_color;
             }
         }
     } else {
-        if (pixel_x < 0 && pixel_y > 0 && pixel_y < texture_data.w) {
-            is_near_color = is_near_color || (sampleTexture(pixel_x+1, pixel_y).a > 0);
-        } 
-        if (pixel_y < 0 && pixel_x > 0 && pixel_x < texture_data.z) {
-            is_near_color = is_near_color || (sampleTexture(pixel_x, pixel_y+1).a > 0);
-        } 
+        // Adjacent
         if (pixel_x > texture_data.z && pixel_y > 0 && pixel_y < texture_data.w) {
             is_near_color = is_near_color || (sampleTexture(pixel_x-1, pixel_y).a > 0);
         }
         if (pixel_y > texture_data.w && pixel_x > 0 && pixel_x < texture_data.z) {
             is_near_color = is_near_color || (sampleTexture(pixel_x, pixel_y-1).a > 0);
+        }
+        // Diagonal
+        if (pixel_x > 1 && pixel_y > 1) {
+            is_near_color = is_near_color || (sampleTexture(pixel_x-1, pixel_y-1).a > 0);
         }
         if (is_near_color) {
             color = outline_color;

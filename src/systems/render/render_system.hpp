@@ -28,10 +28,12 @@
 #include "texture_atlas.hpp"
 #include "component_grid.hpp"
 #include "shader_manager.hpp"
+#include "sprite_sheet_atlas.hpp"
 
 #include "consts.hpp"
 
 #include "debug_timer.hpp"
+#include "render_collision.hpp"
 
 class RenderSystem : public System {
 public:

@@ -8,14 +8,33 @@ void DebugWindow::show() {
         ImGuiWindowFlags_MenuBar
     )) {
         this->showMenuBar();
-        if (this->openTextureAtlas) {
+        if (this->open_texture_atlas) {
             this->showTextureAtlas();
         }
-        if (this->openEntityViewer) {
+        if (this->open_entity_viewer) {
             this->showEntityViewer();
         }
-        if (this->openShaderViewer) {
+        if (this->open_shader_viewer) {
             this->showShaderViewer();
+        }
+        if (!this->show_collision_boxes) {
+            if (ImGui::Button("Show Collision")) {
+                this->show_collision_boxes = true;
+                this->game->registry.view<Collision>().each([this](const entt::entity entity, auto collision) {
+                    this->game->registry.emplace_or_replace<RenderCollision>(entity);
+                });
+                this->game->registry.on_construct<Collision>().
+                    connect<&entt::registry::emplace_or_replace<RenderCollision>>();
+            }
+        } else {
+            if (ImGui::Button("Hide Collision")) {
+                this->show_collision_boxes = false;
+                this->game->registry.view<Collision>().each([this](const entt::entity entity, auto collision) {
+                    this->game->registry.remove<RenderCollision>(entity);
+                });
+                this->game->registry.on_construct<Collision>().
+                    disconnect<&entt::registry::emplace_or_replace<RenderCollision>>();
+            }
         }
     }
     ImGui::End();
@@ -26,10 +45,10 @@ void DebugWindow::showMenuBar() {
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{6, 6});
     if (ImGui::BeginMenuBar()) {
         if (ImGui::BeginMenu("View", true)) {
-            ImGui::MenuItem("Texture Atlas", "", &this->openTextureAtlas, true);
-            ImGui::MenuItem("Entity Viewer", "", &this->openEntityViewer, true);
+            ImGui::MenuItem("Texture Atlas", "", &this->open_texture_atlas, true);
+            ImGui::MenuItem("Entity Viewer", "", &this->open_entity_viewer, true);
             ImGui::MenuItem("Timer Window", "", &DebugTimer::open_timers_window, true);
-            ImGui::MenuItem("Shader Viewer", "", &this->openShaderViewer, true);
+            ImGui::MenuItem("Shader Viewer", "", &this->open_shader_viewer, true);
             ImGui::EndMenu();
         }
         ImGui::EndMenuBar();
@@ -39,7 +58,7 @@ void DebugWindow::showMenuBar() {
 
 void DebugWindow::showTextureAtlas() {
     ImGui::SetNextWindowSize({0, 0}, 0);
-    if (ImGui::Begin("Texture Atlas", &this->openTextureAtlas, 
+    if (ImGui::Begin("Texture Atlas", &this->open_texture_atlas, 
         ImGuiWindowFlags_NoCollapse |
         ImGuiWindowFlags_NoResize
     )) {
@@ -56,7 +75,7 @@ void DebugWindow::showTextureAtlas() {
 
 void DebugWindow::showEntityViewer() {
     ImGui::SetNextWindowSize({500, 440}, 0);
-    if (ImGui::Begin("Entity Viewer", &this->openEntityViewer, 
+    if (ImGui::Begin("Entity Viewer", &this->open_entity_viewer, 
         ImGuiWindowFlags_NoCollapse |
         ImGuiWindowFlags_NoResize
     )) {
@@ -155,7 +174,7 @@ void DebugWindow::showEntityViewer() {
 
 void DebugWindow::showShaderViewer() {
     ImGui::SetNextWindowSize({500, 440}, 0);
-    if (ImGui::Begin("Shader Viewer", &this->openShaderViewer, 
+    if (ImGui::Begin("Shader Viewer", &this->open_shader_viewer, 
         ImGuiWindowFlags_NoCollapse |
         ImGuiWindowFlags_NoResize
     )) {
