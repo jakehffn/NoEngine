@@ -16,6 +16,10 @@
 #include "left_clicked.hpp"
 #include "right_clicked.hpp"
 #include "hovered.hpp"
+#include "collision.hpp"
+#include "collidable.hpp"
+#include "interactable.hpp"
+#include "interaction.hpp"
 
 #include "system.hpp"
 

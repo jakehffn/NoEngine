@@ -86,11 +86,9 @@ void InputSystem::updatePlayerControl() {
             velocity_direction = glm::vec3(1,0,0);
             break;
         default:
-
             auto player_controlled_entities = registry.view<PlayerControl, Velocity>();
             
             for (auto entity : player_controlled_entities) {
-
                 this->registry.remove<Velocity>(entity);
             }  
 
@@ -102,7 +100,7 @@ void InputSystem::updatePlayerControl() {
     for (auto entity : player_controlled_entities) {
         auto& playerControl = player_controlled_entities.get<PlayerControl>(entity);
         
-        this->registry.emplace_or_replace<Velocity>(entity, velocity_direction, playerControl.pixels_per_millisecond);
+        this->registry.emplace_or_replace<Velocity>(entity, velocity_direction * playerControl.pixels_per_second);
         this->registry.patch<Spacial>(entity, [direction](auto& spacial) {
             spacial.direction = direction;
         });
@@ -122,7 +120,9 @@ void InputSystem::updatePlayerInteract() {
 
             auto entity{registry.create()};
             this->registry.emplace<Spacial>(entity, spacial.pos);
-            ResourceLoader::createDefault(this->registry, entity, "assets/misc/PinkFlower/placeholder.png");
+            auto& collision = this->registry.emplace<Collision>(entity);
+            collision.bounding_boxes.emplace_back(10, 10, 0, 0);
+            this->registry.emplace<Interaction>(entity);
         }
     }
 }

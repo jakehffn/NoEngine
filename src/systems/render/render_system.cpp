@@ -135,7 +135,9 @@ glm::mat4 RenderSystem::getModel(const Spacial& spacial, const Texture& texture)
 
     glm::vec3 offset = glm::vec3(texture.frame_data->offset.x, texture.frame_data->offset.y, 0);
 
-    glm::mat4 translate = glm::translate(glm::mat4(1), spacial.pos + (offset*scale_vector));
+    // Odd looking pixel movement if the floating point values are not rounded
+    const glm::vec3 pixel_perfect_position = glm::vec3(glm::ivec3(spacial.pos));
+    glm::mat4 translate = glm::translate(glm::mat4(1), pixel_perfect_position + (offset*scale_vector));
 
     // Order matters
     return (translate * scale * rotate);

@@ -3,9 +3,7 @@
 CollisionSystem::CollisionSystem(entt::registry& registry) : System(registry),
     collision_observer{ entt::observer(registry, entt::collector.update<Spacial>().where<Collision>()) },
     collider_observer{ entt::observer(registry, entt::collector.update<Spacial>().where<Collision, Collider>()) },
-    collidable_observer{ entt::observer(registry, entt::collector.update<Spacial>().where<Collision, Collidable>()) },
-    interacter_observer{ entt::observer(registry, entt::collector.update<Spacial>().where<Collision, Interacter>()) },
-    interactable_observer{ entt::observer(registry, entt::collector.update<Spacial>().where<Collision, Interactable>()) } {}
+    collidable_observer{ entt::observer(registry, entt::collector.update<Spacial>().where<Collision, Collidable>()) } {}
 
 void CollisionSystem::update() {
     DEBUG_TIMER(_, "CollisionSystem::update");
@@ -62,11 +60,15 @@ void CollisionSystem::fillAllQueries() {
             
             collision.current_grid_query.clear();
 
-            component_grid.query(
-                observed_spacial.pos.x, observed_spacial.pos.y,
-                observed_spacial.dim.x, observed_spacial.dim.y, 
-                collision.current_grid_query
-            );
+            for (auto bounding_box : collision.bounding_boxes) {
+                component_grid.query(
+                    observed_spacial.pos.x + bounding_box.z, 
+                    observed_spacial.pos.y + bounding_box.w,
+                    bounding_box.x, 
+                    bounding_box.y, 
+                    collision.current_grid_query
+                );
+            }
         });
     });
 }

@@ -11,7 +11,7 @@
 #include "collision.hpp"
 #include "collider.hpp"
 #include "collidable.hpp"
-#include "interacter.hpp"
+#include "interaction.hpp"
 #include "interactable.hpp"
 
 #include "debug_timer.hpp"
