@@ -4,6 +4,7 @@
 #include <iostream>
 #include <memory>
 #include <unordered_map>
+#include <limits>
 
 // GLEW must come before OpenGL
 #include <GL\glew.h>
@@ -62,6 +63,40 @@ struct Game {
 
     GLuint screen_texture;
 
-    ComponentGrid<Renderable> renderable_grid = ComponentGrid<Renderable>(this->registry);
-    ComponentGrid<Collision> collision_grid = ComponentGrid<Collision>(this->registry);
+    ComponentGrid<Renderable> renderable_grid = ComponentGrid<Renderable>(
+        this->registry, [](entt::registry& registry, entt::entity entity) {
+            auto& spacial = registry.get<Spacial>(entity);
+            lightgrid::bounds bounds{
+                static_cast<int>(spacial.pos.x), static_cast<int>(spacial.pos.y), 
+                static_cast<int>(spacial.dim.x), static_cast<int>(spacial.dim.y) 
+            };
+            return bounds;
+        }
+    );
+    ComponentGrid<Collision> collision_grid = ComponentGrid<Collision>(
+        this->registry, [](entt::registry& registry, entt::entity entity) {
+            auto spacial = registry.get<Spacial>(entity);
+            auto collision = registry.get<Collision>(entity);
+
+            float min_x{std::numeric_limits<float>::max()};
+            float max_x{std::numeric_limits<float>::min()};
+            float min_y{std::numeric_limits<float>::max()};
+            float max_y{std::numeric_limits<float>::min()};
+
+            for (auto bounding_box : collision.bounding_boxes) {
+                min_x = std::min(min_x, bounding_box.z);
+                max_x = std::max(max_x, bounding_box.z + bounding_box.x);
+                min_y = std::min(min_y, bounding_box.w);
+                max_y = std::max(max_y, bounding_box.w + bounding_box.y);
+            }
+
+            lightgrid::bounds bounds{
+                static_cast<int>(spacial.pos.x + min_x), 
+                static_cast<int>(spacial.pos.y + min_y), 
+                static_cast<int>(max_x - min_x), 
+                static_cast<int>(max_y - min_y) 
+            };
+            return bounds;
+        }
+    );
 };

@@ -108,20 +108,71 @@ void InputSystem::updatePlayerControl() {
 
     this->previous_player_direction = direction;
 }
-
+#include <iostream>
 void InputSystem::updatePlayerInteract() {
     Input& input_manager = this->registry.ctx().at<Input&>();
 
+    this->registry.view<Interaction, Collision>().each([this](auto entity, auto& interaction, auto& collision) {
+        if (collision.collisions.size() > 0) {
+            std::cout << "HIT! " << collision.collisions.size() << std::endl;
+        }
+        if (interaction.debug_frames == 0) {
+            this->registry.remove<Collision>(entity);
+            this->registry.destroy(entity);
+        } else {
+            interaction.debug_frames--;
+        }
+    });
+
     if (input_manager.isAdded(SDLK_SPACE)) {
-        auto player_controlled_entities = registry.view<PlayerControl,Spacial>();
+        auto player_controlled_entities = this->registry.view<PlayerControl,Spacial>();
 
         for (auto controlled_entity : player_controlled_entities) {
             auto spacial = this->registry.get<Spacial>(controlled_entity);
 
             auto entity{registry.create()};
             this->registry.emplace<Spacial>(entity, spacial.pos);
-            auto& collision = this->registry.emplace<Collision>(entity);
-            collision.bounding_boxes.emplace_back(10, 10, 0, 0);
+            std::vector<glm::vec4> bounding_boxes;
+            
+            float interaction_size{30.0f};
+            switch (spacial.direction) {
+                case UP:
+                    bounding_boxes.emplace_back(
+                        interaction_size, 
+                        interaction_size, 
+                        -(interaction_size - spacial.dim.x) / 2, 
+                        -interaction_size
+                    );
+                    break;
+                case DOWN:
+                    bounding_boxes.emplace_back(
+                        interaction_size, 
+                        interaction_size, 
+                        -(interaction_size - spacial.dim.x) / 2, 
+                        spacial.dim.y
+                    );
+                    break;
+                case LEFT:
+                    bounding_boxes.emplace_back(
+                        interaction_size, 
+                        interaction_size, 
+                        -interaction_size, 
+                        -(interaction_size - spacial.dim.y) / 2
+                    );
+                    break;
+                case RIGHT:
+                    bounding_boxes.emplace_back(
+                        interaction_size, 
+                        interaction_size, 
+                        spacial.dim.x, 
+                        -(interaction_size - spacial.dim.y) / 2
+                    );
+                    break;
+                default:
+                    break;
+            }
+            
+            auto& collision = this->registry.emplace<Collision>(entity, bounding_boxes);
             this->registry.emplace<Interaction>(entity);
         }
     }

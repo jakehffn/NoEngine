@@ -36,7 +36,9 @@ public:
 
 private:
     void updatePlayerControl();
+
     void updatePlayerInteract();
+
     void updateCursor();
     void updateHoveredEntities(const glm::vec2& mouse_world_pos);
 

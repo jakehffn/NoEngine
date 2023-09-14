@@ -1,3 +1,5 @@
 #pragma once
 
-struct Interaction {};
+struct Interaction {
+    int debug_frames{60};
+};

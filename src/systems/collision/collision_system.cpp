@@ -2,78 +2,79 @@
 
 CollisionSystem::CollisionSystem(entt::registry& registry) : System(registry),
     collision_observer{ entt::observer(registry, entt::collector.update<Spacial>().where<Collision>()) },
-    collider_observer{ entt::observer(registry, entt::collector.update<Spacial>().where<Collision, Collider>()) },
-    collidable_observer{ entt::observer(registry, entt::collector.update<Spacial>().where<Collision, Collidable>()) } {}
+    collider_observer{ entt::observer(registry, entt::collector.update<Collision>().where<Spacial, Collider>()) } {}
 
 void CollisionSystem::update() {
     DEBUG_TIMER(_, "CollisionSystem::update");
-    this->fillAllQueries();
-
-    this->iterateObserverInto<Collidable>(collider_observer, this->resolveCollider);
+    this->fillCollisions();
+    this->resolveCollisions();
 }
+#include <iostream>
+// Fill the queries of all entities with collision that have moved
+void CollisionSystem::fillCollisions() {
+    auto& component_grid = this->registry.ctx().at<ComponentGrid<Collision>&>();
+    std::vector<entt::entity> query_results;
 
-template<typename Component>
-void CollisionSystem::iterateObserverInto(entt::observer& observer, 
-    void (CollisionSystem::*func)(entt::entity, const glm::vec4&, Spacial&, const glm::vec4&, const Spacial&)) {
+    this->collision_observer.each([this, &component_grid, &query_results](const auto entity) {
+        auto [spacial, collision, grid_data] = this->registry.get<Spacial, Collision, GridData<Collision>>(entity);
+        
+        query_results.clear();
+        component_grid.query(
+            grid_data.bounds,
+            query_results
+        );
 
-        auto entities = registry.view<Collision, Spacial>();
+        collision.collisions.clear();
 
-        // Iterate over all entities were moved in the last frame and have Collision
-        observer.each([this, entities, func](const auto observed_entity) {
+        for (auto other_entity : query_results) {
+            auto [other_collision, other_spacial] = this->registry.get<Collision, Spacial>(other_entity);
 
-            auto [observed_collision, observed_spacial] = entities.get<Collision, Spacial>(observed_entity);
-
-            // Iterate over the bounding boxes in the observed entity
-            for (const auto& observed_bounding_box : observed_collision.bounding_boxes) {
-                
-                // Iterate over the entities which could be colliding with the observed entity
-                for (auto other_entity : observed_collision.current_grid_query) {
-
-                    if (other_entity == observed_entity || !this->registry.all_of<Component>(other_entity)) {
-                        continue;
-                    }
-
-                    auto [other_collision, other_spacial] = entities.get<Collision, Spacial>(other_entity);
-
-                    for (auto other_bounding_box : other_collision.bounding_boxes) {
-
-                        if (this->isColliding(observed_bounding_box, observed_spacial, other_bounding_box, other_spacial)) {
-
-                            (this->*func)(observed_entity, observed_bounding_box, observed_spacial, 
-                                other_bounding_box, other_spacial);
-                        }
+            for (auto bounding_box : collision.bounding_boxes) {
+                for (auto other_bounding_box : other_collision.bounding_boxes) {
+                    if (entity != other_entity && this->isColliding(bounding_box, spacial, other_bounding_box, other_spacial)) {
+                        collision.collisions.push_back(other_entity);
                     }
                 }
             }
-        });
-}
+        }
 
-// Fill the queries of all entities with collision that have moved
-void CollisionSystem::fillAllQueries() {
-
-    auto& component_grid = this->registry.ctx().at<ComponentGrid<Collision>&>();
-
-    this->collision_observer.each([this, &component_grid](const auto entity) {
-        this->registry.patch<Collision>(entity, [this, entity, &component_grid](auto& collision) {
-
-            auto& observed_spacial = this->registry.get<Spacial>(entity);
-            
-            collision.current_grid_query.clear();
-
-            for (auto bounding_box : collision.bounding_boxes) {
-                component_grid.query(
-                    observed_spacial.pos.x + bounding_box.z, 
-                    observed_spacial.pos.y + bounding_box.w,
-                    bounding_box.x, 
-                    bounding_box.y, 
-                    collision.current_grid_query
-                );
-            }
-        });
+        if (collision.collisions.size() > 0) {
+            // Allow for updates on collision by other systems when a collision occurs
+            this->registry.patch<Collision>(entity);
+        }
     });
 }
 
-void CollisionSystem::resolveCollider(entt::entity entity, const glm::vec4& collision, Spacial& spacial, 
+void CollisionSystem::resolveCollisions() {
+    for (auto entity : this->collider_observer) {
+        auto [collision, spacial] = this->registry.get<Collision, Spacial>(entity);
+
+        for (auto other_entity : collision.collisions) {
+            if (!this->registry.valid(other_entity) || !this->registry.all_of<Collidable>(other_entity)) {
+                continue;
+            }
+
+            auto [other_collision, other_spacial] = this->registry.get<Collision, Spacial>(other_entity);
+
+            for (auto bounding_box : collision.bounding_boxes) {
+                for (auto other_bounding_box : other_collision.bounding_boxes) {
+
+                    if (this->isColliding(bounding_box, spacial, other_bounding_box, other_spacial)) {
+                        this->resolveCollision(
+                            entity, 
+                            bounding_box, 
+                            spacial, 
+                            other_bounding_box, 
+                            other_spacial
+                        );
+                    }
+                }
+            }
+        }
+    }
+}
+
+void CollisionSystem::resolveCollision(entt::entity entity, const glm::vec4& collision, Spacial& spacial, 
     const glm::vec4& other_collision, const Spacial& other_spacial) {
 
         // The epsilon prevent the collision condition from still being true after resolution becuase of 
@@ -102,7 +103,6 @@ void CollisionSystem::resolveCollider(entt::entity entity, const glm::vec4& coll
 }
 
 bool CollisionSystem::isColliding(const glm::vec4& collision_1, const Spacial& spacial_1, const glm::vec4& collision_2, const Spacial& spacial_2) {
-
     float top_1 = spacial_1.pos.y + collision_1.w;
     float bottom_1 = spacial_1.pos.y + collision_1.w + collision_1.y;
     float left_1 = spacial_1.pos.x + collision_1.z;

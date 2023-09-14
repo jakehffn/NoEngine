@@ -1,5 +1,7 @@
 #pragma once
 
+#include <functional>
+
 #include <entt/entt.hpp>
 #include <lightgrid/grid.hpp>
 
@@ -20,7 +22,10 @@ struct GridData {
 template<typename Component>
 class ComponentGrid {
 public:
-    ComponentGrid(entt::registry& registry);
+    ComponentGrid(
+        entt::registry& registry, 
+        std::function<lightgrid::bounds (entt::registry&, entt::entity)> getBounds
+    );
     ComponentGrid(ComponentGrid&& component_grid) = default;
     ComponentGrid& operator=(ComponentGrid&& component_grid) = default;
 
@@ -41,13 +46,18 @@ private:
     void observeConstruct(entt::registry& registry, entt::entity entity);
     void observeDestroy(entt::registry& registry, entt::entity entity);
 
+    std::function<lightgrid::bounds (entt::registry&, entt::entity)> getBounds;
+
     lightgrid::grid<entt::entity> grid;
     entt::observer observer;
     entt::registry& registry;
 };
 
 template<typename Component>
-ComponentGrid<Component>::ComponentGrid(entt::registry& registry) : registry{ registry } { 
+ComponentGrid<Component>::ComponentGrid(
+    entt::registry& registry, 
+    std::function<lightgrid::bounds (entt::registry&, entt::entity)> getBounds
+) : registry{registry}, getBounds{getBounds} { 
     this->observer.connect(registry, entt::collector.update<Spacial>().where<Component>(entt::exclude<ComponentGridIgnore>));
     registry.on_construct<Component>().template connect<&ComponentGrid<Component>::observeConstruct>(this);
     registry.on_destroy<Component>().template connect<&ComponentGrid<Component>::observeDestroy>(this);
@@ -112,14 +122,12 @@ void ComponentGrid<Component>::observeConstruct(entt::registry& registry, entt::
     
     assert((registry.all_of<Spacial>(entity) && "Entity missing Spacial component"));
 
-    auto& spacial = registry.get<Spacial>(entity);
-    lightgrid::bounds bounds{
-        static_cast<int>(spacial.pos.x), static_cast<int>(spacial.pos.y), 
-        static_cast<int>(spacial.dim.x), static_cast<int>(spacial.dim.y) };
+    auto bounds = this->getBounds(registry, entity);
 
     int element_node = this->grid.insert(entity, bounds);
-
     registry.emplace<GridData<Component>>(entity, bounds, element_node);
+    // Trigger a collision check on construction
+    this->registry.patch<Spacial>(entity);
 }
 
 template<typename Component>
@@ -128,7 +136,10 @@ void ComponentGrid<Component>::observeDestroy(entt::registry& registry, entt::en
         return;
     }
 
-    assert((registry.all_of<Spacial, GridData<Component>>(entity) && "Entity missing Spacial or GridData<T> component"));
+    assert((
+        registry.all_of<Spacial, GridData<Component>>(entity) && 
+        "Entity missing Spacial or GridData<T> component\n\tEnsure Grid component is destroyed before spacial"
+    ));
 
     auto& grid_data = registry.get<GridData<Component>>(entity);
     this->grid.remove(grid_data.node, grid_data.bounds);
