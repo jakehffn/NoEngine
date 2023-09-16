@@ -125,54 +125,57 @@ void InputSystem::updatePlayerInteract() {
     });
 
     if (input_manager.isAdded(SDLK_SPACE)) {
-        auto player_controlled_entities = this->registry.view<PlayerControl,Spacial>();
+        auto player_controlled_entities = this->registry.view<PlayerControl, Spacial, Collision>();
 
         for (auto controlled_entity : player_controlled_entities) {
-            auto spacial = this->registry.get<Spacial>(controlled_entity);
+            auto [spacial, collision] = this->registry.get<Spacial, Collision>(controlled_entity);
 
             auto entity{registry.create()};
             this->registry.emplace<Spacial>(entity, spacial.pos);
             std::vector<glm::vec4> bounding_boxes;
             
-            float interaction_size{30.0f};
+            const float main_axis{30.0f};
+            const float cross_axis{20.0f};
+            const glm::vec4 primary_player_bb{collision.bounding_boxes[0]};
+
             switch (spacial.direction) {
                 case UP:
                     bounding_boxes.emplace_back(
-                        interaction_size, 
-                        interaction_size, 
-                        -(interaction_size - spacial.dim.x) / 2, 
-                        -interaction_size
+                        cross_axis, 
+                        main_axis, 
+                        primary_player_bb.z - ((cross_axis - primary_player_bb.x) / 2), 
+                        primary_player_bb.w - main_axis
                     );
                     break;
                 case DOWN:
                     bounding_boxes.emplace_back(
-                        interaction_size, 
-                        interaction_size, 
-                        -(interaction_size - spacial.dim.x) / 2, 
-                        spacial.dim.y
+                        cross_axis, 
+                        main_axis, 
+                        primary_player_bb.z - ((cross_axis - primary_player_bb.x) / 2),
+                        primary_player_bb.w + primary_player_bb.y
                     );
                     break;
                 case LEFT:
                     bounding_boxes.emplace_back(
-                        interaction_size, 
-                        interaction_size, 
-                        -interaction_size, 
-                        -(interaction_size - spacial.dim.y) / 2
+                        main_axis, 
+                        cross_axis, 
+                        primary_player_bb.z - main_axis, 
+                        primary_player_bb.w - ((cross_axis - primary_player_bb.y) / 2)
                     );
                     break;
                 case RIGHT:
                     bounding_boxes.emplace_back(
-                        interaction_size, 
-                        interaction_size, 
-                        spacial.dim.x, 
-                        -(interaction_size - spacial.dim.y) / 2
+                        main_axis, 
+                        cross_axis, 
+                        primary_player_bb.z + primary_player_bb.x, 
+                        primary_player_bb.w - ((cross_axis - primary_player_bb.y) / 2)
                     );
                     break;
                 default:
                     break;
             }
             
-            auto& collision = this->registry.emplace<Collision>(entity, bounding_boxes);
+            this->registry.emplace<Collision>(entity, bounding_boxes);
             this->registry.emplace<Interaction>(entity);
         }
     }

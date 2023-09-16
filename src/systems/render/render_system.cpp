@@ -91,19 +91,21 @@ void RenderSystem::sortEntities() {
 
 void RenderSystem::updateModels() {
     DEBUG_TIMER(_, "RenderSystem::updateModels");
+    using namespace entt::literals;
+    Camera& camera = registry.ctx().at<Camera&>("world_camera"_hs);
     // TDOD: Consider only updating models of entities which need rendering
 
     {
         DEBUG_TIMER(spacial_observer_timer, "Spacial Observer");
         // Update the models of all the entities whose spacials have been changed
-        this->spacial_observer.each([this](entt::entity entity){
+        this->spacial_observer.each([this, &camera](entt::entity entity){
             auto [spacial, texture] = this->registry.get<Spacial, Texture>(entity);
-            this->registry.emplace_or_replace<Model>(entity, RenderSystem::getModel(spacial, texture));
+            this->registry.emplace_or_replace<Model>(entity, RenderSystem::getModel(spacial, texture, camera.getZoom()));
         });
     }
     {
         DEBUG_TIMER(spacial_tile_observer_timer, "Spacial Tile Observer");
-        this->spacial_tile_observer.each([this](entt::entity entity) {
+        this->spacial_tile_observer.each([this, &camera](entt::entity entity) {
             auto spacial = this->registry.get<Spacial>(entity);
             this->registry.emplace_or_replace<Model>(entity, RenderSystem::getTileModel(spacial));
         });
@@ -112,14 +114,14 @@ void RenderSystem::updateModels() {
         DEBUG_TIMER(texture_observer_timer, "Texture Observer");
         // ...and same for models with updated textures
         // TODO: Consider ways of avoiding overlap between these two groups
-        this->texture_observer.each([this](entt::entity entity){
+        this->texture_observer.each([this, &camera](entt::entity entity){
             auto [spacial, texture] = this->registry.get<Spacial, Texture>(entity);
-            this->registry.emplace_or_replace<Model>(entity, RenderSystem::getModel(spacial, texture));
+            this->registry.emplace_or_replace<Model>(entity, RenderSystem::getModel(spacial, texture, camera.getZoom()));
         });
     }
 }
 
-glm::mat4 RenderSystem::getModel(const Spacial& spacial, const Texture& texture) {
+glm::mat4 RenderSystem::getModel(const Spacial& spacial, const Texture& texture, const float camera_zoom) {
     // The model does not represent the physical location exactly, but the rendered location
     //  Information from the texture is needed so that the sprite can be placed correctly
     glm::mat4 rotate = glm::mat4(1.0f);
@@ -135,7 +137,10 @@ glm::mat4 RenderSystem::getModel(const Spacial& spacial, const Texture& texture)
 
     glm::vec3 offset = glm::vec3(texture.frame_data->offset.x, texture.frame_data->offset.y, 0);
 
-    glm::mat4 translate = glm::translate(glm::mat4(1), spacial.pos + (offset*scale_vector));
+    // Help prevent texture bleeding by rounding to full pixels
+    // The camera rounds to a full pixel, while this rounds to a pixel plus half a pixel
+    glm::vec3 normalized_position = glm::vec3(glm::ivec3(spacial.pos*camera_zoom) + glm::ivec3(0.5, 0.5, 0))/camera_zoom;
+    glm::mat4 translate = glm::translate(glm::mat4(1), normalized_position + (offset*scale_vector));
 
     // Order matters
     return (translate * scale * rotate);
@@ -147,13 +152,15 @@ glm::mat4 RenderSystem::getTileModel(const Spacial& spacial) {
         {16, 16},
         {0, 0}
     };
-    return RenderSystem::getModel(spacial, {"", &tile_frame_data});
+    return RenderSystem::getModel(spacial, {"", &tile_frame_data}, 1);
 }
 
 void RenderSystem::initModel(entt::registry& registry, entt::entity entity) {
+    using namespace entt::literals;
+    Camera& camera = registry.ctx().at<Camera&>("world_camera"_hs);
     if (registry.all_of<Spacial>(entity)) {
         auto [spacial, texture] = registry.get<Spacial, Texture>(entity);
-        registry.emplace_or_replace<Model>(entity, RenderSystem::getModel(spacial, texture));
+        registry.emplace_or_replace<Model>(entity, RenderSystem::getModel(spacial, texture, camera.getZoom()));
     }
 }
 

@@ -42,12 +42,18 @@ void CameraSystem::updateCameraToController() {
         lookahead *= lookahead_distance;
     }
     // Target camera relative to the center of the sprite
-    glm::vec3 target(spacial.pos + (glm::vec3(spacial.dim, 0) * spacial.scale / 2.0f) + lookahead);
+    glm::vec3 player_position_normalized = glm::vec3(glm::ivec3(spacial.pos * camera.getZoom())) / camera.getZoom();
+    glm::vec3 target(player_position_normalized + (glm::vec3(spacial.dim, 0) * spacial.scale / 2.0f) + lookahead);
     
     float speed{1.5f};
     float normalized_speed{std::clamp(static_cast<float>(clock.getDeltaTime() / 1000.0)*speed, 0.0f, 1.0f)};
+    normalized_speed = (normalized_speed > 0.01) ? normalized_speed : 0;
     
-    camera.setPosition(glm::mix(camera.getPosition(), target, normalized_speed));
+    glm::vec3 camera_position = glm::vec3(glm::mix(camera.getPosition(), target, normalized_speed));
+    // Help prevent texture bleeding by rounding to full pixels
+    // The models are rounded and then half a pixel is added
+    camera_position = glm::vec3(glm::ivec3(camera_position * camera.getZoom())) / camera.getZoom();
+    camera.setPosition(camera_position);
 
     camera.update();
 }

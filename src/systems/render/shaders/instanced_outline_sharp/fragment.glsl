@@ -21,13 +21,15 @@ void main() {
     float pixel_y = texture_coords.y * (texture_data.w + border_space) - (border_space/2);
     
     vec4 outline_color = vec4(0, 0, 0, 1);
+    vec4 clear_color = vec4(0, 0, 0, 0);
+
     bool is_near_color = false;
     
     if (pixel_x > 0 && pixel_y > 0 && pixel_x < texture_data.z && pixel_y < texture_data.w) {
         vec4 current_color = sampleTexture(pixel_x, pixel_y);
 
         if (current_color.a > 0) {
-            // color = current_color;
+            color = clear_color;
         } else {
             // Adjacent
             if (pixel_x < texture_data.z - 1) {
@@ -57,6 +59,8 @@ void main() {
             }
             if (is_near_color) {
                 color = outline_color;
+            } else {
+                color = clear_color;
             }
         }
     } else {
@@ -88,6 +92,8 @@ void main() {
         }
         if (is_near_color) {
             color = outline_color;
+        } else {
+            color = clear_color;
         }
     }
 }  

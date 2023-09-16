@@ -48,7 +48,7 @@ private:
 
     void updateModels();
 
-    static glm::mat4 getModel(const Spacial& spacial, const Texture& texture);
+    static glm::mat4 getModel(const Spacial& spacial, const Texture& texture, const float camera_zoom);
     static glm::mat4 getTileModel(const Spacial& spacial);
 
     static void initModel(entt::registry& registry, entt::entity entity);
