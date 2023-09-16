@@ -1,7 +1,7 @@
 #include "collision_system.hpp"
 
 CollisionSystem::CollisionSystem(entt::registry& registry) : System(registry),
-    collision_observer{ entt::observer(registry, entt::collector.update<Spacial>().where<Collision>()) },
+    collision_observer{ entt::observer(registry, entt::collector.update<Spacial>().where<Collision, GridData<Collision>>()) },
     collider_observer{ entt::observer(registry, entt::collector.update<Collision>().where<Spacial, Collider>()) } {}
 
 void CollisionSystem::update() {

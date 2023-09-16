@@ -1,8 +1,20 @@
 #include "input_system.hpp"
 
 InputSystem::InputSystem (entt::registry& registry) : System(registry) {
+    MapLoader& map_loader = this->registry.ctx().at<MapLoader&>();
+    map_loader.connectAfterLoad<&InputSystem::clearHoveredQueries, InputSystem*>(this);
+
     this->cursor_entity = this->registry.create();
     ResourceLoader::create(this->registry, this->cursor_entity, "CustomCursor");
+    this->registry.emplace<Persistent>(this->cursor_entity);
+    
+    this->player_interacter_entity = this->registry.create();
+    this->registry.emplace<Interacter>(player_interacter_entity);
+    this->registry.emplace<Spacial>(player_interacter_entity);
+    std::vector<glm::vec4> bounding_boxes;
+    bounding_boxes.emplace_back();
+    auto& collision = this->registry.emplace<Collision>(player_interacter_entity, bounding_boxes);
+    this->registry.emplace<Persistent>(this->player_interacter_entity);
 }
 
 void InputSystem::update() {
@@ -112,73 +124,75 @@ void InputSystem::updatePlayerControl() {
 void InputSystem::updatePlayerInteract() {
     Input& input_manager = this->registry.ctx().at<Input&>();
 
-    this->registry.view<Interaction, Collision>().each([this](auto entity, auto& interaction, auto& collision) {
-        if (collision.collisions.size() > 0) {
-            std::cout << "HIT! " << collision.collisions.size() << std::endl;
-        }
-        if (interaction.debug_frames == 0) {
-            this->registry.remove<Collision>(entity);
-            this->registry.destroy(entity);
-        } else {
-            interaction.debug_frames--;
-        }
-    });
+    auto collision = this->registry.get<Collision>(this->player_interacter_entity);
 
     if (input_manager.isAdded(SDLK_SPACE)) {
-        auto player_controlled_entities = this->registry.view<PlayerControl, Spacial, Collision>();
+        if (collision.collisions.size() > 0) {
+            std::cout << "Interaction!!!!" << std::endl;
+        }
+        for (auto entity : collision.collisions) {
+            if (this->registry.all_of<StateMachine>(entity)) {
+                if (this->registry.all_of<Name>(entity)) {
+                    const auto map = this->registry.create();
+                    this->registry.emplace<LoadMap>(map, "./assets/maps/TestOther/testOther.tmx");
+                } else {
+                    const auto map = this->registry.create();
+                    this->registry.emplace<LoadMap>(map, "./assets/maps/Test/test.tmx");
+                }
+            }
+        }
+    }
 
-        for (auto controlled_entity : player_controlled_entities) {
-            auto [spacial, collision] = this->registry.get<Spacial, Collision>(controlled_entity);
-
-            auto entity{registry.create()};
-            this->registry.emplace<Spacial>(entity, spacial.pos);
-            std::vector<glm::vec4> bounding_boxes;
-            
+    // Move Player interacter to where the player is
+    this->registry.view<PlayerControl, Spacial, Collision>().each([this](auto entity, auto& player_control, auto& player_spacial, auto& player_collision) {
+        this->registry.patch<Collision>(this->player_interacter_entity, [player_spacial, player_collision](auto& collision) {
             const float main_axis{30.0f};
             const float cross_axis{20.0f};
-            const glm::vec4 primary_player_bb{collision.bounding_boxes[0]};
+            const glm::vec4 primary_player_bb{player_collision.bounding_boxes[0]};
 
-            switch (spacial.direction) {
+            switch (player_spacial.direction) {
                 case UP:
-                    bounding_boxes.emplace_back(
+                    collision.bounding_boxes[0] = glm::vec4(
                         cross_axis, 
                         main_axis, 
                         primary_player_bb.z - ((cross_axis - primary_player_bb.x) / 2), 
-                        primary_player_bb.w - main_axis
+                        primary_player_bb.w - main_axis - 1
                     );
                     break;
                 case DOWN:
-                    bounding_boxes.emplace_back(
+                    collision.bounding_boxes[0] = glm::vec4(
                         cross_axis, 
                         main_axis, 
                         primary_player_bb.z - ((cross_axis - primary_player_bb.x) / 2),
-                        primary_player_bb.w + primary_player_bb.y
+                        primary_player_bb.w + primary_player_bb.y + 1
                     );
                     break;
                 case LEFT:
-                    bounding_boxes.emplace_back(
+                    collision.bounding_boxes[0] = glm::vec4(
                         main_axis, 
                         cross_axis, 
-                        primary_player_bb.z - main_axis, 
+                        primary_player_bb.z - main_axis - 1, 
                         primary_player_bb.w - ((cross_axis - primary_player_bb.y) / 2)
                     );
                     break;
                 case RIGHT:
-                    bounding_boxes.emplace_back(
+                    collision.bounding_boxes[0] = glm::vec4(
                         main_axis, 
                         cross_axis, 
-                        primary_player_bb.z + primary_player_bb.x, 
+                        primary_player_bb.z + primary_player_bb.x + 1, 
                         primary_player_bb.w - ((cross_axis - primary_player_bb.y) / 2)
                     );
                     break;
                 default:
                     break;
             }
-            
-            this->registry.emplace<Collision>(entity, bounding_boxes);
-            this->registry.emplace<Interaction>(entity);
-        }
-    }
+        });
+
+        // Spacial update goes second so that the collisions are updated for the current collision boxes
+        this->registry.patch<Spacial>(this->player_interacter_entity, [player_spacial](auto& spacial) {
+            spacial.pos = player_spacial.pos;
+        });
+    });
 }
 
 void InputSystem::updateCursor() {
@@ -188,7 +202,7 @@ void InputSystem::updateCursor() {
 
     const glm::vec2 camera_dimensions = camera.getDimensions();
     const glm::vec2 camera_position = camera.getPosition();
-
+    
     glm::vec3 mouse_position = glm::vec3(
         camera.pixelToScreenCoords({input_manager.getMouseX(), input_manager.getMouseY()}),
         2
@@ -243,6 +257,7 @@ void InputSystem::updateHoveredEntities(const glm::vec2& mouse_world_pos) {
         }, 
         query_result
     );
+    
     // Put everything with their texture under the mouse into a set
     for (auto entity : query_result) {
         if (this->registry.all_of<Spacial, Texture>(entity)) {
@@ -282,4 +297,10 @@ void InputSystem::updateHoveredEntities(const glm::vec2& mouse_world_pos) {
     for (auto entity : diff) {
         this->registry.remove<Hovered>(entity);
     }
+}
+
+void InputSystem::clearHoveredQueries(entt::registry& registry) {
+    this->hovered_entities->clear();
+    this->last_hovered_entities->clear();
+    this->registry.clear<Hovered>();
 }

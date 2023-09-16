@@ -31,6 +31,8 @@ public:
 
     void init(int width, int height, int cell_size);
     void update();
+    void connect();
+    void disconnect();
 
     template<template<typename Rtype> typename R, typename Rtype=entt::entity> 
     requires lightgrid::insertable<R<Rtype>, Rtype>
@@ -51,6 +53,8 @@ private:
     lightgrid::grid<entt::entity> grid;
     entt::observer observer;
     entt::registry& registry;
+
+    bool is_initialized{false};
 };
 
 template<typename Component>
@@ -58,14 +62,18 @@ ComponentGrid<Component>::ComponentGrid(
     entt::registry& registry, 
     std::function<lightgrid::bounds (entt::registry&, entt::entity)> getBounds
 ) : registry{registry}, getBounds{getBounds} { 
-    this->observer.connect(registry, entt::collector.update<Spacial>().where<Component>(entt::exclude<ComponentGridIgnore>));
-    registry.on_construct<Component>().template connect<&ComponentGrid<Component>::observeConstruct>(this);
-    registry.on_destroy<Component>().template connect<&ComponentGrid<Component>::observeDestroy>(this);
+    this->connect();
 }
 
 template<typename Component>
 void ComponentGrid<Component>::init(int width, int height, int cell_size) {
     this->grid.init(width, height, cell_size);
+
+    for (auto entity : this->registry.view<Component, Spacial>()) {
+        this->observeConstruct(this->registry, entity);
+    }
+
+    this->is_initialized = true;
 }
 
 template<typename Component>
@@ -82,12 +90,24 @@ void ComponentGrid<Component>::update() {
 
         // Add the new data
         auto& spacial = this->registry.get<Spacial>(entity);
-        grid_data.bounds = (struct lightgrid::bounds) {
-            static_cast<int>(spacial.pos.x), static_cast<int>(spacial.pos.y), 
-            static_cast<int>(spacial.dim.x), static_cast<int>(spacial.dim.y) };
+        grid_data.bounds = this->getBounds(this->registry, entity);
         grid_data.node = this->grid.insert(entity, grid_data.bounds);
     });
     
+}
+
+template<typename Component>
+void ComponentGrid<Component>::connect() {
+    this->observer.connect(registry, entt::collector.update<Spacial>().where<Component>(entt::exclude<ComponentGridIgnore>));
+    registry.on_construct<Component>().template connect<&ComponentGrid<Component>::observeConstruct>(this);
+    registry.on_destroy<Component>().template connect<&ComponentGrid<Component>::observeDestroy>(this);
+}
+
+template<typename Component>
+void ComponentGrid<Component>::disconnect() {
+    this->observer.disconnect();
+    registry.on_construct<Component>().template disconnect<&ComponentGrid<Component>::observeConstruct>(this);
+    registry.on_destroy<Component>().template disconnect<&ComponentGrid<Component>::observeDestroy>(this);
 }
 
 template<typename Component>
@@ -116,7 +136,7 @@ void ComponentGrid<Component>::clear() {
 
 template<typename Component>
 void ComponentGrid<Component>::observeConstruct(entt::registry& registry, entt::entity entity) {
-    if (registry.all_of<ComponentGridIgnore>(entity)) {
+    if (registry.any_of<ComponentGridIgnore>(entity) || !this->is_initialized) {
         return;
     }
     
@@ -132,7 +152,7 @@ void ComponentGrid<Component>::observeConstruct(entt::registry& registry, entt::
 
 template<typename Component>
 void ComponentGrid<Component>::observeDestroy(entt::registry& registry, entt::entity entity) {
-    if (registry.all_of<ComponentGridIgnore>(entity)) {
+    if (!registry.all_of<GridData<Component>>(entity)) {
         return;
     }
 

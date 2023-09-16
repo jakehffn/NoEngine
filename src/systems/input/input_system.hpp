@@ -20,6 +20,11 @@
 #include "collidable.hpp"
 #include "interactable.hpp"
 #include "interaction.hpp"
+#include "interacter.hpp"
+#include "persistent.hpp"
+
+#include "map_loader.hpp"
+#include "load_map.hpp"
 
 #include "system.hpp"
 
@@ -42,8 +47,11 @@ private:
     void updateCursor();
     void updateHoveredEntities(const glm::vec2& mouse_world_pos);
 
+    void clearHoveredQueries(entt::registry& registry);
+
     DIRECTION previous_player_direction{DOWN};
     entt::entity cursor_entity;
+    entt::entity player_interacter_entity;
 
     std::set<entt::entity>* hovered_entities{new std::set<entt::entity>};
     std::set<entt::entity>* last_hovered_entities{new std::set<entt::entity>};

@@ -1,39 +1,47 @@
-#include "map_loader_system.hpp"
+#include "map_loader.hpp"
 
-#include "resource_loader.hpp"
-
-MapLoaderSystem::MapLoaderSystem(entt::registry& registry) : System(registry) {}
-
-void MapLoaderSystem::update() {
-    DEBUG_TIMER(_, "MapLoaderSystem::update");
-    auto map_loaders = this->registry.view<MapLoader>();
-
-    for (auto entity : map_loaders) {
-        auto& map_loader = map_loaders.get<MapLoader>(entity);
-        
-        this->loadTiledMap(map_loader.map_path.c_str());
-
-        this->registry.destroy(entity);
-    }
-
+MapLoader::MapLoader(entt::registry& registry) : registry{registry} {
+    this->registry.on_construct<LoadMap>().connect<&MapLoader::queueLoad>(this);
 }
 
-void MapLoaderSystem::loadTiledMap(const char* map_path) {
+void MapLoader::queueLoad(entt::registry& registry, entt::entity entity) {
+    this->queued_map_loader_entity = entity;
+}
+
+void MapLoader::loadIfQueued() {
+    if (this->queued_map_loader_entity != entt::null) {
+        auto& load_map = this->registry.get<LoadMap>(this->queued_map_loader_entity);
+        this->loadTiledMap(load_map.map_path.c_str());
+    }
+    this->queued_map_loader_entity = entt::null;
+}
+
+void MapLoader::loadTiledMap(const char* map_path) {
     tmx::Map map;
 
     if (map.load(map_path)) {
         tmx::FloatRect map_bounds = map.getBounds();
 
-        auto& renderable_grid = this->registry.ctx().at<ComponentGrid<Renderable>&>();
-        auto& collision_grid = this->registry.ctx().at<ComponentGrid<Collision>&>();
+        this->before_destroy.publish(this->registry);
 
-        // printf("Map Hidth:%f, Map Height:%f\n", map_bounds.width, mapbounds.height);
+        for (auto entity : this->registry.view<Collision>(entt::exclude<ComponentGridIgnore, Persistent>)) {
+            this->registry.remove<Collision>(entity);
+        }
 
-        renderable_grid.init(map_bounds.width, map_bounds.height, 16);
-        collision_grid.init(map_bounds.width, map_bounds.height, 16);
+        for (auto entity : this->registry.view<Renderable>(entt::exclude<ComponentGridIgnore, Persistent>)) {
+            this->registry.remove<Renderable>(entity);
+        }
+
+        this->registry.each([this](auto entity) {
+            if (!this->registry.all_of<Persistent>(entity)) {
+                this->registry.destroy(entity);
+            }
+        });
 
         this->addObjects(map);
         this->addTilesets(map);
+
+        this->after_load.publish(this->registry);
 
         auto& texture_atlas = this->registry.ctx().at<TextureAtlas&>();
         // TODO: Make a better name for that function. It's not really descriptive of what that does
@@ -41,7 +49,7 @@ void MapLoaderSystem::loadTiledMap(const char* map_path) {
     }
 }
 
-void MapLoaderSystem::addObjects(const tmx::Map& map) {
+void MapLoader::addObjects(const tmx::Map& map) {
     const auto& layers = map.getLayers();
 
     for (const auto& layer : layers) {
@@ -58,7 +66,7 @@ void MapLoaderSystem::addObjects(const tmx::Map& map) {
     }
 }
 
-void MapLoaderSystem::addObject(const tmx::Map& map, const tmx::Object& object) {
+void MapLoader::addObject(const tmx::Map& map, const tmx::Object& object) {
     const auto& entity = this->registry.create();
     
     tmx::Vector2f position = object.getPosition();
@@ -109,7 +117,7 @@ void MapLoaderSystem::addObject(const tmx::Map& map, const tmx::Object& object) 
     }
 }
 
-void MapLoaderSystem::addTilesets(tmx::Map& map) {
+void MapLoader::addTilesets(tmx::Map& map) {
     auto& sprite_sheet_atlas = this->registry.ctx().at<SpriteSheetAtlas&>();
 
     std::unordered_map<std::string, std::vector<glm::vec3>> tile_data_map;
@@ -175,7 +183,7 @@ void MapLoaderSystem::addTilesets(tmx::Map& map) {
     }
 }
 
-void MapLoaderSystem::addCollision(entt::entity entity, const tmx::Tileset::Tile* tile) {
+void MapLoader::addCollision(entt::entity entity, const tmx::Tileset::Tile* tile) {
     std::vector<glm::vec4> bounding_boxes;
 
     // Load the collisions boxes associated with the tile, which is located in the tmx::tile_set

@@ -12,6 +12,7 @@
 
 #include "kid.hpp"
 #include "test_npc.hpp"
+#include "test_npc_2.hpp"
 #include "custom_cursor.hpp"
 #include "fps_counter_entity.hpp"
 
@@ -19,6 +20,7 @@ namespace ResourceLoader {
     static std::unordered_map<std::string, void (*)(entt::registry&, entt::entity)> prefabs{
         {"Kid", Kid},
         {"TestNpc", TestNpc},
+        {"TestNpc2", TestNpc2},
         {"CustomCursor", CustomCursor},
         {"FpsCounterEntity", FpsCounterEntity}
     };

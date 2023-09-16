@@ -2,6 +2,6 @@
 
 #include <string>
 
-struct MapLoader {
+struct LoadMap {
     std::string map_path;
 };

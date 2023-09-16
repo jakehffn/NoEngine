@@ -1,5 +1,5 @@
 target_sources(${PROJECT_NAME} PUBLIC
-    map_loader_system.cpp
+    map_loader.cpp
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC

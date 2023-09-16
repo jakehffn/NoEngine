@@ -8,6 +8,9 @@ RenderSystem::RenderSystem(entt::registry& registry) : System(registry),
         this->registry.on_construct<Tile>().connect<&RenderSystem::initTileModel>();
         auto& shader_manager = this->registry.ctx().at<ShaderManager&>();
         this->renderer.setPostProcessingShader(shader_manager["screen"]);
+
+        MapLoader& map_loader = this->registry.ctx().at<MapLoader&>();
+        map_loader.connectAfterLoad<&RenderSystem::clearRenderQueries>(this);
     }
 
 void RenderSystem::update() {
@@ -87,6 +90,13 @@ void RenderSystem::sortEntities() {
         return (lhSpacial.pos.y + lhSpacial.dim.y) * ((lhSpacial.pos.z + 1)*10) < (rhSpacial.pos.y + rhSpacial.dim.y) * ((rhSpacial.pos.z + 1)*10);
 
     }, entt::insertion_sort {}); // Insertion sort is much faster as the spacials will generally be "mostly sorted"
+}
+
+void RenderSystem::clearRenderQueries(entt::registry& registry) {
+    this->render_query->clear();
+    this->last_render_query->clear();
+    this->registry.clear<ToRender>();
+    this->registry.clear<ToRenderTile>();
 }
 
 void RenderSystem::updateModels() {

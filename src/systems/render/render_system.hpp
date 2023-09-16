@@ -29,6 +29,7 @@
 #include "component_grid.hpp"
 #include "shader_manager.hpp"
 #include "sprite_sheet_atlas.hpp"
+#include "map_loader.hpp"
 
 #include "consts.hpp"
 
@@ -45,6 +46,7 @@ public:
 private:
     void cullEntities();
     void sortEntities();
+    void clearRenderQueries(entt::registry& registry);
 
     void updateModels();
 

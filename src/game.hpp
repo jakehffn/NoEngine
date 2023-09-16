@@ -34,7 +34,7 @@
 #include "animation_system.hpp"
 #include "camera_system.hpp"
 #include "gui_system.hpp"
-#include "map_loader_system.hpp"
+#include "map_loader.hpp"
 #include "text_system.hpp"
 #include "state_machine_system.hpp"
 
@@ -59,7 +59,8 @@ struct Game {
     // This should be read from the map at some point
     TextureAtlas texture_atlas;
     SpriteSheetAtlas sprite_sheet_atlas;
-    ShaderManager shader_manager{ShaderManager(registry)};
+    ShaderManager shader_manager{ShaderManager(this->registry)};
+    MapLoader map_loader{MapLoader(this->registry)};
 
     GLuint screen_texture;
 

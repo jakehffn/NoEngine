@@ -3,6 +3,9 @@
 Game::Game(SDL_Window* window) : window{ window } {
         using namespace entt::literals;
 
+        this->renderable_grid.init(3200, 3200, 16);
+        this->collision_grid.init(3200, 3200, 16);
+
         this->registry.ctx().emplace<Clock&>(this->clock);
         this->registry.ctx().emplace_hint<Camera&>("world_camera"_hs, this->world_camera);
         this->registry.ctx().emplace_hint<Camera&>("gui_camera"_hs, this->gui_camera);
@@ -13,8 +16,8 @@ Game::Game(SDL_Window* window) : window{ window } {
         this->registry.ctx().emplace<ComponentGrid<Renderable>&>(this->renderable_grid);
         this->registry.ctx().emplace<ComponentGrid<Collision>&>(this->collision_grid);
         this->registry.ctx().emplace<ShaderManager&>(this->shader_manager);
+        this->registry.ctx().emplace<MapLoader&>(this->map_loader);
 
-        this->systems.push_back(new MapLoaderSystem(this->registry));
         this->systems.push_back(new TextSystem(this->registry));
         this->systems.push_back(new StateMachineSystem(this->registry));
         this->systems.push_back(new InputSystem(this->registry));
@@ -32,7 +35,7 @@ Game::Game(SDL_Window* window) : window{ window } {
         //  monitor patches during creation of entities
 
         const auto map = this->registry.create();
-        this->registry.emplace<MapLoader>(map, "./assets/maps/Test/test.tmx");
+        this->registry.emplace<LoadMap>(map, "./assets/maps/Test/test.tmx");
 
         // auto entity = this->registry.create();
         // ResourceLoader::create(registry, entity, "FpsCounterEntity");
@@ -71,6 +74,7 @@ void Game::mainLoop(void (*debugCallback)()) {
             {
                 DEBUG_TIMER(context_timer, "Context Updates");
                 this->clock.tick();
+                this->map_loader.loadIfQueued();
                 this->input_manager.update();
                 this->renderable_grid.update();
                 this->collision_grid.update();
