@@ -1,19 +1,16 @@
 #include "map_loader.hpp"
 
-MapLoader::MapLoader(entt::registry& registry) : registry{registry} {
-    this->registry.on_construct<LoadMap>().connect<&MapLoader::queueLoad>(this);
-}
+MapLoader::MapLoader(entt::registry& registry) : registry{registry} {}
 
-void MapLoader::queueLoad(entt::registry& registry, entt::entity entity) {
-    this->queued_map_loader_entity = entity;
+void MapLoader::queueLoad(const char* map_path) {
+    this->queued_map_path = map_path;
 }
 
 void MapLoader::loadIfQueued() {
-    if (this->queued_map_loader_entity != entt::null) {
-        auto& load_map = this->registry.get<LoadMap>(this->queued_map_loader_entity);
-        this->loadTiledMap(load_map.map_path.c_str());
+    if (this->queued_map_path != NULL) {
+        this->loadTiledMap(this->queued_map_path);
     }
-    this->queued_map_loader_entity = entt::null;
+    this->queued_map_path = NULL;
 }
 
 void MapLoader::loadTiledMap(const char* map_path) {
@@ -108,9 +105,7 @@ void MapLoader::addObject(const tmx::Map& map, const tmx::Object& object) {
             this->addCollision(entity, tile);
             
             // Prefab goes last so things can be removed if needed
-            if (!ResourceLoader::create(registry, entity, prefab_name)) {
-                ResourceLoader::createDefault(registry, entity, tile->imagePath);
-            }
+            registry.emplace<LoadPrefab>(entity, prefab_name, tile->imagePath);
             // No need to search anymore if the tile has been found in a tile_set
             break;
         }
@@ -151,8 +146,17 @@ void MapLoader::addTilesets(tmx::Map& map) {
         const auto& tile_set_entity = this->registry.create();
 
         std::string sprite_sheet_name = std::filesystem::path(tile_set.getImagePath()).stem().string(); 
-        std::string resource_id = ResourceLoader::getResourceIdFromSpecificPath(tile_set.getImagePath()); 
+        auto resource_folder_nonrelative = constant::RESOURCE_FOLDER.substr(2);
 
+        std::string specific_resource_path{tile_set.getImagePath()};
+        size_t resource_id_start = specific_resource_path.find(resource_folder_nonrelative) + 
+            resource_folder_nonrelative.length();
+
+        std::string resource_id = specific_resource_path.substr(
+            resource_id_start,
+            specific_resource_path.find_last_of('/') - resource_id_start
+        );
+        
         this->registry.emplace<TileSet>(tile_set_entity, (int)dimensions.x, (int)dimensions.y, (int)tile_set.getFirstGID(), (int)tile_set.getLastGID());
         // Animations and textures for tiles are handled by the tile_set. 
         //      Animations for all tiles in the tile_set can then be done at once

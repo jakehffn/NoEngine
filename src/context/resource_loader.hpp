@@ -16,21 +16,25 @@
 #include "custom_cursor.hpp"
 #include "fps_counter_entity.hpp"
 
-namespace ResourceLoader {
-    static std::unordered_map<std::string, void (*)(entt::registry&, entt::entity)> prefabs{
-        {"Kid", Kid},
-        {"TestNpc", TestNpc},
-        {"TestNpc2", TestNpc2},
-        {"CustomCursor", CustomCursor},
-        {"FpsCounterEntity", FpsCounterEntity}
-    };
+class ResourceLoader {
+public:
+    ResourceLoader(entt::registry& registry);
 
-    bool create(entt::registry& registry, entt::entity entity, std::string prefab_name);
+    void create(entt::registry& registry, entt::entity entity);
 
     // A resource is a folder of related files for an entity
     // The resource id is the portion of the path of the folder relative to the base assets folder
     // Eg. for the sprite at "C:Users/.../assets/characters/kid/kid.png", resource id would be "characters/kid"
     std::string getResourceIdFromSpecificPath(std::string specific_resource_path);
 
-    void createDefault(entt::registry& registry, entt::entity entity, std::string image_path);
-}
+    void createDefault(entt::registry& registry, entt::entity entity);
+    
+    std::unordered_map<std::string, void (*)(entt::registry&, entt::entity)> prefabs{
+        {"Kid", Kid},
+        {"TestNpc", TestNpc},
+        {"TestNpc2", TestNpc2},
+        {"CustomCursor", CustomCursor},
+        {"FpsCounterEntity", FpsCounterEntity}
+    };
+    entt::registry& registry;
+};

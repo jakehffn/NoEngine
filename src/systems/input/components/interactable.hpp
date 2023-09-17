@@ -1,3 +1,7 @@
 #pragma once
 
-struct Interactable {};
+#include <functional>
+
+struct Interactable {
+    std::function<void(entt::registry&, entt::entity)> action;
+};

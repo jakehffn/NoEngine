@@ -24,7 +24,6 @@
 #include "persistent.hpp"
 
 #include "map_loader.hpp"
-#include "load_map.hpp"
 
 #include "system.hpp"
 

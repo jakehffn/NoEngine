@@ -15,7 +15,6 @@
 
 #include "System.hpp"
 
-#include "load_map.hpp"
 #include "animation.hpp"
 
 #include "spacial.hpp"
@@ -30,7 +29,8 @@
 
 #include "sprite_sheet_atlas.hpp"
 #include "component_grid.hpp"
-#include "resource_loader.hpp"
+#include "load_prefab.hpp"
+#include "load_default_prefab.hpp"
 
 #include "debug_timer.hpp"
 
@@ -40,6 +40,7 @@ public:
     MapLoader(MapLoader&&) = default;
     MapLoader& operator=(MapLoader&&) = default;
 
+    void queueLoad(const char* map_path);
     void loadIfQueued();
 
     template<auto Func>
@@ -66,7 +67,6 @@ public:
         sink.connect<Func>(instance);
     }
 private:
-    void queueLoad(entt::registry& registry, entt::entity entity);
     void loadTiledMap(const char* map_path);
 
     void addObjects(const tmx::Map& map);
@@ -77,7 +77,7 @@ private:
     void addCollision(entt::entity entity, const tmx::Tileset::Tile* tile);
 
     entt::registry& registry;
-    entt::entity queued_map_loader_entity{entt::null};
+    const char* queued_map_path{NULL};
 
     entt::sigh<void(entt::registry&)> before_destroy;
     entt::sigh<void(entt::registry&)> after_load;

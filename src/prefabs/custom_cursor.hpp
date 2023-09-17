@@ -13,6 +13,7 @@
 #include "sprite_sheet_atlas.hpp"
 #include "component_grid_ignore.hpp"
 #include "gui_element.hpp"
+#include "persistent.hpp"
 
 static void CustomCursor(entt::registry& registry, entt::entity entity) {
     auto& sprite_sheet_atlas = registry.ctx().at<SpriteSheetAtlas&>();
@@ -36,4 +37,5 @@ static void CustomCursor(entt::registry& registry, entt::entity entity) {
     registry.emplace<Spacial>(entity);
 
     registry.emplace<GuiElement>(entity);
+    registry.emplace<Persistent>(entity);
 }

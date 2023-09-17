@@ -5,8 +5,7 @@ InputSystem::InputSystem (entt::registry& registry) : System(registry) {
     map_loader.connectAfterLoad<&InputSystem::clearHoveredQueries, InputSystem*>(this);
 
     this->cursor_entity = this->registry.create();
-    ResourceLoader::create(this->registry, this->cursor_entity, "CustomCursor");
-    this->registry.emplace<Persistent>(this->cursor_entity);
+    this->registry.emplace<LoadPrefab>(this->cursor_entity, "CustomCursor");
     
     this->player_interacter_entity = this->registry.create();
     this->registry.emplace<Interacter>(player_interacter_entity);
@@ -127,18 +126,10 @@ void InputSystem::updatePlayerInteract() {
     auto collision = this->registry.get<Collision>(this->player_interacter_entity);
 
     if (input_manager.isAdded(SDLK_SPACE)) {
-        if (collision.collisions.size() > 0) {
-            std::cout << "Interaction!!!!" << std::endl;
-        }
         for (auto entity : collision.collisions) {
-            if (this->registry.all_of<StateMachine>(entity)) {
-                if (this->registry.all_of<Name>(entity)) {
-                    const auto map = this->registry.create();
-                    this->registry.emplace<LoadMap>(map, "./assets/maps/TestOther/testOther.tmx");
-                } else {
-                    const auto map = this->registry.create();
-                    this->registry.emplace<LoadMap>(map, "./assets/maps/Test/test.tmx");
-                }
+            if (this->registry.all_of<Interactable>(entity)) {
+                this->registry.get<Interactable>(entity).action(this->registry, entity);
+                break;
             }
         }
     }

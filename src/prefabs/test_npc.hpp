@@ -13,6 +13,10 @@
 #include "velocity.hpp"
 #include "state_machine.hpp"
 #include "state_machine_builder.hpp"
+#include "interactable.hpp"
+
+class MapLoader;
+#include "map_loader.hpp"
 
 static void TestNpc(entt::registry& registry, entt::entity entity) {
     registry.emplace<Collider>(entity);
@@ -31,6 +35,11 @@ static void TestNpc(entt::registry& registry, entt::entity entity) {
     registry.emplace<MoveAnimation>(entity, registry, sprite_sheet_id, "Move_Up", "Move_Down", "Move_Left", "Move_Right");
 
     registry.emplace<Name>(entity, sprite_sheet_name);
+
+    registry.emplace<Interactable>(entity, [](entt::registry& reg, entt::entity entity) {
+        auto& map_loader = reg.ctx().at<MapLoader&>();
+        map_loader.queueLoad("./assets/maps/TestOther/testOther.tmx");
+    });
 
     registry.emplace<StateMachine>(entity, 
         StateMachineBuilder()

@@ -17,6 +17,7 @@ Game::Game(SDL_Window* window) : window{ window } {
         this->registry.ctx().emplace<ComponentGrid<Collision>&>(this->collision_grid);
         this->registry.ctx().emplace<ShaderManager&>(this->shader_manager);
         this->registry.ctx().emplace<MapLoader&>(this->map_loader);
+        this->registry.ctx().emplace<ResourceLoader&>(this->resource_loader);
 
         this->systems.push_back(new TextSystem(this->registry));
         this->systems.push_back(new StateMachineSystem(this->registry));
@@ -35,7 +36,7 @@ Game::Game(SDL_Window* window) : window{ window } {
         //  monitor patches during creation of entities
 
         const auto map = this->registry.create();
-        this->registry.emplace<LoadMap>(map, "./assets/maps/Test/test.tmx");
+        this->map_loader.queueLoad("./assets/maps/Test/test.tmx");
 
         // auto entity = this->registry.create();
         // ResourceLoader::create(registry, entity, "FpsCounterEntity");

@@ -61,6 +61,7 @@ struct Game {
     SpriteSheetAtlas sprite_sheet_atlas;
     ShaderManager shader_manager{ShaderManager(this->registry)};
     MapLoader map_loader{MapLoader(this->registry)};
+    ResourceLoader resource_loader{ResourceLoader(this->registry)};
 
     GLuint screen_texture;
 
