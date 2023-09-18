@@ -146,7 +146,7 @@ void MapLoader::addTilesets(tmx::Map& map) {
         const auto& tile_set_entity = this->registry.create();
 
         std::string sprite_sheet_name = std::filesystem::path(tile_set.getImagePath()).stem().string(); 
-        auto resource_folder_nonrelative = constant::RESOURCE_FOLDER.substr(2);
+        auto resource_folder_nonrelative = globals::RESOURCE_FOLDER.substr(2);
 
         std::string specific_resource_path{tile_set.getImagePath()};
         size_t resource_id_start = specific_resource_path.find(resource_folder_nonrelative) + 

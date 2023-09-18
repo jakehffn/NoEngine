@@ -31,7 +31,7 @@
 #include "sprite_sheet_atlas.hpp"
 #include "map_loader.hpp"
 
-#include "consts.hpp"
+#include "globals.hpp"
 
 #include "debug_timer.hpp"
 #include "render_collision.hpp"

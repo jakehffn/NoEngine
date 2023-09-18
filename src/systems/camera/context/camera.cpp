@@ -5,10 +5,10 @@ Camera::Camera() :
     position{ glm::vec3(0, 0, 0) }, view_matrix{ glm::mat4(1.0f) } {
         this->zoom = 3.0f;
 
-        float left = (constant::SCREEN_WIDTH - (constant::SCREEN_WIDTH/this->zoom)) / 2;
-        float right = left + float(constant::SCREEN_WIDTH/this->zoom);
-        float top = (constant::SCREEN_HEIGHT - (constant::SCREEN_HEIGHT/this->zoom)) / 2;
-        float bottom = top + float(constant::SCREEN_HEIGHT/this->zoom);
+        float left = (globals::SCREEN_WIDTH - (globals::SCREEN_WIDTH/this->zoom)) / 2;
+        float right = left + float(globals::SCREEN_WIDTH/this->zoom);
+        float top = (globals::SCREEN_HEIGHT - (globals::SCREEN_HEIGHT/this->zoom)) / 2;
+        float bottom = top + float(globals::SCREEN_HEIGHT/this->zoom);
 
         this->projection_matrix = glm::ortho(left, right, 
             bottom, top, -100.0f, 100.0f);
@@ -40,8 +40,8 @@ glm::vec3& Camera::getPosition() {
 }
 
 void Camera::update() {
-    float x_offset = constant::SCREEN_WIDTH/2;
-    float y_offset = constant::SCREEN_HEIGHT/2;
+    float x_offset = globals::SCREEN_WIDTH/2;
+    float y_offset = globals::SCREEN_HEIGHT/2;
 
     glm::vec3 offset(x_offset, y_offset, 0);
 

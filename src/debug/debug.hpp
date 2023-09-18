@@ -21,6 +21,8 @@ private:
     void showEntityViewer();
     void showShaderViewer();
 
+    void removeSelectedEntity();
+
     Game* game;
 
     // Texture atlas
@@ -33,6 +35,8 @@ private:
     // Shader Viewer
     bool open_shader_viewer = false;
     ShaderProgram* selected_shader = NULL;
+    bool auto_scroll{true};
+    bool scroll_to_botton{false};
 
     // Collision
     bool show_collision_boxes{false};

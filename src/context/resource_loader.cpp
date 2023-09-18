@@ -18,7 +18,7 @@ void ResourceLoader::create(entt::registry& registry, entt::entity entity) {
 // The resource id is the portion of the path of the folder relative to the base assets folder
 // Eg. for the sprite at "C:Users/.../assets/characters/kid/kid.png", resource id would be "characters/kid"
 std::string ResourceLoader::getResourceIdFromSpecificPath(std::string specific_resource_path) {
-    auto resource_folder_nonrelative = constant::RESOURCE_FOLDER.substr(2);
+    auto resource_folder_nonrelative = globals::RESOURCE_FOLDER.substr(2);
 
     size_t resource_id_start = specific_resource_path.find(resource_folder_nonrelative) + 
         resource_folder_nonrelative.length();

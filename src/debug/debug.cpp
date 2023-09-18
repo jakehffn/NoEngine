@@ -74,21 +74,25 @@ void DebugWindow::showTextureAtlas() {
 }
 
 void DebugWindow::showEntityViewer() {
-    ImGui::SetNextWindowSize({500, 440}, 0);
+    if (!this->game->registry.valid(this->selected_entity)) {
+        this->selected_entity = entt::null;
+    }
+
+    ImGui::SetNextWindowSize({800, 440}, 0);
     if (ImGui::Begin("Entity Viewer", &this->open_entity_viewer, 
         ImGuiWindowFlags_NoCollapse |
         ImGuiWindowFlags_NoResize
     )) {
-        ImGui::BeginChild("left pane", ImVec2(150, 0), true);
+        ImGui::BeginChild("left pane", ImVec2(350, 0), true);
         auto visible_entities = this->game->registry.view<Spacial, Texture, ToRender>();
         for (const auto entity : visible_entities) {
             auto [spacial, texture] = visible_entities.get<Spacial, Texture>(entity);
             char label[128];
             if (this->game->registry.all_of<Name>(entity)) {
                 auto name = this->game->registry.get<Name>(entity);
-                sprintf(label, "%5d %s", (int)entity, name.name.c_str());
+                sprintf(label, "%10d %s", (int)entity, name.name.c_str());
             } else {
-                sprintf(label, "%5d %s", (int)entity, "<unnamed>");
+                sprintf(label, "%10d %s", (int)entity, "<unnamed>");
             }
             if (ImGui::Selectable(label, this->selected_entity == entity)) {
                 this->selected_entity = entity;
@@ -101,9 +105,9 @@ void DebugWindow::showEntityViewer() {
             auto [spacial, texture] = this->game->registry.get<Spacial, Texture>(this->selected_entity);
             if (this->game->registry.all_of<Name>(this->selected_entity)) {
                 auto name = this->game->registry.get<Name>(this->selected_entity);
-                ImGui::Text("%5d %s", (int)this->selected_entity, name.name.c_str());
+                ImGui::Text("%10d %s", (int)this->selected_entity, name.name.c_str());
             } else {
-                ImGui::Text("%5d %s", (int)this->selected_entity, "<unnamed>");
+                ImGui::Text("%10d %s", (int)this->selected_entity, "<unnamed>");
             }
             ImGui::Separator();
 
@@ -113,27 +117,27 @@ void DebugWindow::showEntityViewer() {
             const float max_texture_dimension = std::max(texture.frame_data->size.x, texture.frame_data->size.y);
             float edge_spacing = 1.2f * max_texture_dimension * camera.getZoom();
             const float preview_start_x = spacial.pos.x * camera.getZoom() - // Position of entity in pixels
-                (camera.getPosition().x * camera.getZoom() - ((float)constant::SCREEN_WIDTH/2.0f)) - // Position of edge of camera in pixels
+                (camera.getPosition().x * camera.getZoom() - ((float)globals::SCREEN_WIDTH/2.0f)) - // Position of edge of camera in pixels
                 edge_spacing;
             const float preview_start_y = -spacial.pos.y * camera.getZoom() + 
-                (camera.getPosition().y * camera.getZoom() - (float)constant::SCREEN_HEIGHT/2.0f) + 
+                (camera.getPosition().y * camera.getZoom() - (float)globals::SCREEN_HEIGHT/2.0f) + 
                 edge_spacing;
             const float preview_end_x = (spacial.pos.x + max_texture_dimension) * camera.getZoom() - 
-                (camera.getPosition().x * camera.getZoom() - ((float)constant::SCREEN_WIDTH/2.0f)) +
+                (camera.getPosition().x * camera.getZoom() - ((float)globals::SCREEN_WIDTH/2.0f)) +
                 edge_spacing;
             const float preview_end_y = (-spacial.pos.y - max_texture_dimension) * camera.getZoom() + 
-                (camera.getPosition().y * camera.getZoom() - ((float)constant::SCREEN_HEIGHT/2.0f)) -
+                (camera.getPosition().y * camera.getZoom() - ((float)globals::SCREEN_HEIGHT/2.0f)) -
                 edge_spacing;
             ImGui::Image(
                 (void*)(intptr_t)this->game->screen_texture,
                 {100, 100},
                 {
-                    preview_start_x / (float)constant::SCREEN_WIDTH,
-                    preview_start_y / (float)constant::SCREEN_HEIGHT
+                    preview_start_x / (float)globals::SCREEN_WIDTH,
+                    preview_start_y / (float)globals::SCREEN_HEIGHT
                 },
                 {
-                    preview_end_x / (float)constant::SCREEN_WIDTH,
-                    preview_end_y / (float)constant::SCREEN_HEIGHT
+                    preview_end_x / (float)globals::SCREEN_WIDTH,
+                    preview_end_y / (float)globals::SCREEN_HEIGHT
                 }
             );
             ImGui::SameLine();
@@ -157,15 +161,30 @@ void DebugWindow::showEntityViewer() {
                 }
             );
             ImGui::Separator();
-            ImGui::Text("Spacial");
-            ImGui::Indent();
-            ImGui::Text("Position: \n\tx: %.2f \n\ty: %.2f \n\tz: %.2f", spacial.pos.x, spacial.pos.y, spacial.pos.z);
-            ImGui::Text("Rotation: \n\tx: %.2f \n\ty: %.2f \n\tz: %.2f", spacial.rot.x, spacial.rot.y, spacial.rot.z);
-            ImGui::Text("Scale: \n\tx: %.2f \n\ty: %.2f \n\tz: %.2f", spacial.scale.x, spacial.scale.y, spacial.scale.z);
-            ImGui::Text("Dimensions: \n\tx: %.2f \n\ty: %.2f", spacial.dim.x, spacial.dim.y);
-            const char* direction_string[]{"", "UP", "DOWN", "LEFT", "RIGHT"};
-            ImGui::Text("Direction: %s", direction_string[spacial.direction]);
-            ImGui::Unindent();
+            this->game->registry.patch<Spacial>(this->selected_entity, [this](auto& s) {
+                ImGui::Text("Spacial");
+                ImGui::Indent();
+                ImGui::Text("Position: \n\tx: %.2f \n\ty: %.2f \n\tz: %.2f", s.pos.x, s.pos.y, s.pos.z);
+
+                ImGui::TextUnformatted("Rotation");
+                ImGui::SliderFloat3("##1", &s.rot[0], -6.0f, 6.0f);
+                ImGui::SameLine();
+                if (ImGui::Button("Reset##1")) {
+                    s.rot = glm::vec3(0, 0, 0);
+                }
+
+                ImGui::TextUnformatted("Scale");
+                ImGui::SliderFloat2("##2", &s.scale[0], 0.01f, 10.0f);
+                ImGui::SameLine();
+                if (ImGui::Button("Reset##2")) {
+                    s.scale = glm::vec3(1, 1, 1);
+                }
+
+                ImGui::Text("Dimensions: \n\tx: %.2f \n\ty: %.2f", s.dim.x, s.dim.y);
+                const char* direction_string[]{"", "UP", "DOWN", "LEFT", "RIGHT"};
+                ImGui::Text("Direction: %s", direction_string[s.direction]);
+                ImGui::Unindent();
+            });
         }
         ImGui::EndChild();
     }
@@ -173,12 +192,12 @@ void DebugWindow::showEntityViewer() {
 }
 
 void DebugWindow::showShaderViewer() {
-    ImGui::SetNextWindowSize({500, 440}, 0);
+    ImGui::SetNextWindowSize({800, 500}, 0);
     if (ImGui::Begin("Shader Viewer", &this->open_shader_viewer, 
         ImGuiWindowFlags_NoCollapse |
         ImGuiWindowFlags_NoResize
     )) {
-        ImGui::BeginChild("left pane", ImVec2(250, 0), true);
+        ImGui::BeginChild("left pane", ImVec2(300, 220), true);
         for (auto& [shader_name, shader_program] : this->game->shader_manager.shaders) {
             if (ImGui::Selectable(shader_name.c_str(), this->selected_shader == shader_program)) {
                 this->selected_shader = shader_program;
@@ -186,13 +205,42 @@ void DebugWindow::showShaderViewer() {
         }
         ImGui::EndChild();
         ImGui::SameLine();
-        ImGui::BeginChild("error view", ImVec2(0, -ImGui::GetFrameHeightWithSpacing())); // Leave room for 1 line below us
+        ImGui::BeginChild("action window", ImVec2(0, 220)); 
         if (this->selected_shader != NULL) {
             ImGui::Spacing();
             if (ImGui::Button("Recompile")) {
                 this->selected_shader->recompile();
             }
         }
+        ImGui::EndChild();
+        ImGui::BeginChild("error view", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar); 
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 1)); 
+        for (auto log : this->game->shader_manager.logs) {
+            const char* message = log.c_str();
+            ImVec4 color;
+            bool has_color = false;
+            if (strstr(message, "[error]")) { 
+                color = ImVec4(1.0f, 0.4f, 0.4f, 1.0f); has_color = true; 
+            } else if (strstr(message, "[status]")) { 
+                color = ImVec4(1.0f, 0.7f, 0.5f, 1.0f); has_color = true; 
+            }
+            if (has_color) {
+                ImGui::PushStyleColor(ImGuiCol_Text, color);
+            }
+            ImGui::TextUnformatted(message);
+            if (has_color) {
+                ImGui::PopStyleColor();
+            }
+        }
+
+        // Keep up at the bottom of the scroll region if we were already at the bottom at the beginning of the frame.
+        // Using a scrollbar or mouse-wheel will take away from the bottom edge.
+        if (this->scroll_to_botton || (this->auto_scroll && ImGui::GetScrollY() >= ImGui::GetScrollMaxY())) {   
+            ImGui::SetScrollHereY(1.0f);
+        }
+        this->scroll_to_botton = false;
+
+        ImGui::PopStyleVar();
         ImGui::EndChild();
     }
     ImGui::End();

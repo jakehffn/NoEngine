@@ -1,7 +1,7 @@
 #include <vector>
 #include <iostream>
 
-#include "consts.hpp"
+#include "globals.hpp"
 #include "shader_program.hpp"
 #include "clock.hpp"
 #include "camera.hpp"
@@ -19,33 +19,28 @@ public:
         ShaderProgram* shader_program
     );
     void render();
-    void present();
 
+    void renderPostProcessing(ShaderProgram* shader_program);
+    void present(ShaderProgram* shader_program);
 
     GLuint getScreenTexture();
-    void setPostProcessingShader(ShaderProgram* shader_program);
 
 private:
     void initVAO();
     void initVBOs();
-    void initScreenFBO();
+    void initScreenFBOs();
     void initPixelPassFBO();
     void initFinalFBO();
 
     void bufferData(size_t start, size_t end);
     void renderPartialBuffer(size_t start, size_t end, ShaderProgram* shader_program);
 
-    void renderPostProcessing();
     
     GLuint vao;
-    GLuint screen_fbo;
-    GLuint screen_texture;
-
-    GLuint pixel_pass_fbo;
-    GLuint pixel_pass_texture;
-
-    GLuint final_fbo;
-    GLuint final_texture;
+    GLuint current_screen_fbo;
+    GLuint other_screen_fbo;
+    GLuint current_screen_texture;
+    GLuint other_screen_texture;
 
     GLuint texture_coordinates_vbo;
     std::vector<glm::vec4> texture_coordinates_buffer_data; 
@@ -54,7 +49,6 @@ private:
     std::vector<glm::mat4> models_buffer_data;
 
     std::vector<ShaderProgram*> shader_programs;
-    ShaderProgram* post_processing_shader;
 
     size_t max_buffer_size{0}; 
 };

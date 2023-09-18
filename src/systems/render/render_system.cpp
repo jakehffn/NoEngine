@@ -7,7 +7,6 @@ RenderSystem::RenderSystem(entt::registry& registry) : System(registry),
         this->registry.on_construct<Texture>().connect<&RenderSystem::initModel>();
         this->registry.on_construct<Tile>().connect<&RenderSystem::initTileModel>();
         auto& shader_manager = this->registry.ctx().at<ShaderManager&>();
-        this->renderer.setPostProcessingShader(shader_manager["screen"]);
 
         MapLoader& map_loader = this->registry.ctx().at<MapLoader&>();
         map_loader.connectAfterLoad<&RenderSystem::clearRenderQueries>(this);
@@ -20,7 +19,6 @@ void RenderSystem::update() {
     this->sortEntities();
     this->updateModels();
     this->render();
-    this->renderer.present();
 }
 
 Renderer* RenderSystem::getRenderer() {
@@ -142,6 +140,7 @@ glm::mat4 RenderSystem::getModel(const Spacial& spacial, const Texture& texture,
 
     glm::vec3 scale_vector = glm::vec3(spacial.scale.x, spacial.scale.y, spacial.scale.z);
     glm::vec3 dimensions_vector = glm::vec3(texture.frame_data->size.x, texture.frame_data->size.y, 1);
+    glm::vec3 size_vector = scale_vector*dimensions_vector;
 
     glm::mat4 scale = glm::scale(glm::mat4(1), scale_vector*dimensions_vector);
 
@@ -152,8 +151,11 @@ glm::mat4 RenderSystem::getModel(const Spacial& spacial, const Texture& texture,
     glm::vec3 normalized_position = glm::vec3(glm::ivec3(spacial.pos*camera_zoom) + glm::ivec3(0.5, 0.5, 0))/camera_zoom;
     glm::mat4 translate = glm::translate(glm::mat4(1), normalized_position + (offset*scale_vector));
 
+    glm::mat4 center = glm::translate(glm::mat4(1), -1.0f * (size_vector/2.0f + offset/2.0f));
+    glm::mat4 uncenter = glm::translate(glm::mat4(1), (size_vector/2.0f + offset/2.0f));
+
     // Order matters
-    return (translate * scale * rotate);
+    return (translate * uncenter * rotate * center * scale);
 }
 
 glm::mat4 RenderSystem::getTileModel(const Spacial& spacial) {
@@ -182,12 +184,15 @@ void RenderSystem::initTileModel(entt::registry& registry, entt::entity entity) 
 }
 
 void RenderSystem::render() {
+    DEBUG_TIMER(_, "RenderSystem::render");
+
     auto& shader_manager = this->registry.ctx().at<ShaderManager&>();
 
     using namespace entt::literals;
     Camera& camera = registry.ctx().at<Camera&>("world_camera"_hs);
     shader_manager["instanced"]->setUniform("P", &camera.getProjectionMatrix()[0][0]);
     shader_manager["instanced"]->setUniform("V", &camera.getViewMatrix()[0][0]);
+    shader_manager["instanced"]->setUniform("camera_zoom", &camera.getZoom());
 
     // Tiles need to be rendered under the other textures
     this->registry.view<Model, Tile, ToRenderTile>().each([this, &shader_manager](auto& model, auto& tile) {  
@@ -206,8 +211,12 @@ void RenderSystem::render() {
         this->renderer.queue(texture_data, model.model, shader_manager["instanced"]);
     });
 
+    this->renderer.render();
+    this->renderer.renderPostProcessing(shader_manager["screen_blur"]);
+
     shader_manager["instanced_sharp_outline"]->setUniform("P", &camera.getProjectionMatrix()[0][0]);
     shader_manager["instanced_sharp_outline"]->setUniform("V", &camera.getViewMatrix()[0][0]);
+    shader_manager["instanced_sharp_outline"]->setUniform("camera_zoom", &camera.getZoom());
 
     this->registry.view<Texture, Model, ToRender, Outline>(entt::exclude<Text, Tile>).use<ToRender>().each([this, &shader_manager](const auto entity, auto& texture, auto& model) {  
         glm::vec4 texture_data = glm::vec4(texture.frame_data->position.x, texture.frame_data->position.y, 
@@ -221,6 +230,7 @@ void RenderSystem::render() {
     Camera& gui_camera = registry.ctx().at<Camera&>("gui_camera"_hs);
     shader_manager["instanced"]->setUniform("P", &gui_camera.getProjectionMatrix()[0][0]);
     shader_manager["instanced"]->setUniform("V", &gui_camera.getViewMatrix()[0][0]);
+    shader_manager["instanced"]->setUniform("camera_zoom", &camera.getZoom());
 
     this->registry.view<Texture, Model, GuiElement>().each([this, &shader_manager](const auto entity, auto& texture, auto& model) {  
         glm::vec4 texture_data = glm::vec4(texture.frame_data->position.x, texture.frame_data->position.y, 
@@ -234,6 +244,7 @@ void RenderSystem::render() {
     #ifndef NDEBUG
         shader_manager["instanced_inline"]->setUniform("P", &camera.getProjectionMatrix()[0][0]);
         shader_manager["instanced_inline"]->setUniform("V", &camera.getViewMatrix()[0][0]);
+        shader_manager["instanced_inline"]->setUniform("camera_zoom", &camera.getZoom());
 
         this->registry.view<Collision, Spacial, RenderCollision>().each([this, &shader_manager](
             const auto entity, 
@@ -256,4 +267,6 @@ void RenderSystem::render() {
         });
         this->renderer.render();
     #endif
+    this->renderer.renderPostProcessing(shader_manager["screen"]);
+    this->renderer.present(shader_manager["screen"]);
 }

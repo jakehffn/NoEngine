@@ -10,7 +10,7 @@
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>
 
-#include "consts.hpp"
+#include "globals.hpp"
 #include "animation_structs.hpp"
 #include "texture_atlas.hpp"
 

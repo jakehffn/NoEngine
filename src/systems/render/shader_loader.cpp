@@ -14,8 +14,11 @@
 #include <GL/glew.h>
 
 
-GLuint LoadShaders(const char * vertex_file_path, const char * fragment_file_path){
+GLuint LoadShaders(const char * vertex_file_path, const char * fragment_file_path, std::vector<std::string>& logs){
 
+	#ifndef NDEBUG
+		std::stringstream log_stream;
+	#endif
 	// Create the shaders
 	GLuint vertex_shader_id = glCreateShader(GL_VERTEX_SHADER);
 	GLuint fragment_shader_id = glCreateShader(GL_FRAGMENT_SHADER);
@@ -34,7 +37,9 @@ GLuint LoadShaders(const char * vertex_file_path, const char * fragment_file_pat
 	}else{
 
 		#ifndef NDEBUG
-			std::cerr << "Unable to load vertex shader source: " << vertex_file_path << "\n";
+			log_stream << "[error]:  Unable to load vertex shader source: " << vertex_file_path << "\n";
+			logs.push_back(log_stream.str());
+			log_stream.str(std::string());
 		#endif
 
 		getchar();
@@ -62,7 +67,12 @@ GLuint LoadShaders(const char * vertex_file_path, const char * fragment_file_pat
 	// Compile Vertex Shader
 
 	#ifndef NDEBUG
-		std::cout << "Compiling shader : " << vertex_file_path << "\n";
+		log_stream << "[status]: Compiling shader";
+		logs.push_back(log_stream.str());
+		log_stream.str(std::string());
+		log_stream << "[info]:   " << vertex_file_path << "\n";
+		logs.push_back(log_stream.str());
+		log_stream.str(std::string());
 	#endif
 
 	char const * vertex_source_pointer = vertex_shader_source.c_str();
@@ -79,7 +89,9 @@ GLuint LoadShaders(const char * vertex_file_path, const char * fragment_file_pat
 
 			std::vector<char> vertex_shader_error_message(info_log_length+1);
 			glGetShaderInfoLog(vertex_shader_id, info_log_length, NULL, &vertex_shader_error_message[0]);
-			std::cerr << &vertex_shader_error_message[0] << "\n";
+			log_stream << "[error]:  " << &vertex_shader_error_message[0] << "\n";
+			logs.push_back(log_stream.str());
+			log_stream.str(std::string());
 		}
 
 	#endif
@@ -87,7 +99,12 @@ GLuint LoadShaders(const char * vertex_file_path, const char * fragment_file_pat
 	// Compile Fragment Shader
 
 	#ifndef NDEBUG
-		std::cout << "Compiling shader : " << fragment_file_path << "\n";
+		log_stream << "[status]: Compiling shader";
+		logs.push_back(log_stream.str());
+		log_stream.str(std::string());
+		log_stream << "[info]:   " << fragment_file_path << "\n";
+		logs.push_back(log_stream.str());
+		log_stream.str(std::string());
 	#endif
 
 	char const * fragment_source_pointer = fragment_shader_source.c_str();
@@ -104,7 +121,9 @@ GLuint LoadShaders(const char * vertex_file_path, const char * fragment_file_pat
 
 			std::vector<char> fragment_shader_error_message(info_log_length+1);
 			glGetShaderInfoLog(fragment_shader_id, info_log_length, NULL, &fragment_shader_error_message[0]);
-			std::cerr << &fragment_shader_error_message[0] << "\n";
+			log_stream << "[error]:  " << &fragment_shader_error_message[0] << "\n";
+			logs.push_back(log_stream.str());
+			log_stream.str(std::string());
 		}
 
 	#endif
@@ -113,7 +132,9 @@ GLuint LoadShaders(const char * vertex_file_path, const char * fragment_file_pat
 	// Link the program
 
 	#ifndef NDEBUG
-		std::cout << "Linking program\n";
+		log_stream << "[status]: Linking program\n";
+		logs.push_back(log_stream.str());
+		log_stream.str(std::string());
 	#endif
 
 	GLuint program_id = glCreateProgram();
@@ -130,7 +151,9 @@ GLuint LoadShaders(const char * vertex_file_path, const char * fragment_file_pat
 
 			std::vector<char> program_error_message(info_log_length+1);
 			glGetProgramInfoLog(program_id, info_log_length, NULL, &program_error_message[0]);
-			std::cerr << &program_error_message[0] << "\n";
+			log_stream << "[error]:  " << &program_error_message[0] << "\n";
+			logs.push_back(log_stream.str());
+			log_stream.str(std::string());
 		}
 
 	#endif

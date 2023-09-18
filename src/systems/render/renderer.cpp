@@ -8,22 +8,17 @@ Renderer::Renderer() {
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         this->initVAO();
-        this->initScreenFBO();
-        this->initPixelPassFBO();
-        this->initFinalFBO();
+        this->initScreenFBOs();
         this->initVBOs();
 }
 
 Renderer::~Renderer() {
-    glDeleteFramebuffers(1, &(this->screen_fbo));  
+    glDeleteFramebuffers(2, &this->current_screen_fbo);  
+    glDeleteFramebuffers(2, &this->other_screen_fbo);  
 }
 
 GLuint Renderer::getScreenTexture() {
-    return this->final_texture;
-}
-
-void Renderer::setPostProcessingShader(ShaderProgram* shader_program) {
-    this->post_processing_shader = shader_program;
+    return this->current_screen_texture;
 }
 
 void Renderer::initVAO() {
@@ -89,26 +84,26 @@ void Renderer::initVBOs() {
     glBindBuffer(GL_ARRAY_BUFFER, 0); 
 }
 
-void Renderer::initScreenFBO() {
-    glGenFramebuffers(1, &(this->screen_fbo));
-    glBindFramebuffer(GL_FRAMEBUFFER, this->screen_fbo);
+void Renderer::initScreenFBOs() {
+    glGenFramebuffers(1, &this->current_screen_fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, this->current_screen_fbo);
     glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
-    glGenTextures(1, &(this->screen_texture));
-    glBindTexture(GL_TEXTURE_2D, this->screen_texture);
+    glGenTextures(1, &this->current_screen_texture);
+    glBindTexture(GL_TEXTURE_2D, this->current_screen_texture);
     
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, constant::SCREEN_WIDTH, constant::SCREEN_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, globals::SCREEN_WIDTH, globals::SCREEN_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 
     // Counter-intuitively this should be linear and not nearest
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);  
 
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, this->screen_texture, 0); 
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, this->current_screen_texture, 0); 
     
     GLuint depth_stencil_buffer;
     glGenRenderbuffers(1, &depth_stencil_buffer);
     glBindRenderbuffer(GL_RENDERBUFFER, depth_stencil_buffer);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, constant::SCREEN_WIDTH, constant::SCREEN_HEIGHT);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, globals::SCREEN_WIDTH, globals::SCREEN_HEIGHT);
     glBindRenderbuffer(GL_RENDERBUFFER, 0);
     // attach render buffer to the fbo as depth buffer
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, depth_stencil_buffer);
@@ -116,45 +111,29 @@ void Renderer::initScreenFBO() {
     if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
         std::cerr << "ERROR: Framebuffer is not complete!" << std::endl;
     }
-    glBindFramebuffer(GL_FRAMEBUFFER, 0); 
-}
 
-void Renderer::initPixelPassFBO() {
-    glGenFramebuffers(1, &(this->pixel_pass_fbo));
-    glBindFramebuffer(GL_FRAMEBUFFER, this->pixel_pass_fbo);
+    glGenFramebuffers(1, &this->other_screen_fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, this->other_screen_fbo);
     glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
-    glGenTextures(1, &(this->pixel_pass_texture));
-    glBindTexture(GL_TEXTURE_2D, this->pixel_pass_texture);
+    glGenTextures(1, &this->other_screen_texture);
+    glBindTexture(GL_TEXTURE_2D, this->other_screen_texture);
     
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, constant::SCREEN_WIDTH / 5, constant::SCREEN_HEIGHT / 5, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, globals::SCREEN_WIDTH, globals::SCREEN_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);  
+    // Counter-intuitively this should be linear and not nearest
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);  
 
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, this->pixel_pass_texture, 0); 
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, this->other_screen_texture, 0); 
     
-    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-        std::cerr << "ERROR: Framebuffer is not complete!" << std::endl;
-    }
-    glBindFramebuffer(GL_FRAMEBUFFER, 0); 
-}
+    glGenRenderbuffers(1, &depth_stencil_buffer);
+    glBindRenderbuffer(GL_RENDERBUFFER, depth_stencil_buffer);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, globals::SCREEN_WIDTH, globals::SCREEN_HEIGHT);
+    glBindRenderbuffer(GL_RENDERBUFFER, 0);
+    // attach render buffer to the fbo as depth buffer
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, depth_stencil_buffer);
 
-void Renderer::initFinalFBO() {
-    glGenFramebuffers(1, &(this->final_fbo));
-    glBindFramebuffer(GL_FRAMEBUFFER, this->final_fbo);
-    glDrawBuffer(GL_COLOR_ATTACHMENT0);
-
-    glGenTextures(1, &(this->final_texture));
-    glBindTexture(GL_TEXTURE_2D, this->final_texture);
-    
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, constant::SCREEN_WIDTH, constant::SCREEN_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);  
-
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, this->final_texture, 0); 
-    
     if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
         std::cerr << "ERROR: Framebuffer is not complete!" << std::endl;
     }
@@ -184,7 +163,9 @@ void Renderer::bufferData(size_t start, size_t end) {
 }
 
 void Renderer::clear() {
-    glBindFramebuffer(GL_FRAMEBUFFER, this->screen_fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, this->current_screen_fbo);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+    glBindFramebuffer(GL_FRAMEBUFFER, this->other_screen_fbo);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 }
 
@@ -213,28 +194,31 @@ void Renderer::render() {
     this->shader_programs.clear();
 }
 
-void Renderer::present() {
-    this->renderPostProcessing();
-}
-
-void Renderer::renderPartialBuffer(size_t start, size_t end, ShaderProgram* shader_program) {
-    this->bufferData(start, end);
-    shader_program->render(end - start, this->vao, this->screen_fbo, this->screen_texture);
-}
-
-void Renderer::renderPostProcessing() {
-    // Render to final texture
-    glBindFramebuffer(GL_FRAMEBUFFER, this->final_fbo);
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    this->post_processing_shader->render(6, this->vao, this->final_fbo, this->screen_texture);
-    
+void Renderer::present(ShaderProgram* shader_program) {
     // Render to screen
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    this->post_processing_shader->render(6, this->vao, 0, this->final_texture);
+    shader_program->render(6, this->vao, 0, this->current_screen_texture);
 
+    glUseProgram(0);
+    glBindVertexArray(0);
+}
+
+void Renderer::renderPartialBuffer(size_t start, size_t end, ShaderProgram* shader_program) {
+    this->bufferData(start, end);
+    shader_program->render(end - start, this->vao, this->current_screen_fbo, this->other_screen_texture);
+}
+
+void Renderer::renderPostProcessing(ShaderProgram* shader_program) {
+    std::swap(this->current_screen_fbo, this->other_screen_fbo);
+    std::swap(this->current_screen_texture, this->other_screen_texture);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, this->current_screen_fbo);
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    shader_program->render(6, this->vao, this->current_screen_fbo, this->other_screen_texture);
+    
     glUseProgram(0);
     glBindVertexArray(0);
 }

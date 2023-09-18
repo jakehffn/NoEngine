@@ -16,7 +16,7 @@ SpriteSheet& SpriteSheetAtlas::initSpriteSheet(entt::registry& registry, const s
     }
 
     std::string json_path{
-        constant::RESOURCE_FOLDER + resource_id + "/" + 
+        globals::RESOURCE_FOLDER + resource_id + "/" + 
         this->parseSpriteSheetName(resource_id) + ".json"
     };
     auto document = this->readJSON(json_path);
@@ -109,7 +109,7 @@ void SpriteSheetAtlas::initFrames(entt::registry& registry, const std::string& r
     assert(states.IsArray() && "'states' value is not array.");
 
     std::string png_path{
-        constant::RESOURCE_FOLDER + resource_id + "/" + 
+        globals::RESOURCE_FOLDER + resource_id + "/" + 
         this->parseSpriteSheetName(resource_id) + ".png"
     };
     SpriteSheet& new_sprite_sheet = this->sprite_sheets[resource_id];

@@ -6,7 +6,7 @@
 
 #include <entt/entt.hpp>
 
-#include "consts.hpp"
+#include "globals.hpp"
 #include "renderable.hpp"
 #include "name.hpp"
 

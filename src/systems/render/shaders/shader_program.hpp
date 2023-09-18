@@ -28,8 +28,9 @@ public:
     void setUniformId(const char* name, GLuint id);
     GLuint getUniformId(const char* name);
 
-private:
+    bool containsUniform(const char* name);
 
+private:
     GLuint id;
     std::unordered_map<std::string, GLfloat*> uniforms;
     std::unordered_map<std::string, GLuint> uniform_locations;

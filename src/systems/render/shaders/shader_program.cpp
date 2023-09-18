@@ -35,3 +35,7 @@ void ShaderProgram::setUniformId(const char* name, GLuint id) {
 GLuint ShaderProgram::getUniformId(const char* name) {
     return this->uniform_locations.at(name);
 }
+
+bool ShaderProgram::containsUniform(const char* name) {
+    return this->uniform_locations.contains(name);
+}

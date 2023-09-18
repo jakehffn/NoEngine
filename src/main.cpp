@@ -6,7 +6,7 @@
 #include <gl\glew.h>
 #include <SDL.h>
 
-#include "consts.hpp"
+#include "globals.hpp"
 #include "game.hpp"
 
 #include "component_grid.hpp"
@@ -41,8 +41,8 @@ bool initContext() {
 			"Untitled RPG", 
 			SDL_WINDOWPOS_UNDEFINED, 
 			SDL_WINDOWPOS_UNDEFINED, 
-			constant::SCREEN_WIDTH, 
-			constant::SCREEN_HEIGHT, 
+			globals::SCREEN_WIDTH, 
+			globals::SCREEN_HEIGHT, 
 			SDL_WINDOW_OPENGL | 
 			SDL_WINDOW_SHOWN
 		);

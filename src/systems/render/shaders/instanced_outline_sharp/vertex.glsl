@@ -9,6 +9,9 @@ out vec4 texture_data;
 uniform mat4 V;
 uniform mat4 P;
 
+uniform vec2 screen_resolution;
+uniform float camera_zoom;
+
 void main() {
 	float pixel_scale = 3;
 	float xs = 1.0/1440 * pixel_scale * 2;
