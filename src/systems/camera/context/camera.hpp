@@ -29,7 +29,7 @@ public:
 
     void update();
 
-    void setPosition(glm::vec3 pos);
+    void setPosition(glm::vec3 position);
     glm::vec2 pixelToScreenCoords(glm::vec2 screen_coords);
 
 private:

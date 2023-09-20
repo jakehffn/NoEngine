@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdlib>
+
 #include <entt/entt.hpp>
 
 #include "camera_controller.hpp"
@@ -14,8 +16,8 @@
 #include "state_machine.hpp"
 #include "state_machine_builder.hpp"
 #include "interactable.hpp"
-
-class MapLoader;
+#include "dialog.hpp"
+#include "gui_element.hpp"
 #include "map_loader.hpp"
 
 static void TestNpc2(entt::registry& registry, entt::entity entity) {
@@ -34,9 +36,20 @@ static void TestNpc2(entt::registry& registry, entt::entity entity) {
     registry.emplace<IdleAnimation>(entity, registry, sprite_sheet_id, "Idle_Up", "Idle_Down", "Idle_Left", "Idle_Right");
     registry.emplace<MoveAnimation>(entity, registry, sprite_sheet_id, "Move_Up", "Move_Down", "Move_Left", "Move_Right");
 
-    registry.emplace<Interactable>(entity, [](entt::registry& reg, entt::entity entity) {
-        auto& map_loader = reg.ctx().at<MapLoader&>();
-        map_loader.queueLoad("./assets/maps/Test/test.tmx");
+    registry.emplace<Interactable>(entity, [](entt::registry& registry, entt::entity entity) {
+        auto text_box_entity = registry.create();
+        registry.emplace<Dialog>(text_box_entity);
+        registry.emplace<Spacial>(
+            text_box_entity, 
+            glm::vec3(-200 + rand() % 200, rand() % 200 - 100, 1), 
+            glm::vec2(200, 30)
+        );
+        registry.emplace<GuiElement>(text_box_entity);
+        registry.emplace<StateMachine>(text_box_entity, 
+            StateMachineBuilder()
+            .wait(3000)
+            ->destroy()
+        );
     });
 
     registry.emplace<StateMachine>(entity, 

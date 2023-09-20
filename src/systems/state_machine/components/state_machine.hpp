@@ -1,10 +1,12 @@
 #pragma once
 
 #include <vector>
+#include <memory>
 
 #include "states.hpp"
 
 struct StateMachine {
     State* current_state;
-    std::vector<State*> states;
+    // Has to be shared for entt::registry to use
+    std::vector<std::shared_ptr<State>> states;
 };

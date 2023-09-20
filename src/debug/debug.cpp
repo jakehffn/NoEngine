@@ -116,16 +116,16 @@ void DebugWindow::showEntityViewer() {
 
             const float max_texture_dimension = std::max(texture.frame_data->size.x, texture.frame_data->size.y);
             float edge_spacing = 1.2f * max_texture_dimension * camera.getZoom();
-            const float preview_start_x = spacial.pos.x * camera.getZoom() - // Position of entity in pixels
+            const float preview_start_x = spacial.position.x * camera.getZoom() - // Position of entity in pixels
                 (camera.getPosition().x * camera.getZoom() - ((float)globals::SCREEN_WIDTH/2.0f)) - // Position of edge of camera in pixels
                 edge_spacing;
-            const float preview_start_y = -spacial.pos.y * camera.getZoom() + 
+            const float preview_start_y = -spacial.position.y * camera.getZoom() + 
                 (camera.getPosition().y * camera.getZoom() - (float)globals::SCREEN_HEIGHT/2.0f) + 
                 edge_spacing;
-            const float preview_end_x = (spacial.pos.x + max_texture_dimension) * camera.getZoom() - 
+            const float preview_end_x = (spacial.position.x + max_texture_dimension) * camera.getZoom() - 
                 (camera.getPosition().x * camera.getZoom() - ((float)globals::SCREEN_WIDTH/2.0f)) +
                 edge_spacing;
-            const float preview_end_y = (-spacial.pos.y - max_texture_dimension) * camera.getZoom() + 
+            const float preview_end_y = (-spacial.position.y - max_texture_dimension) * camera.getZoom() + 
                 (camera.getPosition().y * camera.getZoom() - ((float)globals::SCREEN_HEIGHT/2.0f)) -
                 edge_spacing;
             ImGui::Image(
@@ -164,13 +164,13 @@ void DebugWindow::showEntityViewer() {
             this->game->registry.patch<Spacial>(this->selected_entity, [this](auto& s) {
                 ImGui::Text("Spacial");
                 ImGui::Indent();
-                ImGui::Text("Position: \n\tx: %.2f \n\ty: %.2f \n\tz: %.2f", s.pos.x, s.pos.y, s.pos.z);
+                ImGui::Text("Position: \n\tx: %.2f \n\ty: %.2f \n\tz: %.2f", s.position.x, s.position.y, s.position.z);
 
                 ImGui::TextUnformatted("Rotation");
-                ImGui::SliderFloat3("##1", &s.rot[0], -6.0f, 6.0f);
+                ImGui::SliderFloat3("##1", &s.rotation[0], -6.0f, 6.0f);
                 ImGui::SameLine();
                 if (ImGui::Button("Reset##1")) {
-                    s.rot = glm::vec3(0, 0, 0);
+                    s.rotation = glm::vec3(0, 0, 0);
                 }
 
                 ImGui::TextUnformatted("Scale");
@@ -180,7 +180,7 @@ void DebugWindow::showEntityViewer() {
                     s.scale = glm::vec3(1, 1, 1);
                 }
 
-                ImGui::Text("Dimensions: \n\tx: %.2f \n\ty: %.2f", s.dim.x, s.dim.y);
+                ImGui::Text("Dimensions: \n\tx: %.2f \n\ty: %.2f", s.dimensions.x, s.dimensions.y);
                 const char* direction_string[]{"", "UP", "DOWN", "LEFT", "RIGHT"};
                 ImGui::Text("Direction: %s", direction_string[s.direction]);
                 ImGui::Unindent();

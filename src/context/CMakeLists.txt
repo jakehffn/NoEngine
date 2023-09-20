@@ -1,6 +1,5 @@
 target_sources(${PROJECT_NAME} PUBLIC
     clock.cpp
-    resource_loader.cpp
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC
@@ -9,3 +8,4 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 
 add_subdirectory(component_grid)
 add_subdirectory(map_loader)
+add_subdirectory(resource_loader)

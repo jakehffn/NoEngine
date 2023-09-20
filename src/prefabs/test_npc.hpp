@@ -41,24 +41,5 @@ static void TestNpc(entt::registry& registry, entt::entity entity) {
         map_loader.queueLoad("./assets/maps/TestOther/testOther.tmx");
     });
 
-    registry.emplace<StateMachine>(entity, 
-        StateMachineBuilder()
-        .wait(2000)
-        ->then([](entt::registry& registry, entt::entity entity) {
-            registry.emplace_or_replace<Velocity>(entity, glm::vec3(-80,0,0));
-            registry.patch<Spacial>(entity, [](auto& spacial) {
-                spacial.direction = LEFT;
-            });
-        })
-        ->wait(2000)
-        ->then([](entt::registry& registry, entt::entity entity) {
-            registry.emplace_or_replace<Velocity>(entity, glm::vec3(80,0,0));
-            registry.patch<Spacial>(entity, [](auto& spacial) {
-                spacial.direction = RIGHT;
-            });
-        })
-        ->loop()
-    );
-
     registry.emplace<Renderable>(entity);
 }

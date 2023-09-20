@@ -100,8 +100,11 @@ void MapLoader::addObject(const tmx::Map& map, const tmx::Object& object) {
                 }
             }
 
-            this->registry.emplace<Spacial>(entity, glm::vec3(position.x, position.y, 1), 
-                glm::vec3(0, 0, 0), glm::vec3(1, 1, 1), glm::vec2(tile->imageSize.x, tile->imageSize.y));
+            this->registry.emplace<Spacial>(
+                entity, 
+                glm::vec3(position.x, position.y, 1), 
+                glm::vec2(tile->imageSize.x, tile->imageSize.y)
+            );
             this->addCollision(entity, tile);
             
             // Prefab goes last so things can be removed if needed
@@ -177,8 +180,11 @@ void MapLoader::addTilesets(tmx::Map& map) {
             // The position of the tile texture in the tile_set image.
             glm::vec2 image_position = glm::vec2((float)tile->imagePosition.x, (float)tile->imagePosition.y);
 
-            this->registry.emplace<Spacial>(tile_entity, glm::vec3(tile_data_vec.x, tile_data_vec.y, 0) * 16.0f, 
-                glm::vec3(0, 0, 0), glm::vec3(1, 1, 1), glm::vec2(16, 16));
+            this->registry.emplace<Spacial>(
+                tile_entity, 
+                glm::vec3(tile_data_vec.x, tile_data_vec.y, 0) * 16.0f, 
+                glm::vec2(16, 16)
+            );
             this->registry.emplace<Tile>(tile_entity, (int)tile_data_vec.z, image_position, &tile_set_texure);
             this->registry.emplace<Renderable>(tile_entity);
 

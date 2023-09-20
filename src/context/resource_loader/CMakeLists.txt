@@ -1,5 +1,5 @@
 target_sources(${PROJECT_NAME} PUBLIC
-    text_system.cpp
+    resource_loader.cpp
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC

@@ -6,7 +6,6 @@ ShaderManager::ShaderManager(entt::registry& registry) {
         "./src/systems/render/shaders/screen/vertex.glsl",
         "./src/systems/render/shaders/screen/fragment.glsl"
     );
-
     this->shaders["screen_blur"] = this->simpleScreenShader(
         registry,
         "./src/systems/render/shaders/screen_blur/vertex.glsl",
@@ -18,35 +17,35 @@ ShaderManager::ShaderManager(entt::registry& registry) {
         "./src/systems/render/shaders/instanced/vertex.glsl",
         "./src/systems/render/shaders/instanced/fragment.glsl"
     );
-
     this->shaders["instanced_other"] = this->simpleInstancedShader(
         registry,
         "./src/systems/render/shaders/instanced_other/vertex.glsl",
         "./src/systems/render/shaders/instanced_other/fragment.glsl"
     );
-
     this->shaders["instanced_outline"] = this->simpleInstancedShader(
         registry,
         "./src/systems/render/shaders/instanced_outline/vertex.glsl",
         "./src/systems/render/shaders/instanced_outline/fragment.glsl"
     );
-
     this->shaders["instanced_sharp_outline"] = this->simpleInstancedShader(
         registry,
         "./src/systems/render/shaders/instanced_outline_sharp/vertex.glsl",
         "./src/systems/render/shaders/instanced_outline_sharp/fragment.glsl"
     );
-
     this->shaders["instanced_backdrop"] = this->simpleInstancedShader(
         registry,
         "./src/systems/render/shaders/instanced_drop_shadow/vertex.glsl",
         "./src/systems/render/shaders/instanced_drop_shadow/fragment.glsl"
     );
-
     this->shaders["instanced_inline"] = this->simpleInstancedShader(
         registry,
         "./src/systems/render/shaders/instanced_inline/vertex.glsl",
         "./src/systems/render/shaders/instanced_inline/fragment.glsl"
+    );
+    this->shaders["instanced_dialog_box"] = this->simpleInstancedShader(
+        registry,
+        "./src/systems/render/shaders/instanced_dialog_box/vertex.glsl",
+        "./src/systems/render/shaders/instanced_dialog_box/fragment.glsl"
     );
 }
 

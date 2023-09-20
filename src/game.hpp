@@ -35,7 +35,7 @@
 #include "camera_system.hpp"
 #include "gui_system.hpp"
 #include "map_loader.hpp"
-#include "text_system.hpp"
+#include "text_manager.hpp"
 #include "state_machine_system.hpp"
 
 #include "debug_timer.hpp"
@@ -62,6 +62,7 @@ struct Game {
     ShaderManager shader_manager{ShaderManager(this->registry)};
     MapLoader map_loader{MapLoader(this->registry)};
     ResourceLoader resource_loader{ResourceLoader(this->registry)};
+    TextManager text_manager{TextManager(this->registry)};
 
     GLuint screen_texture;
 
@@ -69,8 +70,8 @@ struct Game {
         this->registry, [](entt::registry& registry, entt::entity entity) {
             auto& spacial = registry.get<Spacial>(entity);
             lightgrid::bounds bounds{
-                static_cast<int>(spacial.pos.x), static_cast<int>(spacial.pos.y), 
-                static_cast<int>(spacial.dim.x), static_cast<int>(spacial.dim.y) 
+                static_cast<int>(spacial.position.x), static_cast<int>(spacial.position.y), 
+                static_cast<int>(spacial.dimensions.x), static_cast<int>(spacial.dimensions.y) 
             };
             return bounds;
         }
@@ -93,8 +94,8 @@ struct Game {
             }
 
             lightgrid::bounds bounds{
-                static_cast<int>(spacial.pos.x + min_x), 
-                static_cast<int>(spacial.pos.y + min_y), 
+                static_cast<int>(spacial.position.x + min_x), 
+                static_cast<int>(spacial.position.y + min_y), 
                 static_cast<int>(max_x - min_x), 
                 static_cast<int>(max_y - min_y) 
             };

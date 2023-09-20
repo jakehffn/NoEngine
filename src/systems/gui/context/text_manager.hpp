@@ -27,6 +27,7 @@
 #include "name.hpp"
 #include "gui_element.hpp"
 #include "component_grid_ignore.hpp"
+#include "persistent.hpp"
 // Theres an outline conflict in freetype
 namespace Component {
     #include "outline.hpp"
@@ -34,13 +35,14 @@ namespace Component {
 
 #include "debug_timer.hpp"
 
-class TextSystem : public System {
+class TextManager  {
 
 public:
-    TextSystem(entt::registry& registry);
+    TextManager(entt::registry& registry);
 
-    void update() override;
+    void update();
 
+    void loadFont(std::string font_path);
 private:
     struct FontCharacter {
         AtlasData* frame_data;
@@ -53,10 +55,13 @@ private:
         std::vector<FontCharacter> characters;
     };
 
-    void loadFont(std::string font_path);
     std::vector<unsigned char> bitmapToRGBA(unsigned char* data, int width, int height, int pitch);
+    void emplaceGlyphs(entt::registry& registry, entt::entity entity);
+    void updateGlyphs(entt::registry& registry, entt::entity entity);
+    void destroyGlyphs(entt::registry& registry, entt::entity entity);
     
-    void emplaceTextures(entt::registry& registry, entt::entity entity);
-    
+    entt::observer spacial_observer;
+
     std::unordered_map<std::string, FontMap> fonts;
+    entt::registry& registry;
 };

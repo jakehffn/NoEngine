@@ -42,7 +42,7 @@ void CameraSystem::updateCameraToController() {
         lookahead *= lookahead_distance;
     }
     // Target camera relative to the center of the sprite
-    glm::vec3 target(spacial.pos + (glm::vec3(spacial.dim, 0) * spacial.scale / 2.0f) + lookahead);
+    glm::vec3 target(spacial.position + (glm::vec3(spacial.dimensions, 0) * spacial.scale / 2.0f) + lookahead);
     
     float speed{1.5f};
     float normalized_speed{std::clamp(static_cast<float>(clock.getDeltaTime() / 1000.0)*speed, 0.0f, 1.0f)};

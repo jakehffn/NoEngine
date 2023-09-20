@@ -21,6 +21,7 @@
 #include "collision.hpp"
 #include "outline.hpp"
 #include "gui_element.hpp"
+#include "dialog.hpp"
 
 #include "renderer.hpp"
 #include "camera.hpp"
@@ -52,6 +53,7 @@ private:
 
     static glm::mat4 getModel(const Spacial& spacial, const Texture& texture, const float camera_zoom);
     static glm::mat4 getTileModel(const Spacial& spacial);
+    static glm::mat4 getSimpleModel(const Spacial& spacial);
 
     static void initModel(entt::registry& registry, entt::entity entity);
     static void initTileModel(entt::registry& registry, entt::entity entity);

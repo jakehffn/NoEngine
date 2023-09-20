@@ -16,7 +16,8 @@ public:
     // StateMachineBuilder wait_uniform(double low_ms, double high_ms);
     
     StateMachine loop();
-    // StateMachine once();
+    StateMachine once();
+    StateMachine destroy();
 
 private:
     StateMachine state_machine;

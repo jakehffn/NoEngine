@@ -1,17 +1,39 @@
-#include "text_system.hpp"
+#include "text_manager.hpp"
 
 #include <iostream>
 
-TextSystem::TextSystem(entt::registry& registry) : System(registry) {
-    
-    this->loadFont("./assets/fonts/cozette/cozette.bdf");
-
-    registry.on_construct<Text>().connect<TextSystem::emplaceTextures>(this);
+TextManager::TextManager(entt::registry& registry) : registry{registry},
+    spacial_observer{entt::observer(registry, entt::collector.update<Spacial>().where<Text>())}
+{
+    registry.on_construct<Text>().connect<TextManager::emplaceGlyphs>(this);
+    registry.on_update<Text>().connect<TextManager::updateGlyphs>(this);
+    registry.on_destroy<Text>().connect<TextManager::destroyGlyphs>(this);
 }
 
-void TextSystem::update() {}
+void TextManager::update() {
+    this->spacial_observer.each([this](auto entity) {
+        auto [text, spacial] = this->registry.get<Text, Spacial>(entity);
 
-void TextSystem::loadFont(std::string font_path) {
+        float total_x_offset{0};
+        int character_index{0};
+
+        for (auto c : text.text) {
+            FontCharacter& curr_char{this->fonts[text.font_family].characters[c]};
+
+            const glm::vec3 offset{total_x_offset+curr_char.bearing.x, -curr_char.bearing.y,0};
+            const glm::vec3 new_position{spacial.position+offset};
+
+            this->registry.patch<Spacial>(text.glyphs[character_index], [new_position](auto& spacial) {
+                spacial.position = new_position;
+            });
+    
+            total_x_offset += curr_char.advance;
+            character_index++;
+        }
+    });
+}
+
+void TextManager::loadFont(std::string font_path) {
     TextureAtlas& texture_atlas = this->registry.ctx().at<TextureAtlas&>();
 
     FT_Library ft;
@@ -72,7 +94,7 @@ void TextSystem::loadFont(std::string font_path) {
     FT_Done_FreeType(ft);
 }
 
-std::vector<unsigned char> TextSystem::bitmapToRGBA(unsigned char* data, int width, int height, int pitch) {
+std::vector<unsigned char> TextManager::bitmapToRGBA(unsigned char* data, int width, int height, int pitch) {
     std::vector<unsigned char> pixels;
     pixels.reserve(width*height*4);
 
@@ -93,7 +115,7 @@ std::vector<unsigned char> TextSystem::bitmapToRGBA(unsigned char* data, int wid
     return pixels;
 }
 
-void TextSystem::emplaceTextures(entt::registry& registry, entt::entity entity) {
+void TextManager::emplaceGlyphs(entt::registry& registry, entt::entity entity) {
     assert((registry.all_of<Spacial, Text>(entity) && "Entity does not have Spacial"));
     
     auto& spacial{registry.get<Spacial>(entity)};
@@ -103,33 +125,42 @@ void TextSystem::emplaceTextures(entt::registry& registry, entt::entity entity) 
 
     for (auto c : text.text) {
         auto glyph_entity{registry.create()};
+        text.glyphs.push_back(glyph_entity);
 
         // If the parent element is a GuiElement, make the glyph entities also GuiElements
         if (registry.all_of<GuiElement>(entity)) {
             registry.emplace<GuiElement>(glyph_entity);
         }
 
-        if (registry.all_of<Component::Outline>(entity)) {
-            registry.emplace<Component::Outline>(glyph_entity);
-        }
-
-        registry.emplace_or_replace<Component::Outline>(glyph_entity);
-
-        // TODO: Remove this
-        // registry.emplace<ComponentGridIgnore>(glyph_entity);
-
-        FontCharacter& curr_char{this->fonts["Cozette"].characters[c]};
+        FontCharacter& curr_char{this->fonts[text.font_family].characters[c]};
 
         glm::vec3 offset{total_x_offset+curr_char.bearing.x, -curr_char.bearing.y,0};
 
-        registry.emplace<Spacial>(glyph_entity, spacial.pos+offset);
+        registry.emplace<Spacial>(glyph_entity, spacial.position+offset);
         registry.emplace<Texture>(glyph_entity,
             "Cozette",
             curr_char.frame_data
         );
         registry.emplace<Renderable>(glyph_entity);
-        this->registry.emplace<Name>(glyph_entity, std::string(1, c));
+        registry.emplace<Name>(glyph_entity, std::string(1, c));
+
+        // All glyphs should be persistent. They are completely managed by their parent and not a map laoder
+        registry.emplace<Persistent>(glyph_entity);
 
         total_x_offset += curr_char.advance;
+    }
+}
+
+void TextManager::updateGlyphs(entt::registry& registry, entt::entity entity) {
+    this->destroyGlyphs(registry, entity);
+    this->emplaceGlyphs(registry, entity);
+}
+
+void TextManager::destroyGlyphs(entt::registry& registry, entt::entity entity) {
+    auto& text{registry.get<Text>(entity)};
+
+    for (auto entity : text.glyphs) {
+        registry.remove<Renderable>(entity);
+        registry.destroy(entity);
     }
 }

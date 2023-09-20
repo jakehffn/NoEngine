@@ -1,13 +1,15 @@
 #pragma once
 
 #include <functional>
+#include <memory>
 
 #include <entt/entt.hpp>
 
 #include "clock.hpp"
 
 struct State {
-    State* next_state;
+    virtual ~State() {};
+    State* next_state{NULL};
     virtual State* next(entt::registry& registry, entt::entity entity) = 0;
 };
 
@@ -30,6 +32,7 @@ struct WaitState : public State {
 };
 
 struct ActionState : public State {    
+    ~ActionState() = default;
     std::function<void(entt::registry&, entt::entity)> action;
 
     ActionState(std::function<void(entt::registry&, entt::entity)> action) : 
@@ -42,6 +45,7 @@ struct ActionState : public State {
 };
 
 struct RandomState : public State {
+    ~RandomState() = default;
     std::vector<std::function<void(entt::registry&, entt::entity)>> actions;
 
     RandomState(std::vector<std::function<void(entt::registry&, entt::entity)>> actions) :
@@ -55,6 +59,7 @@ struct RandomState : public State {
 };
 
 struct FinalState : public State {
+    ~FinalState() = default;
     State* next(entt::registry& registry, entt::entity entity) {
         return this;
     }

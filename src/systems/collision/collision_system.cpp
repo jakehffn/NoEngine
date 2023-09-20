@@ -85,16 +85,16 @@ void CollisionSystem::resolveCollision(entt::entity entity, const glm::vec4& col
 
         switch (spacial.direction) {
             case UP:
-                spacial.pos.y = other_spacial.pos.y + other_collision.w + other_collision.y - collision.w + epsilon;
+                spacial.position.y = other_spacial.position.y + other_collision.w + other_collision.y - collision.w + epsilon;
                 break;
             case DOWN:
-                spacial.pos.y = other_spacial.pos.y + other_collision.w - collision.y - collision.w - epsilon;
+                spacial.position.y = other_spacial.position.y + other_collision.w - collision.y - collision.w - epsilon;
                 break;
             case LEFT:
-                spacial.pos.x = other_spacial.pos.x + other_collision.z + other_collision.x - collision.z + epsilon;
+                spacial.position.x = other_spacial.position.x + other_collision.z + other_collision.x - collision.z + epsilon;
                 break;
             case RIGHT:
-                spacial.pos.x = other_spacial.pos.x + other_collision.z - collision.x - collision.z - epsilon;
+                spacial.position.x = other_spacial.position.x + other_collision.z - collision.x - collision.z - epsilon;
                 break;
         }
 
@@ -103,15 +103,15 @@ void CollisionSystem::resolveCollision(entt::entity entity, const glm::vec4& col
 }
 
 bool CollisionSystem::isColliding(const glm::vec4& collision_1, const Spacial& spacial_1, const glm::vec4& collision_2, const Spacial& spacial_2) {
-    float top_1 = spacial_1.pos.y + collision_1.w;
-    float bottom_1 = spacial_1.pos.y + collision_1.w + collision_1.y;
-    float left_1 = spacial_1.pos.x + collision_1.z;
-    float right_1 = spacial_1.pos.x + collision_1.z + collision_1.x;
+    float top_1 = spacial_1.position.y + collision_1.w;
+    float bottom_1 = spacial_1.position.y + collision_1.w + collision_1.y;
+    float left_1 = spacial_1.position.x + collision_1.z;
+    float right_1 = spacial_1.position.x + collision_1.z + collision_1.x;
 
-    float top_2 = spacial_2.pos.y + collision_2.w;
-    float bottom_2 = spacial_2.pos.y + collision_2.w + collision_2.y;
-    float left_2 = spacial_2.pos.x + collision_2.z;
-    float right_2 = spacial_2.pos.x + collision_2.z + collision_2.x;
+    float top_2 = spacial_2.position.y + collision_2.w;
+    float bottom_2 = spacial_2.position.y + collision_2.w + collision_2.y;
+    float left_2 = spacial_2.position.x + collision_2.z;
+    float right_2 = spacial_2.position.x + collision_2.z + collision_2.x;
 
     return (bottom_1 > top_2 && bottom_2 > top_1 && right_1 > left_2 && right_2 > left_1);
 }

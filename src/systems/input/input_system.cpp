@@ -181,7 +181,7 @@ void InputSystem::updatePlayerInteract() {
 
         // Spacial update goes second so that the collisions are updated for the current collision boxes
         this->registry.patch<Spacial>(this->player_interacter_entity, [player_spacial](auto& spacial) {
-            spacial.pos = player_spacial.pos;
+            spacial.position = player_spacial.position;
         });
     });
 }
@@ -200,7 +200,7 @@ void InputSystem::updateCursor() {
     );
 
     this->registry.patch<Spacial>(this->cursor_entity, [mouse_position](auto& spacial) {
-        spacial.pos = mouse_position;
+        spacial.position = mouse_position;
     });
 
     this->registry.clear<LeftClicked>();
@@ -255,7 +255,7 @@ void InputSystem::updateHoveredEntities(const glm::vec2& mouse_world_pos) {
             auto [spacial, texture] = this->registry.get<Spacial, Texture>(entity);
             glm::vec3 real_dim = glm::vec3(texture.frame_data->size.x, texture.frame_data->size.y, 1);
             glm::vec3 offset = glm::vec3(texture.frame_data->offset.x, texture.frame_data->offset.y, 0);
-            glm::vec3 real_pos = spacial.pos + offset;
+            glm::vec3 real_pos = spacial.position + offset;
 
             float hitbox_expansion = 1;
 

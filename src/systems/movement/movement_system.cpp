@@ -14,7 +14,7 @@ void MovementSystem::update() {
 
         this->registry.patch<Spacial>(entity, [velocity, delta_time](auto &spacial) { 
 
-            spacial.pos += velocity.components * delta_time / 1000.0f;
+            spacial.position += velocity.components * delta_time / 1000.0f;
         });
     }
 }

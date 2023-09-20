@@ -19,7 +19,6 @@ Game::Game(SDL_Window* window) : window{ window } {
         this->registry.ctx().emplace<MapLoader&>(this->map_loader);
         this->registry.ctx().emplace<ResourceLoader&>(this->resource_loader);
 
-        this->systems.push_back(new TextSystem(this->registry));
         this->systems.push_back(new StateMachineSystem(this->registry));
         this->systems.push_back(new InputSystem(this->registry));
         this->systems.push_back(new AnimationSystem(this->registry));
@@ -31,6 +30,8 @@ Game::Game(SDL_Window* window) : window{ window } {
         auto render_system = new RenderSystem(this->registry);
         this->screen_texture = render_system->getRenderer()->getScreenTexture();
         this->systems.push_back(render_system);
+
+        this->text_manager.loadFont("./assets/fonts/cozette/cozette.bdf");
 
         // Tiled map must be loaded after systems are created in order for observers to be able to
         //  monitor patches during creation of entities
@@ -79,6 +80,7 @@ void Game::mainLoop(void (*debugCallback)()) {
                 this->input_manager.update();
                 this->renderable_grid.update();
                 this->collision_grid.update();
+                this->text_manager.update();
             }
             {
                 DEBUG_TIMER(systems_timer, "Systems Updates");

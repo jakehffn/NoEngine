@@ -3,14 +3,15 @@
 RenderSystem::RenderSystem(entt::registry& registry) : System(registry),
     spacial_observer{entt::observer(registry, entt::collector.update<Spacial>().where<Texture>())},
     spacial_tile_observer{entt::observer(registry, entt::collector.update<Spacial>().where<Tile>())},
-    texture_observer{entt::observer(registry, entt::collector.update<Texture>().where<Spacial>())} {
+    texture_observer{entt::observer(registry, entt::collector.update<Texture>().where<Spacial>())} 
+{
         this->registry.on_construct<Texture>().connect<&RenderSystem::initModel>();
         this->registry.on_construct<Tile>().connect<&RenderSystem::initTileModel>();
         auto& shader_manager = this->registry.ctx().at<ShaderManager&>();
 
         MapLoader& map_loader = this->registry.ctx().at<MapLoader&>();
         map_loader.connectAfterLoad<&RenderSystem::clearRenderQueries>(this);
-    }
+}
 
 void RenderSystem::update() {
     DEBUG_TIMER(_, "RenderSystem::update");
@@ -85,7 +86,7 @@ void RenderSystem::sortEntities() {
         auto lhSpacial = this->registry.get<Spacial>(lhs);
         auto rhSpacial = this->registry.get<Spacial>(rhs);
         
-        return (lhSpacial.pos.y + lhSpacial.dim.y) * ((lhSpacial.pos.z + 1)*10) < (rhSpacial.pos.y + rhSpacial.dim.y) * ((rhSpacial.pos.z + 1)*10);
+        return (lhSpacial.position.y + lhSpacial.dimensions.y) * ((lhSpacial.position.z + 1)*10) < (rhSpacial.position.y + rhSpacial.dimensions.y) * ((rhSpacial.position.z + 1)*10);
 
     }, entt::insertion_sort {}); // Insertion sort is much faster as the spacials will generally be "mostly sorted"
 }
@@ -134,37 +135,45 @@ glm::mat4 RenderSystem::getModel(const Spacial& spacial, const Texture& texture,
     //  Information from the texture is needed so that the sprite can be placed correctly
     glm::mat4 rotate = glm::mat4(1.0f);
     
-    rotate = glm::rotate(rotate, spacial.rot.x, glm::vec3(1, 0, 0));
-    rotate = glm::rotate(rotate, spacial.rot.y, glm::vec3(0, 1, 0));
-    rotate = glm::rotate(rotate, spacial.rot.z, glm::vec3(0, 0, 1));
+    rotate = glm::rotate(rotate, spacial.rotation.x, glm::vec3(1, 0, 0));
+    rotate = glm::rotate(rotate, spacial.rotation.y, glm::vec3(0, 1, 0));
+    rotate = glm::rotate(rotate, spacial.rotation.z, glm::vec3(0, 0, 1));
 
-    glm::vec3 scale_vector = glm::vec3(spacial.scale.x, spacial.scale.y, spacial.scale.z);
-    glm::vec3 dimensions_vector = glm::vec3(texture.frame_data->size.x, texture.frame_data->size.y, 1);
-    glm::vec3 size_vector = scale_vector*dimensions_vector;
+    const glm::vec3 scale_vector = spacial.scale;
+    const glm::vec3 dimensions_vector = glm::vec3(texture.frame_data->size.x, texture.frame_data->size.y, 1);
+    const glm::vec3 size_vector = scale_vector*dimensions_vector;
 
-    glm::mat4 scale = glm::scale(glm::mat4(1), scale_vector*dimensions_vector);
+    const glm::mat4 scale = glm::scale(glm::mat4(1), size_vector);
 
-    glm::vec3 offset = glm::vec3(texture.frame_data->offset.x, texture.frame_data->offset.y, 0);
+    const glm::vec3 offset = glm::vec3(texture.frame_data->offset.x, texture.frame_data->offset.y, 0);
 
     // Help prevent texture bleeding by rounding to full pixels
     // The camera rounds to a full pixel, while this rounds to a pixel plus half a pixel
-    glm::vec3 normalized_position = glm::vec3(glm::ivec3(spacial.pos*camera_zoom) + glm::ivec3(0.5, 0.5, 0))/camera_zoom;
-    glm::mat4 translate = glm::translate(glm::mat4(1), normalized_position + (offset*scale_vector));
+    const glm::vec3 normalized_position = glm::vec3(glm::ivec3(spacial.position*camera_zoom) + glm::ivec3(0.5, 0.5, 0))/camera_zoom;
+    const glm::mat4 translate = glm::translate(glm::mat4(1), normalized_position + (offset*scale_vector));
 
-    glm::mat4 center = glm::translate(glm::mat4(1), -1.0f * (size_vector/2.0f + offset/2.0f));
-    glm::mat4 uncenter = glm::translate(glm::mat4(1), (size_vector/2.0f + offset/2.0f));
+    const glm::mat4 center = glm::translate(glm::mat4(1), -1.0f * (size_vector/2.0f + offset/2.0f));
+    const glm::mat4 uncenter = glm::translate(glm::mat4(1), (size_vector/2.0f + offset/2.0f));
 
     // Order matters
     return (translate * uncenter * rotate * center * scale);
 }
 
 glm::mat4 RenderSystem::getTileModel(const Spacial& spacial) {
-    AtlasData tile_frame_data = {
-        {0, 0},
-        {16, 16},
-        {0, 0}
-    };
-    return RenderSystem::getModel(spacial, {"", &tile_frame_data}, 1);
+    return RenderSystem::getSimpleModel(spacial);
+}
+
+glm::mat4 RenderSystem::getSimpleModel(const Spacial& spacial) {
+    const glm::vec3 dimensions_vector = glm::vec3(spacial.dimensions.x, spacial.dimensions.y, 1);
+    const glm::mat4 scale = glm::scale(glm::mat4(1), dimensions_vector);
+
+    // Help prevent texture bleeding by rounding to full pixels
+    // The camera rounds to a full pixel, while this rounds to a pixel plus half a pixel
+    const glm::vec3 normalized_position = glm::vec3(glm::ivec3(spacial.position) + glm::ivec3(0.5, 0.5, 0));
+    const glm::mat4 translate = glm::translate(glm::mat4(1), normalized_position);
+
+    // Order matters
+    return (translate * scale);
 }
 
 void RenderSystem::initModel(entt::registry& registry, entt::entity entity) {
@@ -187,61 +196,113 @@ void RenderSystem::render() {
     DEBUG_TIMER(_, "RenderSystem::render");
 
     auto& shader_manager = this->registry.ctx().at<ShaderManager&>();
-
     using namespace entt::literals;
     Camera& camera = registry.ctx().at<Camera&>("world_camera"_hs);
-    shader_manager["instanced"]->setUniform("P", &camera.getProjectionMatrix()[0][0]);
-    shader_manager["instanced"]->setUniform("V", &camera.getViewMatrix()[0][0]);
-    shader_manager["instanced"]->setUniform("camera_zoom", &camera.getZoom());
-
-    // Tiles need to be rendered under the other textures
-    this->registry.view<Model, Tile, ToRenderTile>().each([this, &shader_manager](auto& model, auto& tile) {  
-        glm::vec4 texture_data = glm::vec4(
-            tile.tile_set_texture->frame_data->position.x + tile.position.x, 
-            tile.tile_set_texture->frame_data->position.y + tile.position.y, 
-            16, 16
-        );
-        this->renderer.queue(texture_data, model.model, shader_manager["instanced"]);
-    });
-
-    this->registry.view<Texture, Model, ToRender>(entt::exclude<Text, Tile>).use<ToRender>().each([this, &shader_manager](const auto entity, auto& texture, auto& model) {  
-        glm::vec4 texture_data = glm::vec4(texture.frame_data->position.x, texture.frame_data->position.y, 
-            texture.frame_data->size.x, texture.frame_data->size.y
-        );
-        this->renderer.queue(texture_data, model.model, shader_manager["instanced"]);
-    });
-
-    this->renderer.render();
-    this->renderer.renderPostProcessing(shader_manager["screen_blur"]);
-
-    shader_manager["instanced_sharp_outline"]->setUniform("P", &camera.getProjectionMatrix()[0][0]);
-    shader_manager["instanced_sharp_outline"]->setUniform("V", &camera.getViewMatrix()[0][0]);
-    shader_manager["instanced_sharp_outline"]->setUniform("camera_zoom", &camera.getZoom());
-
-    this->registry.view<Texture, Model, ToRender, Outline>(entt::exclude<Text, Tile>).use<ToRender>().each([this, &shader_manager](const auto entity, auto& texture, auto& model) {  
-        glm::vec4 texture_data = glm::vec4(texture.frame_data->position.x, texture.frame_data->position.y, 
-            texture.frame_data->size.x, texture.frame_data->size.y
-        );
-        this->renderer.queue(texture_data, model.model, shader_manager["instanced_sharp_outline"]);
-    });
-
-    this->renderer.render();
-
     Camera& gui_camera = registry.ctx().at<Camera&>("gui_camera"_hs);
-    shader_manager["instanced"]->setUniform("P", &gui_camera.getProjectionMatrix()[0][0]);
-    shader_manager["instanced"]->setUniform("V", &gui_camera.getViewMatrix()[0][0]);
-    shader_manager["instanced"]->setUniform("camera_zoom", &camera.getZoom());
 
-    this->registry.view<Texture, Model, GuiElement>().each([this, &shader_manager](const auto entity, auto& texture, auto& model) {  
-        glm::vec4 texture_data = glm::vec4(texture.frame_data->position.x, texture.frame_data->position.y, 
-            texture.frame_data->size.x, texture.frame_data->size.y
-        );
-        this->renderer.queue(texture_data, model.model, shader_manager["instanced"]);
-    });
+    { // Render background tiles and normal entities
+        shader_manager["instanced"]->setUniform("P", &camera.getProjectionMatrix()[0][0]);
+        shader_manager["instanced"]->setUniform("V", &camera.getViewMatrix()[0][0]);
+        shader_manager["instanced"]->setUniform("camera_zoom", &camera.getZoom());
 
-    this->renderer.render();
+        // Tiles need to be rendered under the other textures
+        this->registry.view<Model, Tile, ToRenderTile>().each([this, &shader_manager](auto& model, auto& tile) {  
+            glm::vec4 texture_data = glm::vec4(
+                tile.tile_set_texture->frame_data->position.x + tile.position.x, 
+                tile.tile_set_texture->frame_data->position.y + tile.position.y, 
+                16, 16
+            );
+            this->renderer.queue(texture_data, model.model, shader_manager["instanced"]);
+        });
+
+        this->registry.view<Texture, Model, ToRender>(entt::exclude<Text, Tile>).use<ToRender>().each([this, &shader_manager](const auto entity, auto& texture, auto& model) {  
+            glm::vec4 texture_data = glm::vec4(texture.frame_data->position.x, texture.frame_data->position.y, 
+                texture.frame_data->size.x, texture.frame_data->size.y
+            );
+            this->renderer.queue(texture_data, model.model, shader_manager["instanced"]);
+        });
+
+        this->renderer.render();
+    }
+
+    { // Render outlines
+        shader_manager["instanced_sharp_outline"]->setUniform("P", &camera.getProjectionMatrix()[0][0]);
+        shader_manager["instanced_sharp_outline"]->setUniform("V", &camera.getViewMatrix()[0][0]);
+        shader_manager["instanced_sharp_outline"]->setUniform("camera_zoom", &camera.getZoom());
+
+        this->registry.view<Texture, Model, ToRender, Outline>(entt::exclude<Text, Tile>).use<ToRender>().each([this, &shader_manager](const auto entity, auto& texture, auto& model) {  
+            glm::vec4 texture_data = glm::vec4(texture.frame_data->position.x, texture.frame_data->position.y, 
+                texture.frame_data->size.x, texture.frame_data->size.y
+            );
+            this->renderer.queue(texture_data, model.model, shader_manager["instanced_sharp_outline"]);
+        });
+
+        this->renderer.render();
+    }
+
+    { // Render text boxes
+        // Stencil testing will mask out text not within the text box
+        glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE); // Do not draw any pixels on the back buffer
+        glEnable(GL_STENCIL_TEST); 
+        glStencilFunc(GL_ALWAYS, 1, 0xFF); // Do not test the current value in the stencil buffer, always accept any value on there for drawing
+        glStencilMask(0xFF);
+        glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE); // Make every test succeed
+
+        shader_manager["instanced_dialog_box"]->setUniform("P", &gui_camera.getProjectionMatrix()[0][0]);
+        shader_manager["instanced_dialog_box"]->setUniform("V", &gui_camera.getViewMatrix()[0][0]);
+        shader_manager["instanced_dialog_box"]->setUniform("camera_zoom", &camera.getZoom());
+
+        this->registry.view<Spacial, Dialog, GuiElement>().each([this, &shader_manager](const auto entity, auto& spacial) {  
+            glm::vec4 texture_data = glm::vec4(
+                0, 0, 
+                spacial.dimensions.x, spacial.dimensions.y
+            );
+            this->renderer.queue(texture_data, RenderSystem::getSimpleModel(spacial), shader_manager["instanced_dialog_box"]);
+        });
+
+        this->renderer.render();
+
+        glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP); // Make sure you will no longer (over)write stencil values, even if any test succeeds
+        glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE); // Make sure we draw on the backbuffer again.
+
+        glStencilFunc(GL_EQUAL, 1, 0xFF); // Now we will only draw pixels where the corresponding stencil buffer value equals 1
+
+        Camera& gui_camera = registry.ctx().at<Camera&>("gui_camera"_hs);
+        shader_manager["instanced_dialog_box"]->setUniform("P", &gui_camera.getProjectionMatrix()[0][0]);
+        shader_manager["instanced_dialog_box"]->setUniform("V", &gui_camera.getViewMatrix()[0][0]);
+        shader_manager["instanced_dialog_box"]->setUniform("camera_zoom", &camera.getZoom());
+
+        this->registry.view<Spacial, Dialog, GuiElement>().each([this, &shader_manager](const auto entity, auto& spacial) {  
+            glm::vec4 texture_data = glm::vec4(
+                0, 0, 
+                spacial.dimensions.x, spacial.dimensions.y
+            );
+            this->renderer.queue(texture_data, RenderSystem::getSimpleModel(spacial), shader_manager["instanced_dialog_box"]);
+        });
+
+        this->renderer.render();
+
+        glDisable(GL_STENCIL_TEST);
+    }
+
+    { // Render other GUI elements
+        Camera& gui_camera = registry.ctx().at<Camera&>("gui_camera"_hs);
+        shader_manager["instanced"]->setUniform("P", &gui_camera.getProjectionMatrix()[0][0]);
+        shader_manager["instanced"]->setUniform("V", &gui_camera.getViewMatrix()[0][0]);
+        shader_manager["instanced"]->setUniform("camera_zoom", &camera.getZoom());
+
+        this->registry.view<Texture, Model, GuiElement>().each([this, &shader_manager](const auto entity, auto& texture, auto& model) {  
+            glm::vec4 texture_data = glm::vec4(texture.frame_data->position.x, texture.frame_data->position.y, 
+                texture.frame_data->size.x, texture.frame_data->size.y
+            );
+            this->renderer.queue(texture_data, model.model, shader_manager["instanced"]);
+        });
+
+        this->renderer.render();
+    }
 
     #ifndef NDEBUG
+    { // Render collision boxes
         shader_manager["instanced_inline"]->setUniform("P", &camera.getProjectionMatrix()[0][0]);
         shader_manager["instanced_inline"]->setUniform("V", &camera.getViewMatrix()[0][0]);
         shader_manager["instanced_inline"]->setUniform("camera_zoom", &camera.getZoom());
@@ -256,17 +317,18 @@ void RenderSystem::render() {
                     0, 0, 
                     collision_bounds.x, collision_bounds.y
                 );
-                glm::vec3 scale_vector = glm::vec3(spacial.scale.x, spacial.scale.y, spacial.scale.z);
+                
                 glm::vec3 dimensions_vector = glm::vec3(collision_bounds.x, collision_bounds.y, 1);
-                glm::mat4 scale = glm::scale(glm::mat4(1), scale_vector*dimensions_vector);
+                glm::mat4 scale = glm::scale(glm::mat4(1), spacial.scale*dimensions_vector);
                 glm::vec3 offset = glm::vec3(collision_bounds.z, collision_bounds.w, 0);
-                glm::mat4 translate = glm::translate(glm::mat4(1), spacial.pos + (offset*scale_vector));
+                glm::mat4 translate = glm::translate(glm::mat4(1), spacial.position + (offset*spacial.scale));
 
                 this->renderer.queue(texture_data, translate * scale * glm::mat4(1), shader_manager["instanced_inline"]);
             }
         });
         this->renderer.render();
+    }
     #endif
-    this->renderer.renderPostProcessing(shader_manager["screen"]);
+
     this->renderer.present(shader_manager["screen"]);
 }
