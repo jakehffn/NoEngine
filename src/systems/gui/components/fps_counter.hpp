@@ -1,3 +1,6 @@
 #pragma once
 
-struct FpsCounter {};
+struct FpsCounter {
+    float timer_reset{100};
+    float timer{0};
+};

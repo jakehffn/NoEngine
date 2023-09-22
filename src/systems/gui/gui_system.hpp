@@ -11,6 +11,7 @@
 #include "fps_counter.hpp"
 
 #include "clock.hpp"
+#include "children.hpp"
 #include "resource_loader.hpp"
 
 #include "debug_timer.hpp"
@@ -23,4 +24,7 @@ public:
 
 private:
     void updateFPSCounter();
+    void updateDialogs();
+
+    void beginDialog(entt::registry& registry, entt::entity entity);
 };

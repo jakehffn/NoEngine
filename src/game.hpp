@@ -26,6 +26,7 @@
 #include "component_grid.hpp"
 #include "renderable.hpp"
 #include "collision.hpp"
+#include "destroy.hpp"
 
 #include "input_system.hpp"
 #include "render_system.hpp"

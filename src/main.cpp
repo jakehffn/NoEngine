@@ -63,8 +63,9 @@ bool initContext() {
 				if(glew_error != GLEW_OK) {
 					std::cerr << "GLEW: Error initializing! " << glewGetErrorString(glew_error) << "\n";
 				}
-				// Use Vsync
-				if(SDL_GL_SetSwapInterval(1) < 0) {
+				// Use Vsync: 1
+				// Uncapped: 0
+				if(SDL_GL_SetSwapInterval(0) < 0) {
 					std::cerr << "SDL: Warning: Unable to set VSync!\nSDL Error: " << SDL_GetError() << "\n";
 				}
 			}

@@ -1,6 +1,6 @@
 #include "state_machine_builder.hpp"
 
-StateMachineBuilder* StateMachineBuilder::then(std::function<void(entt::registry&, entt::entity)> action) {
+StateMachineBuilder& StateMachineBuilder::then(std::function<void(entt::registry&, entt::entity)> action) {
     auto new_state = std::make_shared<ActionState>(action);
 
     if (!this->state_machine.states.size() == 0) {
@@ -8,11 +8,11 @@ StateMachineBuilder* StateMachineBuilder::then(std::function<void(entt::registry
     }
     this->state_machine.states.push_back(std::move(new_state));
 
-    return this;
+    return *this;
 }
 
 template<std::invocable<entt::registry&, entt::entity>...Actions>
-StateMachineBuilder* StateMachineBuilder::choose(Actions...actions) {
+StateMachineBuilder& StateMachineBuilder::choose(Actions...actions) {
     auto new_state = std::make_shared<RandomState>(
         std::vector<std::function<void(entt::registry&, entt::entity)>>{{actions...}}
     );
@@ -22,10 +22,10 @@ StateMachineBuilder* StateMachineBuilder::choose(Actions...actions) {
     }
     this->state_machine.states.push_back(std::move(new_state));
 
-    return this;
+    return *this;
 }
 
-StateMachineBuilder* StateMachineBuilder::wait(double ms) {
+StateMachineBuilder& StateMachineBuilder::wait(double ms) {
     auto new_state = std::make_shared<WaitState>(ms);
 
     if (!this->state_machine.states.size() == 0) {
@@ -33,7 +33,7 @@ StateMachineBuilder* StateMachineBuilder::wait(double ms) {
     }
     this->state_machine.states.push_back(std::move(new_state));
 
-    return this;
+    return *this;
 }
 
 StateMachine StateMachineBuilder::loop() {

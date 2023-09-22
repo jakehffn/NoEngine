@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-bool DebugTimer::open_timers_window = false;
+bool DebugTimer::open_timers_window = true;
 DebugTimer* DebugTimer::prev_timer = NULL;
 
 DebugTimer::DebugTimer(const char* name) : name{name}, higher_level_timer{DebugTimer::prev_timer} {

@@ -31,8 +31,7 @@ Game::Game(SDL_Window* window) : window{ window } {
         this->screen_texture = render_system->getRenderer()->getScreenTexture();
         this->systems.push_back(render_system);
 
-        this->text_manager.loadFont("./assets/fonts/cozette/cozette.bdf");
-
+        this->text_manager.loadFont("./assets/fonts/cozette/cozette.bdf", "Cozette");
         // Tiled map must be loaded after systems are created in order for observers to be able to
         //  monitor patches during creation of entities
 
@@ -87,7 +86,9 @@ void Game::mainLoop(void (*debugCallback)()) {
                 for (auto system : this->systems) {
                     system->update();
                 }
-            }
+            }   
+            auto to_destroy = this->registry.view<Destroy>();
+            this->registry.destroy(to_destroy.begin(), to_destroy.end());
             #ifndef NDEBUG
                 debugCallback();
             #endif

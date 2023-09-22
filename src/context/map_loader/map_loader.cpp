@@ -29,11 +29,11 @@ void MapLoader::loadTiledMap(const char* map_path) {
             this->registry.remove<Renderable>(entity);
         }
 
-        this->registry.each([this](auto entity) {
-            if (!this->registry.all_of<Persistent>(entity)) {
+        for (auto entity : this->registry.view<entt::entity>()) {
+            if (this->registry.valid(entity) && !this->registry.all_of<Persistent>(entity)) {
                 this->registry.destroy(entity);
             }
-        });
+        }
 
         this->addObjects(map);
         this->addTilesets(map);

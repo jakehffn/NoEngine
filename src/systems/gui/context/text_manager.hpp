@@ -28,6 +28,8 @@
 #include "gui_element.hpp"
 #include "component_grid_ignore.hpp"
 #include "persistent.hpp"
+#include "dialog_child.hpp"
+#include "destroy.hpp"
 // Theres an outline conflict in freetype
 namespace Component {
     #include "outline.hpp"
@@ -42,7 +44,7 @@ public:
 
     void update();
 
-    void loadFont(std::string font_path);
+    void loadFont(std::string font_path, std::string font_name);
 private:
     struct FontCharacter {
         AtlasData* frame_data;

@@ -17,25 +17,7 @@ void DebugWindow::show() {
         if (this->open_shader_viewer) {
             this->showShaderViewer();
         }
-        if (!this->show_collision_boxes) {
-            if (ImGui::Button("Show Collision")) {
-                this->show_collision_boxes = true;
-                this->game->registry.view<Collision>().each([this](const entt::entity entity, auto collision) {
-                    this->game->registry.emplace_or_replace<RenderCollision>(entity);
-                });
-                this->game->registry.on_construct<Collision>().
-                    connect<&entt::registry::emplace_or_replace<RenderCollision>>();
-            }
-        } else {
-            if (ImGui::Button("Hide Collision")) {
-                this->show_collision_boxes = false;
-                this->game->registry.view<Collision>().each([this](const entt::entity entity, auto collision) {
-                    this->game->registry.remove<RenderCollision>(entity);
-                });
-                this->game->registry.on_construct<Collision>().
-                    disconnect<&entt::registry::emplace_or_replace<RenderCollision>>();
-            }
-        }
+        this->showMainWindow();
     }
     ImGui::End();
 }
@@ -54,6 +36,30 @@ void DebugWindow::showMenuBar() {
         ImGui::EndMenuBar();
     }
     ImGui::PopStyleVar(2);
+}
+
+void DebugWindow::showMainWindow() {
+    if (!this->show_collision_boxes) {
+        if (ImGui::Button("Show Collision")) {
+            this->show_collision_boxes = true;
+            this->game->registry.view<Collision>().each([this](const entt::entity entity, auto collision) {
+                this->game->registry.emplace_or_replace<RenderCollision>(entity);
+            });
+            this->game->registry.on_construct<Collision>().
+                connect<&entt::registry::emplace_or_replace<RenderCollision>>();
+        }
+    } else {
+        if (ImGui::Button("Hide Collision")) {
+            this->show_collision_boxes = false;
+            this->game->registry.view<Collision>().each([this](const entt::entity entity, auto collision) {
+                this->game->registry.remove<RenderCollision>(entity);
+            });
+            this->game->registry.on_construct<Collision>().
+                disconnect<&entt::registry::emplace_or_replace<RenderCollision>>();
+        }
+    }
+    ImGui::SameLine();
+    ImGui::Text("%.2f", ImGui::GetIO().Framerate);
 }
 
 void DebugWindow::showTextureAtlas() {

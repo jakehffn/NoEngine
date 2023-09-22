@@ -9,10 +9,10 @@
 
 class StateMachineBuilder {
 public:
-    StateMachineBuilder* then(std::function<void(entt::registry&, entt::entity)> action);
+    StateMachineBuilder& then(std::function<void(entt::registry&, entt::entity)> action);
     template<std::invocable<entt::registry&, entt::entity>...Actions>
-    StateMachineBuilder* choose(Actions...actions);
-    StateMachineBuilder* wait(double ms);
+    StateMachineBuilder& choose(Actions...actions);
+    StateMachineBuilder& wait(double ms);
     // StateMachineBuilder wait_uniform(double low_ms, double high_ms);
     
     StateMachine loop();

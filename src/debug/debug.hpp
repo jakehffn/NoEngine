@@ -17,23 +17,22 @@ public:
 private:
     void showMenuBar();
 
+    void showMainWindow();
     void showTextureAtlas();
     void showEntityViewer();
     void showShaderViewer();
 
-    void removeSelectedEntity();
-
     Game* game;
 
     // Texture atlas
-    bool open_texture_atlas = false;
+    bool open_texture_atlas = true;
 
     // Entity Viewer
-    bool open_entity_viewer = false;
+    bool open_entity_viewer = true;
     entt::entity selected_entity = entt::null;
 
     // Shader Viewer
-    bool open_shader_viewer = false;
+    bool open_shader_viewer = true;
     ShaderProgram* selected_shader = NULL;
     bool auto_scroll{true};
     bool scroll_to_botton{false};

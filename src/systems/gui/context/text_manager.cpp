@@ -20,7 +20,9 @@ void TextManager::update() {
         for (auto c : text.text) {
             FontCharacter& curr_char{this->fonts[text.font_family].characters[c]};
 
-            const glm::vec3 offset{total_x_offset+curr_char.bearing.x, -curr_char.bearing.y,0};
+            float line_height{8};
+
+            const glm::vec3 offset{total_x_offset+curr_char.bearing.x, -curr_char.bearing.y + line_height,0};
             const glm::vec3 new_position{spacial.position+offset};
 
             this->registry.patch<Spacial>(text.glyphs[character_index], [new_position](auto& spacial) {
@@ -33,7 +35,7 @@ void TextManager::update() {
     });
 }
 
-void TextManager::loadFont(std::string font_path) {
+void TextManager::loadFont(std::string font_path, std::string font_name) {
     TextureAtlas& texture_atlas = this->registry.ctx().at<TextureAtlas&>();
 
     FT_Library ft;
@@ -54,7 +56,7 @@ void TextManager::loadFont(std::string font_path) {
 
     int num_glyphs_to_load{256};
 
-    FontMap& font_map{fonts[face->family_name]};
+    FontMap& font_map{fonts[font_name]};
     font_map.characters.resize(num_glyphs_to_load);
     
     for (int c{0}; c < num_glyphs_to_load; c++)
@@ -123,31 +125,48 @@ void TextManager::emplaceGlyphs(entt::registry& registry, entt::entity entity) {
 
     float total_x_offset{0};
 
+    const bool is_dialog_child{registry.all_of<DialogChild>(entity)};
+
+    if (text.text.size() == 0) {
+        return;
+    }
     for (auto c : text.text) {
+    // auto c = text.text.front();
         auto glyph_entity{registry.create()};
-        text.glyphs.push_back(glyph_entity);
+
+        
+        assert(this->fonts[text.font_family].characters.size() > (int)c && "Font does not contain character");        
+        FontCharacter& curr_char{this->fonts[text.font_family].characters[c]};
+
+        float line_height{8};
+        glm::vec3 offset{total_x_offset+curr_char.bearing.x, -curr_char.bearing.y + line_height, 0};
+
+        registry.emplace<Spacial>(glyph_entity, spacial.position+offset);
+        registry.emplace<Texture>(glyph_entity,
+            "Text",
+            curr_char.frame_data
+        );
 
         // If the parent element is a GuiElement, make the glyph entities also GuiElements
         if (registry.all_of<GuiElement>(entity)) {
             registry.emplace<GuiElement>(glyph_entity);
+            registry.emplace<ComponentGridIgnore>(glyph_entity);
         }
 
-        FontCharacter& curr_char{this->fonts[text.font_family].characters[c]};
 
-        glm::vec3 offset{total_x_offset+curr_char.bearing.x, -curr_char.bearing.y,0};
-
-        registry.emplace<Spacial>(glyph_entity, spacial.position+offset);
-        registry.emplace<Texture>(glyph_entity,
-            "Cozette",
-            curr_char.frame_data
-        );
-        registry.emplace<Renderable>(glyph_entity);
-        registry.emplace<Name>(glyph_entity, std::string(1, c));
+        if (is_dialog_child) {
+            registry.emplace<DialogChild>(glyph_entity);
+        } else {
+            registry.emplace<Renderable>(glyph_entity);
+            registry.emplace<Name>(glyph_entity, std::string(1, c));
+        }
 
         // All glyphs should be persistent. They are completely managed by their parent and not a map laoder
         registry.emplace<Persistent>(glyph_entity);
 
         total_x_offset += curr_char.advance;
+
+        text.glyphs.push_back(glyph_entity);
     }
 }
 
@@ -159,8 +178,10 @@ void TextManager::updateGlyphs(entt::registry& registry, entt::entity entity) {
 void TextManager::destroyGlyphs(entt::registry& registry, entt::entity entity) {
     auto& text{registry.get<Text>(entity)};
 
-    for (auto entity : text.glyphs) {
-        registry.remove<Renderable>(entity);
-        registry.destroy(entity);
+    for (auto glyph_entity : text.glyphs) {
+        registry.remove<Renderable>(glyph_entity);
+        // Here, you cannot directly destroy the entity, as updates may happen within view iteration
+        registry.emplace<Destroy>(glyph_entity);
     }
+    text.glyphs.clear();
 }

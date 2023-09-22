@@ -19,6 +19,7 @@
 #include "dialog.hpp"
 #include "gui_element.hpp"
 #include "map_loader.hpp"
+#include "dialog_builder.hpp"
 
 static void TestNpc2(entt::registry& registry, entt::entity entity) {
     registry.emplace<Collider>(entity);
@@ -38,37 +39,39 @@ static void TestNpc2(entt::registry& registry, entt::entity entity) {
 
     registry.emplace<Interactable>(entity, [](entt::registry& registry, entt::entity entity) {
         auto text_box_entity = registry.create();
-        registry.emplace<Dialog>(text_box_entity);
         registry.emplace<Spacial>(
             text_box_entity, 
             glm::vec3(-200 + rand() % 200, rand() % 200 - 100, 1), 
             glm::vec2(200, 30)
         );
-        registry.emplace<GuiElement>(text_box_entity);
-        registry.emplace<StateMachine>(text_box_entity, 
-            StateMachineBuilder()
-            .wait(3000)
-            ->destroy()
+        registry.emplace<Dialog>(text_box_entity,
+            DialogBuilder()
+            .text("This is some test text. It should be long enought to extend past the end without formatting")
+            .end()
         );
+        registry.emplace<GuiElement>(text_box_entity);
+        registry.emplace<Persistent>(text_box_entity);
+        // auto& map_loader = registry.ctx().at<MapLoader&>();
+        // map_loader.queueLoad("./assets/maps/Test/test.tmx");
     });
 
     registry.emplace<StateMachine>(entity, 
         StateMachineBuilder()
         .wait(2000)
-        ->then([](entt::registry& registry, entt::entity entity) {
+        .then([](entt::registry& registry, entt::entity entity) {
             registry.emplace_or_replace<Velocity>(entity, glm::vec3(-80,0,0));
             registry.patch<Spacial>(entity, [](auto& spacial) {
                 spacial.direction = LEFT;
             });
         })
-        ->wait(2000)
-        ->then([](entt::registry& registry, entt::entity entity) {
+        .wait(2000)
+        .then([](entt::registry& registry, entt::entity entity) {
             registry.emplace_or_replace<Velocity>(entity, glm::vec3(80,0,0));
             registry.patch<Spacial>(entity, [](auto& spacial) {
                 spacial.direction = RIGHT;
             });
         })
-        ->loop()
+        .loop()
     );
 
     registry.emplace<Renderable>(entity);

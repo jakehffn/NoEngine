@@ -25,5 +25,5 @@ void main() {
 	// The verticies need to be scaled up so that the borders are drawable
 
 	// Output position of the vertex, in clip space : MVP * position
-	gl_Position =  P*V*instance_model * vec4(vertex.xy, 1.0, 1.0) + scale_up;
+	gl_Position =  P*V*instance_model * vec4(vertex.xy, 1.0, 1.0);
 }
