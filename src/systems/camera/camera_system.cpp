@@ -7,6 +7,26 @@ void CameraSystem::update() {
 }
 
 void CameraSystem::updateCameraToController() {
+    using namespace entt::literals;
+    Camera& camera = this->registry.ctx().at<Camera&>("world_camera"_hs);
+    Clock& clock = this->registry.ctx().at<Clock&>();
+
+    auto controller_entities = this->registry.view<CameraController, Spacial>();
+    auto entity = controller_entities.front();
+
+    auto [cameraController, spacial] = controller_entities.get<CameraController, Spacial>(entity);
+
+    float x_offset = spacial.dimensions.x * spacial.scale.x / 2;
+    float y_offset = spacial.dimensions.y * spacial.scale.y / 2;
+
+    glm::vec3 offset(x_offset, y_offset, 0);
+    const glm::vec3 normalized_position = glm::vec3(glm::ivec3(spacial.position*camera.getZoom()) + glm::ivec3(0.5, 0.5, 0))/camera.getZoom();
+    camera.setPosition(normalized_position + offset);
+
+    camera.update();
+}
+
+void CameraSystem::updateCameraToControllerSmooth() {
 
     using namespace entt::literals;
     Camera& camera = this->registry.ctx().at<Camera&>("world_camera"_hs);

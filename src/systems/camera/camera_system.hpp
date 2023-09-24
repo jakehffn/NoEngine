@@ -23,6 +23,7 @@ public:
 
 private:
     void updateCameraToController();
+    void updateCameraToControllerSmooth();
 
     entt::observer camera_controller_observer;
 };
