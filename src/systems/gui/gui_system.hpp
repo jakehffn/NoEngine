@@ -27,4 +27,5 @@ private:
     void updateDialogs();
 
     void beginDialog(entt::registry& registry, entt::entity entity);
+    void endDialog(entt::registry& registry, entt::entity entity);
 };

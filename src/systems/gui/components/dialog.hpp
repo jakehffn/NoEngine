@@ -15,4 +15,5 @@ struct Dialog {
     size_t current_line_number{0};
 
     float width;
+    bool prevent_interaction;
 };

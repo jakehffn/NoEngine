@@ -17,8 +17,11 @@ struct DialogStep {
     entt::entity entity;
     virtual ~DialogStep() {};
     DialogStep* next_step{NULL};
+    // Begin should prepare any entities needed for the specific dialog step
     virtual void begin(entt::registry& registry, size_t& line_number, entt::entity parent, bool completed=false) = 0;
+    // Step should return false once the step has been completed
     virtual bool step(entt::registry& registry, size_t& line_number, entt::entity parent, float dt) = 0;
+    // Next should return the next step in the dialog
     virtual DialogStep* next() { return this->next_step; };
 };
 
@@ -41,7 +44,7 @@ struct DialogText : public DialogStep {
 
         auto spacial = registry.get<Spacial>(parent);
 
-        float offset_from_dialog_border{4};
+        float offset_from_dialog_border{8};
         spacial.position += offset_from_dialog_border;
         float line_height{14};
         spacial.position.y += line_number * line_height;
@@ -60,6 +63,7 @@ struct DialogText : public DialogStep {
     }
 
     bool step(entt::registry& registry, size_t& line_number, entt::entity parent, float dt) {
+        // If the player presses space during a text dialog, all steps will be shown up to the skip_to step
         auto& input = registry.ctx().at<Input&>();
         if (this->current_char > 1 && input.isAdded(SDLK_SPACE)) {
             this->current_char = this->full_text.size();
@@ -73,11 +77,14 @@ struct DialogText : public DialogStep {
         if (this->timer <= 0) {
             this->timer = this->text_speed;
             this->current_char++;
+            // Avoid pauses from spaces;
+            while (this->current_char < this->full_text.size() && this->full_text[this->current_char] == U' ') {
+                this->current_char++;
+            }
             registry.patch<Text>(this->entity, [this](auto& text) {
                 text.text = this->full_text.substr(0, this->current_char);
             });
         }
-
         return this->current_char < this->full_text.size();
     }
 };
@@ -95,7 +102,7 @@ struct DialogWaitForInput : public DialogStep {
         float offset_from_dialog_border{6};
         spacial.position += offset_from_dialog_border;
 
-        float edge_space{18};
+        float edge_space{20};
 
         auto& new_spacial = registry.emplace<Spacial>(this->entity, spacial);
         new_spacial.position += glm::vec3(

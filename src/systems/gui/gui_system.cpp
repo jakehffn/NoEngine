@@ -9,6 +9,7 @@ GuiSystem::GuiSystem(entt::registry& registry) : System(registry) {
     this->registry.emplace<Persistent>(fps_counter);
 
     this->registry.on_construct<Dialog>().connect<GuiSystem::beginDialog>(this);
+    this->registry.on_destroy<Dialog>().connect<GuiSystem::endDialog>(this);
 }
 
 void GuiSystem::update() {
@@ -70,4 +71,17 @@ void GuiSystem::beginDialog(entt::registry& registry, entt::entity entity) {
     registry.emplace<Children>(entity);
     auto& dialog = registry.get<Dialog>(entity);
     dialog.current_step->begin(registry, dialog.current_line_number, entity);
+
+    if (dialog.prevent_interaction) {
+        auto& input = registry.ctx().at<Input&>();
+        input.disableInteraction();
+    }
+}
+
+void GuiSystem::endDialog(entt::registry& registry, entt::entity entity) {
+    auto& dialog = registry.get<Dialog>(entity);
+    if (dialog.prevent_interaction) {
+        auto& input = registry.ctx().at<Input&>();
+        input.enableInteraction();
+    }
 }

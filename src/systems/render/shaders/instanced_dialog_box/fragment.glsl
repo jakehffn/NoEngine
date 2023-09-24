@@ -51,5 +51,5 @@ void dialogBoxStyle2() {
 }
 
 void main() {
-    dialogBoxStyle1();
+    dialogBoxStyle2();
 }  

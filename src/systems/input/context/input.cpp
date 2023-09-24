@@ -99,3 +99,15 @@ bool Input::isMouseRemoved(Uint8 mouse_button) {
 bool Input::isQuit() {
     return (this->isActive(SDLK_ESCAPE) || quit);
 }
+
+bool Input::interactionEnabled() {
+    return this->interaction_enabled;
+}
+
+void Input::enableInteraction() {
+    this->interaction_enabled = true;
+}
+
+void Input::disableInteraction() {
+    this->interaction_enabled = false;
+}

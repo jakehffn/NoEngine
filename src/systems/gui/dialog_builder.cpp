@@ -1,7 +1,8 @@
 #include "dialog_builder.hpp"
 
-DialogBuilder::DialogBuilder(entt::registry& registry, float width) : registry{registry} {
+DialogBuilder::DialogBuilder(entt::registry& registry, float width, uint64_t options) : registry{registry}, options{options} {
     this->dialog.width = width;
+    this->dialog.prevent_interaction = options & DIALOG_BULLDER_BLOCKING;
 }
 
 DialogBuilder& DialogBuilder::text(Text text, float speed) {

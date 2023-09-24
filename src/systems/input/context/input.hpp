@@ -35,6 +35,10 @@ public:
     bool isMouseAdded(Uint8 mouse_button);
     bool isMouseRemoved(Uint8 mouse_button);
 
+    bool interactionEnabled();
+    void disableInteraction();
+    void enableInteraction();
+
 private:
 
     int mouse_x{0};
@@ -55,4 +59,6 @@ private:
     std::array<bool, 256> mouse_removed; 
     std::array<bool, 256> mouse_removed_reset; 
     unsigned int mouse_removed_reset_num{0};
+
+    bool interaction_enabled{true};
 };

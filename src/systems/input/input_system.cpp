@@ -125,7 +125,7 @@ void InputSystem::updatePlayerInteract() {
 
     auto collision = this->registry.get<Collision>(this->player_interacter_entity);
 
-    if (input_manager.isAdded(SDLK_SPACE)) {
+    if (input_manager.isAdded(SDLK_SPACE) && input_manager.interactionEnabled()) {
         for (auto entity : collision.collisions) {
             if (this->registry.all_of<Interactable>(entity)) {
                 this->registry.get<Interactable>(entity).action(this->registry, entity);
