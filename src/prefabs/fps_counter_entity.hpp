@@ -19,5 +19,5 @@ static void FpsCounterEntity(entt::registry& registry, entt::entity entity) {
     registry.emplace<Spacial>(entity, glm::vec3(100, 100, 0));
     registry.emplace<GuiElement>(entity);
     registry.emplace<FpsCounter>(entity);
-    registry.emplace<Text>(entity, "POGGERS POGGERS POGGERS");
+    registry.emplace<Text>(entity, U"POGGERS POGGERS POGGERS");
 }

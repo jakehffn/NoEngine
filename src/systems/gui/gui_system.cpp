@@ -33,7 +33,8 @@ void GuiSystem::updateFPSCounter() {
             ss << std::setw(5) << std::fixed << this->registry.ctx().at<Clock&>().getSmoothedFPS();
 
             this->registry.patch<Text>(entity, [&ss](auto& text) {
-                text.text = ss.str();
+                std::string tmp = ss.str();
+                text.text = std::u32string(tmp.begin(), tmp.end());
             });
         }
 
@@ -46,9 +47,21 @@ void GuiSystem::updateDialogs() {
     for (auto entity : this->registry.view<Dialog>()) {
         auto& dialog = this->registry.get<Dialog>(entity);
 
-        auto next = dialog.current_step->next(registry, entity, clock.getDeltaTime());
-        if (next != NULL) {
-            dialog.current_step = next;
+        if (!dialog.current_step->step(
+            registry, 
+            dialog.current_line_number, 
+            entity, 
+            clock.getDeltaTime())
+        ) {
+            auto next = dialog.current_step->next();
+            if (next != NULL) {
+                dialog.current_step = next;
+                dialog.current_step->begin(
+                    registry, 
+                    dialog.current_line_number, 
+                    entity
+                );
+            }
         }
     }
 }
@@ -56,5 +69,5 @@ void GuiSystem::updateDialogs() {
 void GuiSystem::beginDialog(entt::registry& registry, entt::entity entity) {
     registry.emplace<Children>(entity);
     auto& dialog = registry.get<Dialog>(entity);
-    dialog.current_step->begin(registry, entity);
+    dialog.current_step->begin(registry, dialog.current_line_number, entity);
 }

@@ -54,18 +54,14 @@ void TextManager::loadFont(std::string font_path, std::string font_name) {
 
     FT_Set_Pixel_Sizes(face, 0, face->available_sizes[0].height);  
 
-    int num_glyphs_to_load{256};
+    // int num_glyphs_to_load{face->num_glyphs};
 
-    FontMap& font_map{fonts[font_name]};
-    font_map.characters.resize(num_glyphs_to_load);
+    FontMap& font_map{this->fonts[font_name]};
     
-    for (int c{0}; c < num_glyphs_to_load; c++)
+    for (uint32_t c{0}; c < 0x3000; c++)
     {
         // load character glyph 
         if (FT_Load_Char(face, c, FT_LOAD_RENDER)) {   
-            #ifndef NDEBUG
-                std::cout << "ERROR FREETYTPE Failed to load Glyph" << std::endl;
-            #endif
             continue;
         }
 
@@ -94,6 +90,60 @@ void TextManager::loadFont(std::string font_path, std::string font_name) {
 
     texture_atlas.updateAtlas();
     FT_Done_FreeType(ft);
+}
+
+std::vector<std::u32string> TextManager::layout(const std::u32string& text, std::string font, float width) {
+    std::vector<std::u32string> result;
+    float x_offset{0};
+    size_t row_start{0};
+    size_t last_word_start{0};
+    size_t it{0};
+    char32_t prev_char{U' '};
+    
+    while (it < text.size()) {
+        auto c = text.at(it);
+        assert(this->fonts[font].characters.contains(c) && "Font does not contain character");        
+        FontCharacter& curr_char{this->fonts[font].characters[c]};
+        const float new_x_offset = x_offset + curr_char.advance;
+
+        if (c == U' ') {
+            last_word_start = it;
+            if (x_offset == 0) {
+                it++;
+                row_start = it;
+                last_word_start = it;
+                continue;
+            }
+        }
+
+        if (new_x_offset > width) {
+            if (last_word_start == row_start) {
+                while (it < text.size() && text.at(it) != U' ') {
+                    it++;
+                }
+                result.push_back(text.substr(row_start, it - row_start));
+                x_offset = 0;
+                last_word_start = it;
+                row_start = it;
+                continue;
+            } else {
+                result.push_back(text.substr(row_start, last_word_start - row_start));
+                x_offset = 0;
+                prev_char = U'-';
+                it = last_word_start;
+                row_start = last_word_start;
+                continue;
+            }
+        }
+
+        x_offset = new_x_offset;
+        prev_char = c;
+        it++;
+    }
+    if (it != last_word_start) {
+        result.push_back(text.substr(row_start));
+    }
+    return result;
 }
 
 std::vector<unsigned char> TextManager::bitmapToRGBA(unsigned char* data, int width, int height, int pitch) {
@@ -131,11 +181,9 @@ void TextManager::emplaceGlyphs(entt::registry& registry, entt::entity entity) {
         return;
     }
     for (auto c : text.text) {
-    // auto c = text.text.front();
         auto glyph_entity{registry.create()};
 
-        
-        assert(this->fonts[text.font_family].characters.size() > (int)c && "Font does not contain character");        
+        assert(this->fonts[text.font_family].characters.contains(c) && "Font does not contain character");        
         FontCharacter& curr_char{this->fonts[text.font_family].characters[c]};
 
         float line_height{8};

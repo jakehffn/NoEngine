@@ -11,4 +11,8 @@ struct Dialog {
     DialogStep* current_step{NULL};
     std::vector<std::shared_ptr<DialogStep>> steps;
     std::vector<entt::entity> children;
+
+    size_t current_line_number{0};
+
+    float width;
 };

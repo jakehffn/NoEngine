@@ -41,12 +41,24 @@ static void TestNpc2(entt::registry& registry, entt::entity entity) {
         auto text_box_entity = registry.create();
         registry.emplace<Spacial>(
             text_box_entity, 
-            glm::vec3(-200 + rand() % 200, rand() % 200 - 100, 1), 
-            glm::vec2(200, 30)
+            glm::vec3(-150, 30, 1), 
+            glm::vec2(300, 64)
         );
         registry.emplace<Dialog>(text_box_entity,
-            DialogBuilder()
-            .text("This is some test text. It should be long enought to extend past the end without formatting")
+            DialogBuilder(registry, 280)
+            .text(U"This is some test text. It should be long enough \
+                to extend past the end without formatting. How long can this go? \
+                This is some test text. It should be long enough to extend past \
+                the end without formatting. How long can this go?"
+            )
+            .waitForInput()
+            .text(U" be long enough to extend past \
+                the end without formatting. How long can this go?"
+            )
+            .waitForInput()
+            .text(U"This is some test text."
+            )
+            .waitForInput()
             .end()
         );
         registry.emplace<GuiElement>(text_box_entity);

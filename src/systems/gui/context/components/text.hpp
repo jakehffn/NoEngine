@@ -7,7 +7,7 @@
 
 struct Text {
     // Text string for display
-    std::string text;
+    std::u32string text;
     std::string font_family{"Cozette"};
     std::vector<entt::entity> glyphs;
 };

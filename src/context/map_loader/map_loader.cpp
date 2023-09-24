@@ -75,7 +75,8 @@ void MapLoader::addObject(const tmx::Map& map, const tmx::Object& object) {
             case tmx::Object::Shape::Text:
                 this->registry.emplace<Spacial>(entity, glm::vec3(position.x, position.y, 1));
                 this->registry.emplace<Renderable>(entity);
-                this->registry.emplace<Text>(entity, object.getText().content);
+                std::string_view tmp{object.getText().content};
+                this->registry.emplace<Text>(entity, std::u32string(tmp.begin(), tmp.end()));
                 break;
         };
     } else {

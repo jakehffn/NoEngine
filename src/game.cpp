@@ -18,6 +18,7 @@ Game::Game(SDL_Window* window) : window{ window } {
         this->registry.ctx().emplace<ShaderManager&>(this->shader_manager);
         this->registry.ctx().emplace<MapLoader&>(this->map_loader);
         this->registry.ctx().emplace<ResourceLoader&>(this->resource_loader);
+        this->registry.ctx().emplace<TextManager&>(this->text_manager);
 
         this->systems.push_back(new StateMachineSystem(this->registry));
         this->systems.push_back(new InputSystem(this->registry));

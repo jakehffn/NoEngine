@@ -45,6 +45,7 @@ public:
     void update();
 
     void loadFont(std::string font_path, std::string font_name);
+    std::vector<std::u32string> layout(const std::u32string& text, std::string font, float width);
 private:
     struct FontCharacter {
         AtlasData* frame_data;
@@ -54,7 +55,7 @@ private:
 
     struct FontMap {
         FontMap() {};
-        std::vector<FontCharacter> characters;
+        std::unordered_map<int, FontCharacter> characters;
     };
 
     std::vector<unsigned char> bitmapToRGBA(unsigned char* data, int width, int height, int pitch);
