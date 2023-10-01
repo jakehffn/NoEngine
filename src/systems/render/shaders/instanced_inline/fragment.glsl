@@ -5,7 +5,7 @@ in vec4 texture_data; // x, y, width, height
 
 out vec4 color;
 
-uniform sampler2D image;
+uniform sampler2D atlas_texture;
 uniform vec2 atlas_dimensions;
 
 void main() {

@@ -2,7 +2,7 @@
 in vec2 TexCoords;
 out vec4 color;
 
-uniform sampler2D screenTexture;
+uniform sampler2D screen_texture;
 uniform float time;
 
 float random (vec2 st) {
@@ -22,7 +22,7 @@ void main() {
     // vec3 col = texture(screenTexture, vec2(TexCoords.x, 1-TexCoords.y)).rgb;
     // col = vec3(col.r, col.bg*(sin(time/50)/4 + 0.8));
 
-    vec3 col = texture(screenTexture, vec2(TexCoords.x, 1-TexCoords.y)).rgb;
+    vec3 col = texture(screen_texture, vec2(TexCoords.x, 1-TexCoords.y)).rgb;
     // float mod_val = mod(time / 1000000.0, 0.05);
     // vec3 col = texture(screenTexture, vec2(TexCoords.x - mod(TexCoords.x - 0.5, mod_val), (1-TexCoords.y) - mod(1-TexCoords.y + 0.5, mod_val * 1.2))).rgb;
     color = vec4(col, 1.0);

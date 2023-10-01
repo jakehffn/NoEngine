@@ -17,7 +17,6 @@
 class ShaderProgram {
 public:
     ShaderProgram(
-        std::vector<Uniform> uniforms, 
         const char* vertex_source, 
         const char* fragment_source,
         std::vector<std::string>& logs
@@ -49,7 +48,7 @@ private:
     void setUniformBufferData(size_t offset, GLuint uniform_data);
 
     void initUniformBuffer();
-    void getUniformLocations();
+    void getUniforms();
 
     GLuint id;
     std::vector<Uniform> uniforms;

@@ -2,7 +2,7 @@
 in vec2 TexCoords;
 out vec4 color;
 
-uniform sampler2D screenTexture;
+uniform sampler2D screen_texture;
 uniform float time;
 
 uniform vec2 screen_resolution;
@@ -21,9 +21,9 @@ void main() {
       if (xx+yy<=rr)
         {
         w=w0*exp((-xx-yy)/(2.0*rr));
-        blur+=texture(screenTexture,p)*w;
+        blur+=texture(screen_texture,p)*w;
         }}}
-    vec4 sample = texture(screenTexture, vec2(TexCoords.x, TexCoords.y));
+    vec4 sample = texture(screen_texture, vec2(TexCoords.x, TexCoords.y));
     color = mix(sample, blur, abs(TexCoords.y*2 - 1)*abs(TexCoords.y*2 - 1));
     // color = mix(vec4(1), vec4(0), abs(TexCoords.y*2 - 1)*abs(TexCoords.y*2 - 1));
 }

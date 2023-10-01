@@ -7,14 +7,14 @@ in vec4 texture_data; // x, y, width, height
 
 out vec4 color;
 
-uniform sampler2D image;
+uniform sampler2D atlas_texture;
 uniform vec2 atlas_dimensions;
 
 uniform float time;
 
 vec4 sampleTexture(float x, float y) {
     vec2 sample_pixel_center = texture_data.xy + vec2(ivec2(x, y)) + vec2(0.5, 0.5);
-    return texture(image, sample_pixel_center/atlas_dimensions);
+    return texture(atlas_texture, sample_pixel_center/atlas_dimensions);
 }
 
 vec4 radialColor(float x, float y) {

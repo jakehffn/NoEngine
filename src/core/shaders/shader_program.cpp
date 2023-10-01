@@ -1,14 +1,13 @@
 #include "shader_program.hpp"
 
 ShaderProgram::ShaderProgram(
-    std::vector<Uniform> uniforms, 
     const char* vertex_source, 
     const char* fragment_source, 
     std::vector<std::string>& logs
-) : logs{logs}, uniforms{uniforms}, vertex_source{vertex_source}, fragment_source{fragment_source} {
+) : logs{logs}, vertex_source{vertex_source}, fragment_source{fragment_source} {
     this->id = LoadShaders(this->vertex_source, this->fragment_source, this->logs);
+    this->getUniforms();
     this->initUniformBuffer();
-    this->getUniformLocations();
 }
 
 ShaderProgram::~ShaderProgram() {
@@ -130,8 +129,8 @@ void ShaderProgram::render(size_t num_verts, GLuint vao, GLuint dest_fbo){
 void ShaderProgram::recompile() {
     glDeleteShader(this->id);
     this->id = LoadShaders(this->vertex_source, this->fragment_source, this->logs);
+    this->getUniforms();
     this->initUniformBuffer();
-    this->getUniformLocations();
 }
 
 bool ShaderProgram::containsUniform(const char* name) {
@@ -246,10 +245,45 @@ void ShaderProgram::initUniformBuffer() {
     this->uniform_buffer = static_cast<char*>(malloc(this->buffer_size));
 }
 
-void ShaderProgram::getUniformLocations() {
-    for (auto& uniform : this->uniforms) {
-        if (uniform.type != UniformDataType::TEX_2D) {
-            uniform.location = glGetUniformLocation(this->id, uniform.name.c_str());
-        }
+void ShaderProgram::getUniforms() {
+    GLint num_uniforms{0};
+    glGetProgramInterfaceiv(this->id, GL_UNIFORM, GL_ACTIVE_RESOURCES, &num_uniforms);
+
+    std::vector<GLchar> name(256);
+    std::vector<GLenum> properties;
+    properties.push_back(GL_NAME_LENGTH);
+    properties.push_back(GL_TYPE);
+    properties.push_back(GL_ARRAY_SIZE);
+    properties.push_back(GL_LOCATION);
+    std::vector<GLint> values(properties.size());
+
+    for(size_t uniform{0}; uniform < num_uniforms; uniform++) {
+        glGetProgramResourceiv(
+            this->id, 
+            GL_UNIFORM, 
+            uniform, 
+            properties.size(),
+            &properties[0], 
+            values.size(), 
+            NULL, 
+            &values[0]
+        );
+
+        name.resize(values[0]); //The length of the name.
+        glGetProgramResourceName(
+            this->id, 
+            GL_UNIFORM, 
+            uniform, 
+            name.size(), 
+            NULL, 
+            &name[0]
+        );
+
+        this->uniforms.emplace_back(
+            convertGLType(values[1], values[2] > 1), 
+            std::string(name.begin(), name.end()), 
+            values[2], 
+            values[3]
+        );
     }
 }

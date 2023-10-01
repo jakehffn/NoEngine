@@ -5,7 +5,7 @@ in vec4 texture_data; // x, y, width, height
 
 out vec4 color;
 
-uniform sampler2D image;
+uniform sampler2D atlas_texture;
 uniform vec2 atlas_dimensions;
 
 
@@ -19,5 +19,5 @@ void main() {
     float y_percentage = texture_data.w/atlas_dimensions.y - 2*bleed_offset;
     float y_offset = texture_data.y/atlas_dimensions.y + bleed_offset + some_x_offset_i_dont_understand;
 
-    color = texture(image, vec2(texture_coords.x*x_percentage + x_offset, texture_coords.y*y_percentage + y_offset));
+    color = texture(atlas_texture, vec2(texture_coords.x*x_percentage + x_offset, texture_coords.y*y_percentage + y_offset));
 }  

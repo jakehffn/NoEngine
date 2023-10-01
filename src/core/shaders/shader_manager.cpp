@@ -55,15 +55,15 @@ ShaderProgram*& ShaderManager::operator[](const char* shader_name) {
 
 ShaderProgram* ShaderManager::simpleInstancedShader(entt::registry& registry, const char* vertex_source, const char* fragment_source) {
     return new ShaderProgram(
-        {
-            {UniformDataType::FLOAT, "time"},
-            {UniformDataType::VEC_2, "atlas_dimensions"},
-            {UniformDataType::VEC_2, "screen_resolution"},
-            {UniformDataType::MAT_4X4, "V"},
-            {UniformDataType::MAT_4X4, "P"},
-            {UniformDataType::FLOAT, "camera_zoom"},
-            {UniformDataType::TEX_2D, "atlas_texture"}
-        },
+        // {
+        //     {UniformDataType::FLOAT, "time"},
+        //     {UniformDataType::VEC_2, "atlas_dimensions"},
+        //     {UniformDataType::VEC_2, "screen_resolution"},
+        //     {UniformDataType::MAT_4X4, "V"},
+        //     {UniformDataType::MAT_4X4, "P"},
+        //     {UniformDataType::FLOAT, "camera_zoom"},
+        //     {UniformDataType::TEX_2D, "atlas_texture"}
+        // },
         vertex_source,
         fragment_source,
         this->logs
@@ -72,11 +72,11 @@ ShaderProgram* ShaderManager::simpleInstancedShader(entt::registry& registry, co
 
 ShaderProgram* ShaderManager::simpleScreenShader(entt::registry& registry, const char* vertex_source, const char* fragment_source) {
     return new ShaderProgram(
-        {
-            {UniformDataType::FLOAT, "time"},
-            {UniformDataType::VEC_2, "screen_resolution"},
-            {UniformDataType::TEX_2D, "screen_texture"}
-        },
+        // {
+        //     {UniformDataType::FLOAT, "time"},
+        //     {UniformDataType::VEC_2, "screen_resolution"},
+        //     {UniformDataType::TEX_2D, "screen_texture"}
+        // },
         vertex_source,
         fragment_source,
         this->logs
