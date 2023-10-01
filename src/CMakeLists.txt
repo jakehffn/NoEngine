@@ -8,6 +8,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 )
 
 add_subdirectory(context)
+add_subdirectory(core)
 add_subdirectory(systems)
 add_subdirectory(prefabs)
 add_subdirectory(debug)

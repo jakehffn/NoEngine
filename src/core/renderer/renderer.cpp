@@ -199,7 +199,8 @@ void Renderer::present(ShaderProgram* shader_program) {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    shader_program->render(6, this->vao, 0, this->current_screen_texture);
+    shader_program->setUniform("screen_texture", this->current_screen_texture);
+    shader_program->render(6, this->vao, 0);
 
     glUseProgram(0);
     glBindVertexArray(0);
@@ -207,7 +208,9 @@ void Renderer::present(ShaderProgram* shader_program) {
 
 void Renderer::renderPartialBuffer(size_t start, size_t end, ShaderProgram* shader_program) {
     this->bufferData(start, end);
-    shader_program->render(end - start, this->vao, this->current_screen_fbo, this->other_screen_texture);
+
+    shader_program->setUniform("screen_texture", this->other_screen_texture);
+    shader_program->render(end - start, this->vao, this->current_screen_fbo);
 }
 
 void Renderer::renderPostProcessing(ShaderProgram* shader_program) {
@@ -217,7 +220,8 @@ void Renderer::renderPostProcessing(ShaderProgram* shader_program) {
     glBindFramebuffer(GL_FRAMEBUFFER, this->current_screen_fbo);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    shader_program->render(6, this->vao, this->current_screen_fbo, this->other_screen_texture);
+    shader_program->setUniform("screen_texture", this->other_screen_texture);
+    shader_program->render(6, this->vao, this->current_screen_fbo);
     
     glUseProgram(0);
     glBindVertexArray(0);

@@ -211,14 +211,22 @@ void RenderSystem::render() {
     DEBUG_TIMER(_, "RenderSystem::render");
 
     auto& shader_manager = this->registry.ctx().at<ShaderManager&>();
+    auto& texture_atlas = this->registry.ctx().at<TextureAtlas&>();
+    auto& clock = this->registry.ctx().at<Clock&>();
+
+    shader_manager.setAllUniforms("atlas_texture", texture_atlas.gl_texture_id);
+    shader_manager.setAllUniforms("atlas_dimensions", glm::vec2(texture_atlas.width, texture_atlas.height));
+    shader_manager.setAllUniforms("screen_resolution", glm::vec2(globals::SCREEN_WIDTH, globals::SCREEN_HEIGHT));
+    shader_manager.setAllUniforms("time", (float)clock.getCumulativeTime());
+
     using namespace entt::literals;
     Camera& camera = registry.ctx().at<Camera&>("world_camera"_hs);
     Camera& gui_camera = registry.ctx().at<Camera&>("gui_camera"_hs);
 
     { // Render background tiles and normal entities
-        shader_manager["instanced"]->setUniform("P", &camera.getProjectionMatrix()[0][0]);
-        shader_manager["instanced"]->setUniform("V", &camera.getViewMatrix()[0][0]);
-        shader_manager["instanced"]->setUniform("camera_zoom", &camera.getZoom());
+        shader_manager["instanced"]->setUniform("P", camera.getProjectionMatrix());
+        shader_manager["instanced"]->setUniform("V", camera.getViewMatrix());
+        shader_manager["instanced"]->setUniform("camera_zoom", camera.getZoom());
 
         // Tiles need to be rendered under the other textures
         this->registry.view<Model, Tile, ToRenderTile>().each([this, &shader_manager](auto& model, auto& tile) {  
@@ -241,9 +249,9 @@ void RenderSystem::render() {
     }
 
     { // Render outlines
-        shader_manager["instanced_sharp_outline"]->setUniform("P", &camera.getProjectionMatrix()[0][0]);
-        shader_manager["instanced_sharp_outline"]->setUniform("V", &camera.getViewMatrix()[0][0]);
-        shader_manager["instanced_sharp_outline"]->setUniform("camera_zoom", &camera.getZoom());
+        shader_manager["instanced_sharp_outline"]->setUniform("P", camera.getProjectionMatrix());
+        shader_manager["instanced_sharp_outline"]->setUniform("V", camera.getViewMatrix());
+        shader_manager["instanced_sharp_outline"]->setUniform("camera_zoom", camera.getZoom());
 
         this->registry.view<Texture, Model, ToRender, Outline>(entt::exclude<Text, Tile>).use<ToRender>().each([this, &shader_manager, &camera](const auto entity, auto& texture, auto& model) {  
             glm::vec4 texture_data = glm::vec4(texture.frame_data->position.x, texture.frame_data->position.y, 
@@ -270,9 +278,9 @@ void RenderSystem::render() {
         glStencilMask(0xFF);
         glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE); // Make every test succeed
 
-        shader_manager["instanced_dialog_box"]->setUniform("P", &gui_camera.getProjectionMatrix()[0][0]);
-        shader_manager["instanced_dialog_box"]->setUniform("V", &gui_camera.getViewMatrix()[0][0]);
-        shader_manager["instanced_dialog_box"]->setUniform("camera_zoom", &camera.getZoom());
+        shader_manager["instanced_dialog_box"]->setUniform("P", gui_camera.getProjectionMatrix());
+        shader_manager["instanced_dialog_box"]->setUniform("V", gui_camera.getViewMatrix());
+        shader_manager["instanced_dialog_box"]->setUniform("camera_zoom", camera.getZoom());
 
         this->registry.view<Spacial, Dialog, GuiElement>().each([this, &shader_manager](const auto entity, auto& spacial, auto& dialog) {  
             glm::vec4 texture_data = glm::vec4(
@@ -290,9 +298,9 @@ void RenderSystem::render() {
         glStencilFunc(GL_EQUAL, 1, 0xFF); // Now we will only draw pixels where the corresponding stencil buffer value equals 1
 
         Camera& gui_camera = registry.ctx().at<Camera&>("gui_camera"_hs);
-        shader_manager["instanced_dialog_box"]->setUniform("P", &gui_camera.getProjectionMatrix()[0][0]);
-        shader_manager["instanced_dialog_box"]->setUniform("V", &gui_camera.getViewMatrix()[0][0]);
-        shader_manager["instanced_dialog_box"]->setUniform("camera_zoom", &camera.getZoom());
+        shader_manager["instanced_dialog_box"]->setUniform("P", gui_camera.getProjectionMatrix());
+        shader_manager["instanced_dialog_box"]->setUniform("V", gui_camera.getViewMatrix());
+        shader_manager["instanced_dialog_box"]->setUniform("camera_zoom", camera.getZoom());
 
         this->registry.view<Spacial, Dialog, GuiElement>().each([this, &shader_manager](const auto entity, auto& spacial, auto& dialog) {  
             glm::vec4 texture_data = glm::vec4(
@@ -304,9 +312,9 @@ void RenderSystem::render() {
 
         this->renderer.render();
 
-        shader_manager["instanced"]->setUniform("P", &gui_camera.getProjectionMatrix()[0][0]);
-        shader_manager["instanced"]->setUniform("V", &gui_camera.getViewMatrix()[0][0]);
-        shader_manager["instanced"]->setUniform("camera_zoom", &camera.getZoom());
+        shader_manager["instanced"]->setUniform("P", gui_camera.getProjectionMatrix());
+        shader_manager["instanced"]->setUniform("V", gui_camera.getViewMatrix());
+        shader_manager["instanced"]->setUniform("camera_zoom", camera.getZoom());
 
         this->registry.view<Texture, Model, DialogChild>().each([this, &shader_manager](const auto entity, auto& texture, auto& model) {  
             glm::vec4 texture_data = glm::vec4(texture.frame_data->position.x, texture.frame_data->position.y, 
@@ -322,9 +330,9 @@ void RenderSystem::render() {
 
     { // Render other GUI elements
         Camera& gui_camera = registry.ctx().at<Camera&>("gui_camera"_hs);
-        shader_manager["instanced"]->setUniform("P", &gui_camera.getProjectionMatrix()[0][0]);
-        shader_manager["instanced"]->setUniform("V", &gui_camera.getViewMatrix()[0][0]);
-        shader_manager["instanced"]->setUniform("camera_zoom", &camera.getZoom());
+        shader_manager["instanced"]->setUniform("P", gui_camera.getProjectionMatrix());
+        shader_manager["instanced"]->setUniform("V", gui_camera.getViewMatrix());
+        shader_manager["instanced"]->setUniform("camera_zoom", camera.getZoom());
 
         this->registry.view<Texture, Model, GuiElement>().each([this, &shader_manager](const auto entity, auto& texture, auto& model) {  
             glm::vec4 texture_data = glm::vec4(texture.frame_data->position.x, texture.frame_data->position.y, 
@@ -338,9 +346,9 @@ void RenderSystem::render() {
 
     #ifndef NDEBUG
     { // Render collision boxes
-        shader_manager["instanced_inline"]->setUniform("P", &camera.getProjectionMatrix()[0][0]);
-        shader_manager["instanced_inline"]->setUniform("V", &camera.getViewMatrix()[0][0]);
-        shader_manager["instanced_inline"]->setUniform("camera_zoom", &camera.getZoom());
+        shader_manager["instanced_inline"]->setUniform("P", camera.getProjectionMatrix());
+        shader_manager["instanced_inline"]->setUniform("V", camera.getViewMatrix());
+        shader_manager["instanced_inline"]->setUniform("camera_zoom", camera.getZoom());
 
         this->registry.view<Collision, Spacial, RenderCollision>().each([this, &shader_manager](
             const auto entity, 

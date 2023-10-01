@@ -20,8 +20,8 @@ vec4 sampleTexture(float x, float y) {
 vec4 radialColor(float x, float y) {
     float time_reduce = 100;
     float width = M_PI/4;
-    vec4 main_color = vec4(1, 1, 1, 1);
-    vec4 accent_color = vec4(0.9, 0.9, 0.9, 1);
+    vec4 main_color = vec4(1, .83, .0, 1);
+    vec4 accent_color = vec4(0.99, 0.7, 0.4, 1);
 
     float swirl_amount = 0;
 
