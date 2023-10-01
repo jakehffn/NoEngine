@@ -51,10 +51,13 @@ private:
     void getUniforms();
 
     GLuint id;
+public:
     std::vector<Uniform> uniforms;
-
+private:
     size_t buffer_size;
+public:
     char* uniform_buffer;
+private:
 
     std::vector<std::string>& logs;
 

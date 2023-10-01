@@ -128,6 +128,8 @@ void ShaderProgram::render(size_t num_verts, GLuint vao, GLuint dest_fbo){
 
 void ShaderProgram::recompile() {
     glDeleteShader(this->id);
+    free(this->uniform_buffer);
+    this->uniforms.clear();
     this->id = LoadShaders(this->vertex_source, this->fragment_source, this->logs);
     this->getUniforms();
     this->initUniformBuffer();
@@ -243,6 +245,7 @@ void ShaderProgram::initUniformBuffer() {
 
     this->buffer_size = buffer_size;
     this->uniform_buffer = static_cast<char*>(malloc(this->buffer_size));
+    memset(this->uniform_buffer, 0, this->buffer_size);
 }
 
 void ShaderProgram::getUniforms() {

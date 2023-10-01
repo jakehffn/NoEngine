@@ -217,6 +217,98 @@ void DebugWindow::showShaderViewer() {
             if (ImGui::Button("Recompile")) {
                 this->selected_shader->recompile();
             }
+            size_t it;
+            char* label[256];
+            for (auto& uniform : this->selected_shader->uniforms) {
+                switch(uniform.type) {
+                    case UniformDataType::INT:
+                        ImGui::InputInt(
+                            uniform.name.c_str(),
+                            reinterpret_cast<GLint*>(this->selected_shader->uniform_buffer + uniform.buffer_offset)
+                        );
+                        break;
+                    case UniformDataType::INT_ARRAY:
+                        ImGui::TextUnformatted(uniform.name.c_str());
+                        for (it = 0; it < uniform.array_size; it++) {
+                            sprintf(label[0], "##%s%d", uniform.name.c_str(), it);
+                            ImGui::InputInt(
+                                uniform.name.c_str(),
+                                reinterpret_cast<GLint*>(this->selected_shader->uniform_buffer + uniform.buffer_offset + it * 4)
+                            );
+                        }
+                        break;
+                    case UniformDataType::FLOAT:
+                        ImGui::InputFloat(
+                            uniform.name.c_str(),
+                            reinterpret_cast<GLfloat*>(this->selected_shader->uniform_buffer + uniform.buffer_offset)
+                        );
+                        break;
+                    case UniformDataType::FLOAT_ARRAY:
+                        ImGui::TextUnformatted(uniform.name.c_str());
+                        for (it = 0; it < uniform.array_size; it++) {
+                            sprintf(label[0], "##%s%d", uniform.name.c_str(), it);
+                            ImGui::InputFloat(
+                                uniform.name.c_str(),
+                                reinterpret_cast<GLfloat*>(this->selected_shader->uniform_buffer + uniform.buffer_offset + it * 4)
+                            );
+                        }
+                        break;
+                    case UniformDataType::VEC_2:
+                        ImGui::InputFloat2(
+                            uniform.name.c_str(),
+                            reinterpret_cast<GLfloat*>(this->selected_shader->uniform_buffer + uniform.buffer_offset)
+                        );
+                        break;
+                    case UniformDataType::VEC_2_ARRAY:
+                        ImGui::TextUnformatted(uniform.name.c_str());
+                        for (it = 0; it < uniform.array_size; it++) {
+                            sprintf(label[0], "##%s%d", uniform.name.c_str(), it);
+                            ImGui::InputFloat2(
+                                uniform.name.c_str(),
+                                reinterpret_cast<GLfloat*>(this->selected_shader->uniform_buffer + uniform.buffer_offset + it * 8)
+                            );
+                        }
+                        break;
+                    case UniformDataType::VEC_3:
+                        ImGui::InputFloat3(
+                            uniform.name.c_str(),
+                            reinterpret_cast<GLfloat*>(this->selected_shader->uniform_buffer + uniform.buffer_offset)
+                        );
+                        break;
+                    case UniformDataType::VEC_3_ARRAY:
+                        ImGui::TextUnformatted(uniform.name.c_str());
+                        for (it = 0; it < uniform.array_size; it++) {
+                            sprintf(label[0], "##%s%d", uniform.name.c_str(), it);
+                            ImGui::InputFloat3(
+                                uniform.name.c_str(),
+                                reinterpret_cast<GLfloat*>(this->selected_shader->uniform_buffer + uniform.buffer_offset + it * 8)
+                            );
+                        }
+                        break;
+                    case UniformDataType::VEC_4:
+                        ImGui::InputFloat4(
+                            uniform.name.c_str(),
+                            reinterpret_cast<GLfloat*>(this->selected_shader->uniform_buffer + uniform.buffer_offset)
+                        );
+                        break;
+                    case UniformDataType::VEC_4_ARRAY:
+                        ImGui::TextUnformatted(uniform.name.c_str());
+                        for (it = 0; it < uniform.array_size; it++) {
+                            sprintf(label[0], "##%s%d", uniform.name.c_str(), it);
+                            ImGui::InputFloat4(
+                                uniform.name.c_str(),
+                                reinterpret_cast<GLfloat*>(this->selected_shader->uniform_buffer + uniform.buffer_offset + it * 8)
+                            );
+                        }
+                        break;
+                    case UniformDataType::MAT_4X4:
+                        ImGui::TextUnformatted(uniform.name.c_str());
+                        break;
+                    case UniformDataType::MAT_4X4_ARRAY:
+                        ImGui::TextUnformatted(uniform.name.c_str());
+                        break;
+                }
+            }
         }
         ImGui::EndChild();
         ImGui::BeginChild("error view", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar); 
